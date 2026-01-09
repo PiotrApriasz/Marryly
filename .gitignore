@@ -1,0 +1,114 @@
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ============================
+# IDE SPECIFIC (JetBrains Rider / IntelliJ)
+# ============================
+.idea/
+*.sln.iml
+
+# Rider logs / caches
+.idea/.idea.*
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/contentModel.xml
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/gradle.xml
+.idea/**/libraries
+cmake-build-*/
+out/
+*.ipr
+*.iws
+
+# ============================
+# DOTNET / C#
+# ============================
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# dotnet specific
+*.dll
+*.exe
+*.exe.config
+*.appsettings.local.json
+*.appsettings.Development.json
+*.appsettings.*.local.json
+
+# Rider .NET caches
+*.DotSettings.user
+_ReSharper.Caches/
+
+# Publish
+publish/
+*.pubxml
+*.publish.xml
+
+# Test results
+TestResult*/
+*.TestResults/
+*.coverage
+*.coveragexml
+*.trx
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# ============================
+# OTHER PROJECTS IN REPO
+# ============================
+# Ignore global bin/obj in case other solutions appear in Marryly
+Marryly/**/[Bb]in/
+Marryly/**/[Oo]bj/
+Marryly/**/[Ll]og/
+Marryly/**/[Ll]ogs/
+
+# ============================
+# NODE / FRONTEND (if appears later)
+# ============================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build tools
+dist/
+.cache/
+.next/
+out/
+
+# ============================
+# MISC
+# ============================
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo

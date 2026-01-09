@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  * {
+    @apply border-sand;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  html, body, #root {
+    @apply h-full;
+  }
+
+  body {
+    @apply m-0 bg-paper text-ink font-sans antialiased;
+    font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-ink;
+  }
+}
+
+@layer components {
+  .elegant-link {
+    @apply text-ink transition-all duration-300 hover:text-gold;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
