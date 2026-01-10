@@ -41,9 +41,20 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "src/frontend/marryly-app/web"
+          app_artifact_location: "src/frontend/marryly-app/web/dist"
           output_location: "dist"
           skip_app_build: true
           api_location: ""
+
+      - name: Debug dist
+        working-directory: src/frontend/marryly-app/web
+        run: |
+          echo "=== dist listing ==="
+          ls -la dist
+          echo "=== assets listing ==="
+          ls -la dist/assets || true
+          echo "=== index.html head ==="
+          sed -n '1,80p' dist/index.html
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -56,4 +67,5 @@ jobs:
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WITTY_GLACIER_0D891A103 }}
           action: "close"
+
 
