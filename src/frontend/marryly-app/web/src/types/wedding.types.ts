@@ -14,20 +14,31 @@ export interface WeddingInfo {
 }
 
 export interface MenuItem {
-    id: string;
     name: string;
     description?: string;
-    category: 'starter' | 'main' | 'dessert' | 'drink';
-    allergens?: string[];
+}
+
+export interface MenuSection {
+    name: string;
+    items: MenuItem[];
+}
+
+export interface Menu {
+    id: string;
+    eventId: string;
+    type: 'menu';
+    title: string;
+    sections: MenuSection[];
 }
 
 export interface Event {
     id: string;
+    eventId: string;
+    type: 'event';
     title: string;
-    description?: string;
-    time: string;
-    location?: string;
-    icon?: string;
+    startsAt: string;
+    endsAt: string;
+    location: string;
 }
 
 export interface Attraction {
