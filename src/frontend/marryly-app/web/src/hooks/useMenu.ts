@@ -52,8 +52,21 @@ export function useMenu(): UseMenuResult {
                 };
                 sessionStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
             } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'Nie udało się pobrać menu';
-                setError(errorMessage);
+                console.error("getMenu failed:", err);
+
+                let msg = "Nie udało się pobrać menu";
+
+                if (err && typeof err === "object") {
+                    // axios-like
+                    const anyErr = err as any;
+                    msg =
+                        anyErr?.response?.data?.message ??
+                        anyErr?.response?.data?.error ??
+                        anyErr?.message ??
+                        msg;
+                }
+
+                setError(msg);
                 setMenu(null);
             } finally {
                 setLoading(false);

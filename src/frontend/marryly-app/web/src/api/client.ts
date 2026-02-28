@@ -11,20 +11,26 @@ export class ApiClient {
     }
 
     async getMenu(): Promise<Menu> {
-        const response = await fetch(
-            `${this.baseUrl}/events/${this.eventId}/menu`
-        );
+        const url = `${this.baseUrl}/events/${this.eventId}/menu`;
+        const response = await fetch(url);
 
         if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error('Menu not found');
-            }
-            throw new Error('Failed to fetch menu');
+            const body = await response.text().catch(() => "");
+            console.error("getMenu error", {
+                url,
+                status: response.status,
+                body: body.slice(0, 1000),
+            });
+
+            if (response.status === 404) throw new Error("Menu not found");
+            
+            throw new Error(body ? `API error ${response.status}: ${body}` : `API error ${response.status}`);
         }
 
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Invalid API response - expected JSON but received HTML. Check API configuration.');
+        const contentType = response.headers.get("content-type") ?? "";
+        if (!contentType.includes("application/json")) {
+            const body = await response.text().catch(() => "");
+            throw new Error(`Invalid API response (${contentType}). Body: ${body.slice(0, 300)}`);
         }
 
         return response.json();
