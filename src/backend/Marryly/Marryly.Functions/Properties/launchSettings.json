@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Marryly.Functions": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7028",
+      "launchBrowser": false
+    }
+  }
+}
