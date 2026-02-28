@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          submodules: true
+          submodules: false
           lfs: false
 
       - name: Use Node.js 20
@@ -47,6 +47,11 @@ jobs:
           echo "=== index.html preview ==="
           head -20 dist/index.html
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -56,7 +61,7 @@ jobs:
           action: "upload"
           app_location: "src/frontend/marryly-app/web/dist"
           skip_app_build: true
-          api_location: ""
+          api_location: "src/backend/Marryly"
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
