@@ -79,12 +79,3 @@ export interface Video {
 }
 
 export type MediaItem = Photo | Video;
-
-export interface AdminSettings {
-    allowGuestUploads: boolean;
-    moderationEnabled: boolean;
-    slideshowEnabled: boolean;
-    slideshowInterval: number; // in seconds
-    maxUploadSize: number; // in MB
-    allowedFileTypes: string[];
-}

@@ -33,6 +33,7 @@ public class ProblemDetailsMiddleware(ILogger<ProblemDetailsMiddleware> logger) 
                 status = 500,
                 detail = "Unexpected error occurred.",
                 traceId,
+                code = "UNHANDLED_ERROR",
                 message = ex.Message,
                 stackTrace = ex.StackTrace
             };

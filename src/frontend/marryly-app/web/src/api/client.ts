@@ -1,5 +1,6 @@
 import { config } from '../app/config';
 import type { Menu, Event } from '../types/wedding.types';
+import {responseProcessor} from "./responseProcessor.ts";
 
 export class ApiClient {
     private readonly baseUrl: string;
@@ -15,22 +16,7 @@ export class ApiClient {
         const response = await fetch(url);
 
         if (!response.ok) {
-            const body = await response.text().catch(() => "");
-            console.error("getMenu error", {
-                url,
-                status: response.status,
-                body: body.slice(0, 1000),
-            });
-
-            if (response.status === 404) throw new Error("Menu not found");
-            
-            throw new Error(body ? `API error ${response.status}: ${body}` : `API error ${response.status}`);
-        }
-
-        const contentType = response.headers.get("content-type") ?? "";
-        if (!contentType.includes("application/json")) {
-            const body = await response.text().catch(() => "");
-            throw new Error(`Invalid API response (${contentType}). Body: ${body.slice(0, 300)}`);
+            throw await responseProcessor.parseError(response);
         }
 
         return response.json();
