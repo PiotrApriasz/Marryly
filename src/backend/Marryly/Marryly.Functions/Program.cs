@@ -1,5 +1,6 @@
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.EventDetails;
+using Marryly.Functions.Result;
 using Marryly.Infrastructure.Database;
 using Marryly.Infrastructure.Serialization;
 using Marryly.Infrastructure.Services;
@@ -14,6 +15,8 @@ using Newtonsoft.Json;
 var builder = FunctionsApplication.CreateBuilder(args);
 
 builder.ConfigureFunctionsWebApplication();
+
+builder.UseMiddleware<ProblemDetailsMiddleware>();
 
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()

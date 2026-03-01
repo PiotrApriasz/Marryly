@@ -1,7 +1,10 @@
+using System.Net;
 using Marryly.Application.Interfaces;
+using Marryly.Functions.Result;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Marryly.Functions.EventDetails;
@@ -9,29 +12,21 @@ namespace Marryly.Functions.EventDetails;
 public class GetMenuFunction(ILogger<GetMenuFunction> logger, IEventDetailsService eventDetailsService)
 {
     [Function("GetMenu")]
-    public async Task<IActionResult> Run(
+    public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Function, "get", Route = "events/{eventId}/menu")] 
-        HttpRequest req,
+        HttpRequestData req,
         string eventId)
     {
         logger.LogInformation("Downloading menu for event: {EventId}", eventId);
 
-        try
-        {
-            var menu = await eventDetailsService.GetMenuAsync(eventId);
+        var menu = await eventDetailsService.GetMenuAsync(eventId);
 
-            if (menu == null)
-            {
-                logger.LogWarning("Menu not found for event: {EventId}", eventId);
-                return new NotFoundObjectResult(new { message = "Menu hasn't been found" });
-            }
-
-            return new OkObjectResult(menu);
-        }
-        catch (Exception ex)
+        if (menu == null)
         {
-            logger.LogError(ex, "Error while downloading menu for event: {EventId}", eventId);
-            return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            logger.LogWarning("Menu not found for event: {EventId}", eventId);
+            return await ApiResponse.ProduceErrorResponse(req, HttpStatusCode.NotFound, "MENU_NOT_FOUND", "Menu not found", "Menu for this event does not exist.");
         }
+
+        return await ApiResponse.ProduceSuccessResponse(req, menu);
     }
 }
