@@ -13,7 +13,6 @@ public class EventDetailsService(ICosmosDbService<EventDetail> cosmosDbService) 
         var partitionKey = PartitionKeyResolver.ForEventDetail(eventId);
         
         var result = await cosmosDbService.GetAsync(menuId, partitionKey, ct);
-        
         return result as WeddingMenu;
     }
 
