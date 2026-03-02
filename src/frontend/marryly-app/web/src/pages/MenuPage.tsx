@@ -59,9 +59,9 @@ export default function MenuPage() {
                                             {section.items.map((item, itemIdx) => (
                                                 <li
                                                     key={itemIdx}
-                                                    className="flex items-center"
+                                                    className="flex items-start"
                                                 >
-                                                    <span className="mr-3 h-2 w-2 flex-shrink-0 rounded-full bg-gold" />
+                                                    <span className="mr-3 mt-2.5 h-2 w-2 flex-shrink-0 rounded-full bg-gold" />
                                                     <div className="flex-1">
                                                         <span className="font-sans text-lg text-ink">
                                                             {item.name}
