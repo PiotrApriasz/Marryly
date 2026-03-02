@@ -38,7 +38,7 @@ public class ProblemDetailsMiddleware(ILogger<ProblemDetailsMiddleware> logger) 
                 stackTrace = ex.StackTrace
             };
 
-            await res.WriteStringAsync(JsonSerializer.Serialize(problem));
+            await res.WriteAsJsonAsync(problem);
             context.GetInvocationResult().Value = res;
         }
     }

@@ -1,4 +1,5 @@
 import Layout from '../components/Layout';
+import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useMenu } from '../hooks/useMenu';
 
@@ -33,30 +34,20 @@ export default function MenuPage() {
                         <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
                     </div>
 
-                    {loading && <MenuSkeleton />}
-
-                    {error && (
-                        <div className="mx-auto max-w-2xl text-center">
-                            <div className="rounded-lg border border-rose-200 bg-rose-50 p-6">
-                                <p className="font-sans text-lg text-rose-800 whitespace-pre-wrap break-words text-left">
-                                    {error}
-                                </p>
-
-                                <p className="mt-4 text-sm text-rose-600">
-                                    Spróbuj odświeżyć stronę
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {!loading && !error && menu && (
+                    <PageState
+                        loading={loading}
+                        error={error}
+                        isEmpty={!menu}
+                        emptyMessage="Menu weselne wkrótce zostanie opublikowane"
+                        loadingFallback={<MenuSkeleton />}
+                    >
                         <div className="mx-auto max-w-3xl">
                             <h2 className="mb-8 text-center font-script text-3xl text-ink">
-                                {menu.title}
+                                {menu?.title}
                             </h2>
 
                             <div className="space-y-8">
-                                {menu.sections.map((section, idx) => (
+                                {menu?.sections.map((section, idx) => (
                                     <div
                                         key={idx}
                                         className="rounded-lg border border-sand bg-white p-8 shadow-sm transition-shadow hover:shadow-md"
@@ -68,9 +59,9 @@ export default function MenuPage() {
                                             {section.items.map((item, itemIdx) => (
                                                 <li
                                                     key={itemIdx}
-                                                    className="flex items-start"
+                                                    className="flex items-center"
                                                 >
-                                                    <span className="mr-3 mt-1.5 h-2 w-2 flex-shrink-0 rounded-full bg-gold" />
+                                                    <span className="mr-3 h-2 w-2 flex-shrink-0 rounded-full bg-gold" />
                                                     <div className="flex-1">
                                                         <span className="font-sans text-lg text-ink">
                                                             {item.name}
@@ -88,15 +79,7 @@ export default function MenuPage() {
                                 ))}
                             </div>
                         </div>
-                    )}
-
-                    {!loading && !error && !menu && (
-                        <div className="mx-auto max-w-2xl text-center">
-                            <p className="font-sans text-lg text-muted">
-                                Menu weselne wkrótce zostanie opublikowane
-                            </p>
-                        </div>
-                    )}
+                    </PageState>
                 </Section>
             </div>
         </Layout>

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.EventDetails;
 using Marryly.Functions.Result;
@@ -17,6 +18,12 @@ var builder = FunctionsApplication.CreateBuilder(args);
 builder.ConfigureFunctionsWebApplication();
 
 builder.UseMiddleware<ProblemDetailsMiddleware>();
+
+builder.Services.Configure<JsonSerializerOptions>(options =>
+{
+    options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.PropertyNameCaseInsensitive = true;
+});
 
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()

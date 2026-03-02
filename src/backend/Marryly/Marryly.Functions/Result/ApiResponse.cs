@@ -21,14 +21,13 @@ public static class ApiResponse
             code
         };
 
-        await res.WriteStringAsync(JsonSerializer.Serialize(body));
+        await res.WriteAsJsonAsync(body);
         return res;
     }
     
     public static async Task<HttpResponseData> ProduceSuccessResponse<T>(HttpRequestData req, T data)
     {
         var res = req.CreateResponse(HttpStatusCode.OK);
-        res.Headers.Add("Content-Type", "application/json");
         await res.WriteAsJsonAsync(data);
         return res;
     }

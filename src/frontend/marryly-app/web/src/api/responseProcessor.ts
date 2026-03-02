@@ -15,39 +15,105 @@ function isProblemDetails(value: unknown): value is ProblemDetails {
     );
 }
 
+function looksLikeJson(value: string): boolean {
+    const trimmed = value.trim();
+    return trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.startsWith("\"{");
+}
+
+function tryParseNestedJson(value: string): unknown {
+    let parsed: unknown = value;
+
+    for (let depth = 0; depth < 2 && typeof parsed === "string"; depth += 1) {
+        const trimmed = parsed.trim();
+
+        if (!looksLikeJson(trimmed)) {
+            break;
+        }
+
+        try {
+            parsed = JSON.parse(trimmed);
+        } catch {
+            break;
+        }
+    }
+
+    return parsed;
+}
+
 export class ResponseProcessor {
-    async parseError(res: Response): Promise<ApiError> {
-        const ct = res.headers.get("content-type") ?? "";
+    private async parseBody(res: Response): Promise<unknown> {
+        const text = await res.text().catch(() => "");
 
-        if (ct.includes("application/problem+json") || ct.includes("application/json")) {
-            const parsed: unknown = await res.json().catch(() => null);
+        if (!text) {
+            return null;
+        }
 
-            if (isProblemDetails(parsed)) {
-                const status = res.status;
-                const title = parsed.title;
-                const detail = parsed.detail ?? parsed.message;
-                const msg = detail ?? title ?? `API error ${status}`;
+        const contentType = res.headers.get("content-type") ?? "";
+        if (contentType.includes("json") || looksLikeJson(text)) {
+            return tryParseNestedJson(text);
+        }
 
-                return new ApiError({
-                    message: msg,
-                    status,
-                    code: parsed.code,
-                    traceId: parsed.traceId,
-                    title,
-                    detail,
-                    raw: parsed,
-                });
-            }
+        return text;
+    }
 
-            return new ApiError({
-                message: `API error ${res.status}`,
+    async parseResponse<T>(res: Response): Promise<T> {
+        const body = await this.parseBody(res);
+
+        if (!res.ok) {
+            throw this.toApiError(res, body);
+        }
+
+        if (body === null) {
+            throw new ApiError({
+                message: `Empty API response ${res.status}`,
                 status: res.status,
             });
         }
 
-        const text = await res.text().catch(() => "");
+        if (typeof body === "string") {
+            throw new ApiError({
+                message: body.trim().startsWith("<")
+                    ? "Invalid API response - expected JSON but received HTML. Check API configuration."
+                    : `Invalid API response - expected JSON object but received text.`,
+                status: res.status,
+            });
+        }
+
+        return body as T;
+    }
+
+    async parseError(res: Response): Promise<ApiError> {
+        const body = await this.parseBody(res);
+        return this.toApiError(res, body);
+    }
+
+    private toApiError(res: Response, body: unknown): ApiError {
+        if (isProblemDetails(body)) {
+            const status = body.status ?? res.status;
+            const title = body.title;
+            const detail = body.detail ?? body.message;
+            const message = detail ?? title ?? `API error ${status}`;
+
+            return new ApiError({
+                message,
+                status,
+                code: body.code,
+                traceId: body.traceId,
+                title,
+                detail,
+                raw: body,
+            });
+        }
+
+        if (typeof body === "string" && body.trim()) {
+            return new ApiError({
+                message: body,
+                status: res.status,
+            });
+        }
+
         return new ApiError({
-            message: text || `API error ${res.status}`,
+            message: `API error ${res.status}`,
             status: res.status,
         });
     }

@@ -11,35 +11,22 @@ export class ApiClient {
         this.eventId = config.eventId;
     }
 
+    private async fetchJson<T>(path: string): Promise<T> {
+        const response = await fetch(`${this.baseUrl}${path}`, {
+            headers: {
+                Accept: 'application/json, application/problem+json',
+            },
+        });
+
+        return responseProcessor.parseResponse<T>(response);
+    }
+
     async getMenu(): Promise<Menu> {
-        const url = `${this.baseUrl}/events/${this.eventId}/menu`;
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            throw await responseProcessor.parseError(response);
-        }
-
-        return response.json();
+        return this.fetchJson<Menu>(`/events/${this.eventId}/menu`);
     }
 
     async getEvents(): Promise<Event[]> {
-        const response = await fetch(
-            `${this.baseUrl}/events/${this.eventId}/schedule`
-        );
-
-        if (!response.ok) {
-            if (response.status === 404) {
-                throw new Error('Events not found');
-            }
-            throw new Error('Failed to fetch events');
-        }
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Invalid API response - expected JSON but received HTML. Check API configuration.');
-        }
-
-        return response.json();
+        return this.fetchJson<Event[]>(`/events/${this.eventId}/schedule`);
     }
 }
 

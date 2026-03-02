@@ -1,4 +1,5 @@
 import Layout from '../components/Layout';
+import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useEvents } from '../hooks/useEvents';
 
@@ -44,22 +45,13 @@ export default function EventsPage() {
                         <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
                     </div>
 
-                    {loading && <EventsSkeleton />}
-
-                    {error && (
-                        <div className="mx-auto max-w-2xl text-center">
-                            <div className="rounded-lg border border-rose-200 bg-rose-50 p-6">
-                                <p className="font-sans text-lg text-rose-800">
-                                    {error}
-                                </p>
-                                <p className="mt-2 text-sm text-rose-600">
-                                    Spróbuj odświeżyć stronę
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {!loading && !error && events.length > 0 && (
+                    <PageState
+                        loading={loading}
+                        error={error}
+                        isEmpty={events.length === 0}
+                        emptyMessage="Wkrótce pojawi się tutaj harmonogram dnia"
+                        loadingFallback={<EventsSkeleton />}
+                    >
                         <div className="mx-auto max-w-3xl">
                             <div className="space-y-4">
                                 {events.map((event) => (
@@ -123,15 +115,7 @@ export default function EventsPage() {
                                 ))}
                             </div>
                         </div>
-                    )}
-
-                    {!loading && !error && events.length === 0 && (
-                        <div className="mx-auto max-w-2xl text-center">
-                            <p className="font-sans text-lg text-muted">
-                                Wkrótce pojawi się tutaj harmonogram dnia
-                            </p>
-                        </div>
-                    )}
+                    </PageState>
                 </Section>
             </div>
         </Layout>
