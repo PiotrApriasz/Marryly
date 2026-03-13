@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAdminAuth } from '../auth/AdminAuthContext';
+import Button from './Button';
 
 interface NavLink {
     label: string;
@@ -20,6 +22,12 @@ export default function Navigation() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
+    const { isAuthenticated, user, logout } = useAdminAuth();
+    const isMainPage = location.pathname === '/';
+    const isAdminArea = location.pathname.startsWith('/admin');
+    const showAdminSessionControls = isAdminArea && isAuthenticated;
+    const adminDisplayName = user?.displayName?.trim() || 'Państwo Młodzi';
 
     useEffect(() => {
         const handleScroll = () => {
@@ -33,6 +41,22 @@ export default function Navigation() {
     const handleLinkClick = () => {
         setIsMobileMenuOpen(false);
     };
+
+    const handleAdminLogout = async () => {
+        try {
+            await logout();
+        } catch (error) {
+            console.error('Failed to logout admin session', error);
+        } finally {
+            setIsMobileMenuOpen(false);
+            navigate('/admin', { replace: true });
+        }
+    };
+
+    const adminLinkClassName = `
+        group flex h-10 w-10 items-center justify-center rounded-full border border-gold bg-gold text-white
+        shadow-sm transition-all duration-300 hover:scale-105 hover:bg-gold/90
+    `;
 
     return (
         <nav
@@ -66,7 +90,7 @@ export default function Navigation() {
 
                     {/* Desktop Navigation */}
                     <div className="hidden items-center gap-2 lg:flex">
-                        {navLinks.map((link) => (
+                        {!showAdminSessionControls && navLinks.map((link) => (
                             <Link
                                 key={link.path}
                                 to={link.path}
@@ -90,35 +114,95 @@ export default function Navigation() {
                                 />
                             </Link>
                         ))}
+
+                        {isMainPage && !showAdminSessionControls && (
+                            <Link
+                                to="/admin"
+                                onClick={handleLinkClick}
+                                aria-label="Panel Młodej Pary"
+                                title="Panel Młodej Pary"
+                                className={`${adminLinkClassName} ml-4`}
+                            >
+                                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                    <circle cx="8.5" cy="13.5" r="4.5" />
+                                    <circle cx="15.5" cy="13.5" r="4.5" />
+                                    <path strokeLinecap="round" d="M11 13.5h2" />
+                                    <path strokeLinecap="round" d="M18.5 7.5l1 1 2-2" />
+                                </svg>
+                            </Link>
+                        )}
+
+                        {showAdminSessionControls && (
+                            <div className="ml-4 flex items-center gap-3">
+                                <span className="font-sans text-base font-medium text-ink transition-colors duration-300 hover:text-gold">
+                                    {adminDisplayName}
+                                </span>
+                                <Button type="button" variant="secondary" size="sm" onClick={handleAdminLogout}>
+                                    Wyloguj się
+                                </Button>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                        className="group p-2 text-ink transition-colors duration-300 hover:text-gold lg:hidden"
-                        aria-label="Toggle menu"
-                    >
-                        <div className="flex h-6 w-6 flex-col justify-center gap-1.5">
-                            <span
-                                className={`
-                                    h-0.5 w-full bg-current transition-all duration-300
-                                    ${isMobileMenuOpen ? 'translate-y-2 rotate-45' : ''}
-                                `}
-                            />
-                            <span
-                                className={`
-                                    h-0.5 w-full bg-current transition-all duration-300
-                                    ${isMobileMenuOpen ? 'opacity-0' : ''}
-                                `}
-                            />
-                            <span
-                                className={`
-                                    h-0.5 w-full bg-current transition-all duration-300
-                                    ${isMobileMenuOpen ? '-translate-y-2 -rotate-45' : ''}
-                                `}
-                            />
+                    {!showAdminSessionControls && (
+                        <div className="flex items-center gap-2 lg:hidden">
+                            {/* Mobile Menu Button */}
+                            <button
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                className="group p-2 text-ink transition-colors duration-300 hover:text-gold"
+                                aria-label="Toggle menu"
+                            >
+                                <div className="flex h-6 w-6 flex-col justify-center gap-1.5">
+                                    <span
+                                        className={`
+                                            h-0.5 w-full bg-current transition-all duration-300
+                                            ${isMobileMenuOpen ? 'translate-y-2 rotate-45' : ''}
+                                        `}
+                                    />
+                                    <span
+                                        className={`
+                                            h-0.5 w-full bg-current transition-all duration-300
+                                            ${isMobileMenuOpen ? 'opacity-0' : ''}
+                                        `}
+                                    />
+                                    <span
+                                        className={`
+                                            h-0.5 w-full bg-current transition-all duration-300
+                                            ${isMobileMenuOpen ? '-translate-y-2 -rotate-45' : ''}
+                                        `}
+                                    />
+                                </div>
+                            </button>
+
+                            {isMainPage && (
+                                <Link
+                                    to="/admin"
+                                    onClick={handleLinkClick}
+                                    aria-label="Panel Młodej Pary"
+                                    title="Panel Młodej Pary"
+                                    className={`${adminLinkClassName} ml-1`}
+                                >
+                                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                                        <circle cx="8.5" cy="13.5" r="4.5" />
+                                        <circle cx="15.5" cy="13.5" r="4.5" />
+                                        <path strokeLinecap="round" d="M11 13.5h2" />
+                                        <path strokeLinecap="round" d="M18.5 7.5l1 1 2-2" />
+                                    </svg>
+                                </Link>
+                            )}
                         </div>
-                    </button>
+                    )}
+
+                    {showAdminSessionControls && (
+                        <div className="flex items-center gap-3 lg:hidden">
+                            <span className="font-sans text-base font-medium text-ink">
+                                {adminDisplayName}
+                            </span>
+                            <Button type="button" variant="secondary" size="sm" onClick={handleAdminLogout}>
+                                Wyloguj
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
 
