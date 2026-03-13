@@ -22,3 +22,11 @@ export interface AdminOverview {
     attractionsCount: number;
     settingsCount: number;
 }
+
+export interface AdminGuestBookEntry {
+    id: string;
+    eventId: string;
+    authorName: string;
+    message: string;
+    createdAt: string;
+}

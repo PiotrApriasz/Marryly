@@ -51,10 +51,10 @@ export interface Attraction {
 
 export interface GuestbookEntry {
     id: string;
-    author: string;
+    eventId: string;
+    authorName: string;
     message: string;
-    createdAt: Date;
-    approved: boolean;
+    createdAt: string;
 }
 
 export interface Photo {

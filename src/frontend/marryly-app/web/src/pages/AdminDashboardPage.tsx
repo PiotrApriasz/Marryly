@@ -2,6 +2,7 @@ import Layout from '../components/Layout';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useAdminOverview } from '../hooks/admin/useAdminOverview';
+import { Link } from 'react-router-dom';
 
 function DashboardSkeleton() {
     return (
@@ -20,12 +21,12 @@ function DashboardSkeleton() {
 export default function AdminDashboardPage() {
     const { overview, loading, error } = useAdminOverview();
     const dashboardItems = [
-        { title: 'Zdjęcia', icon: '📸', count: String(overview.photosCount) },
-        { title: 'Goście', icon: '👥', count: String(overview.guestsCount) },
-        { title: 'Wpisy', icon: '💬', count: String(overview.wishesCount) },
-        { title: 'Menu', icon: '🍽️', count: overview.menuPublished ? '1' : '0' },
-        { title: 'Atrakcje', icon: '🎉', count: String(overview.attractionsCount) },
-        { title: 'Ustawienia', icon: '⚙️', count: String(overview.settingsCount) },
+        { title: 'Zdjęcia', icon: '📸', count: String(overview.photosCount), path: null },
+        { title: 'Goście', icon: '👥', count: String(overview.guestsCount), path: null },
+        { title: 'Wpisy', icon: '💬', count: String(overview.wishesCount), path: '/admin/guestbook' },
+        { title: 'Menu', icon: '🍽️', count: overview.menuPublished ? '1' : '0', path: null },
+        { title: 'Atrakcje', icon: '🎉', count: String(overview.attractionsCount), path: null },
+        { title: 'Ustawienia', icon: '⚙️', count: String(overview.settingsCount), path: null },
     ];
 
     return (
@@ -50,14 +51,25 @@ export default function AdminDashboardPage() {
                         loadingFallback={<DashboardSkeleton />}
                     >
                         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                            {dashboardItems.map((item) => (
-                                <div key={item.title}
-                                    className="rounded-2xl border border-sand bg-white p-6 text-center transition-all hover:shadow-md">
-                                    <div className="text-4xl">{item.icon}</div>
-                                    <h3 className="mt-4 font-serif text-xl text-ink">{item.title}</h3>
-                                    <p className="mt-2 text-3xl font-bold text-gold">{item.count}</p>
-                                </div>
-                            ))}
+                            {dashboardItems.map((item) => {
+                                const cardContent = (
+                                    <div className="rounded-2xl border border-sand bg-white p-6 text-center transition-all hover:shadow-md">
+                                        <div className="text-4xl">{item.icon}</div>
+                                        <h3 className="mt-4 font-serif text-xl text-ink">{item.title}</h3>
+                                        <p className="mt-2 text-3xl font-bold text-gold">{item.count}</p>
+                                    </div>
+                                );
+
+                                if (!item.path) {
+                                    return <div key={item.title}>{cardContent}</div>;
+                                }
+
+                                return (
+                                    <Link key={item.title} to={item.path} className="block">
+                                        {cardContent}
+                                    </Link>
+                                );
+                            })}
                         </div>
                     </PageState>
                 </Section>

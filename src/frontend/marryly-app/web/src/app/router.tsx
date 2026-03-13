@@ -10,6 +10,7 @@ import GalleryPage from "../pages/GalleryPage";
 import SlideshowPage from "../pages/SlideshowPage";
 import AdminLoginPage from "../pages/AdminLoginPage";
 import AdminDashboardPage from "../pages/AdminDashboardPage";
+import AdminGuestBookPage from "../pages/AdminGuestBookPage";
 import ProtectedRoute from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
             { path: "/admin/dashboard", element: <AdminDashboardPage /> },
+            { path: "/admin/guestbook", element: <AdminGuestBookPage /> },
         ],
     },
 ]);

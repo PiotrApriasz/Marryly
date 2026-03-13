@@ -1,5 +1,5 @@
 import { config } from '../app/config';
-import type { Menu, Event } from '../types/wedding.types';
+import type { Menu, Event, GuestbookEntry } from '../types/wedding.types';
 import {responseProcessor} from "./responseProcessor.ts";
 
 export class ApiClient {
@@ -27,6 +27,19 @@ export class ApiClient {
 
     async getEvents(): Promise<Event[]> {
         return this.fetchJson<Event[]>(`/events/${this.eventId}/schedule`);
+    }
+
+    async addGuestBookEntry(payload: { authorName: string; message: string }): Promise<GuestbookEntry> {
+        const response = await fetch(`${this.baseUrl}/events/${this.eventId}/guestbook`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json, application/problem+json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        return responseProcessor.parseResponse<GuestbookEntry>(response);
     }
 }
 
