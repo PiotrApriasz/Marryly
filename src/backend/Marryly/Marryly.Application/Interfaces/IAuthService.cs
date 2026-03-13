@@ -7,6 +7,7 @@ public interface IAuthService
 {
     string? ReadCookie(HttpRequestData req, string name);
     string BuildSessionCookie(string token, DateTimeOffset expiresAt);
+    string BuildExpiredSessionCookie();
     bool TryValidateToken(string token, out string email);
     string CreateSignedToken(string email, DateTimeOffset expiresAt);
     int GetSessionHours();

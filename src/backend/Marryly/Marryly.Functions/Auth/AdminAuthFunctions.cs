@@ -7,12 +7,10 @@ using Marryly.Application.Constants;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Auth;
 using Marryly.Functions.Result;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Marryly.Functions.Auth;
 
@@ -135,10 +133,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         HttpRequestData req)
     {
         var response = req.CreateResponse(HttpStatusCode.NoContent);
-        response.Headers.Add(
-            "Set-Cookie",
-            $"{AuthConstants.SessionCookieName}=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT"
-        );
+        response.Headers.Add("Set-Cookie", authService.BuildExpiredSessionCookie());
         return response;
     }
 }

@@ -99,15 +99,53 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
     public string BuildSessionCookie(string token, DateTimeOffset expiresAt)
     {
         var secure = IsSecureCookieEnabled() ? "; Secure" : string.Empty;
+        var sameSite = GetCookieSameSiteValue();
+        var domain = GetCookieDomainAttribute();
         var maxAge = (int)Math.Max((expiresAt - DateTimeOffset.UtcNow).TotalSeconds, 0);
         return
-            $"{AuthConstants.SessionCookieName}={token}; Path=/; HttpOnly; SameSite=Strict; Max-Age={maxAge}; Expires={expiresAt:ddd, dd MMM yyyy HH:mm:ss GMT}{secure}";
+            $"{AuthConstants.SessionCookieName}={token}; Path=/; HttpOnly; SameSite={sameSite}; Max-Age={maxAge}; Expires={expiresAt:ddd, dd MMM yyyy HH:mm:ss GMT}{secure}{domain}";
+    }
+
+    public string BuildExpiredSessionCookie()
+    {
+        var secure = IsSecureCookieEnabled() ? "; Secure" : string.Empty;
+        var sameSite = GetCookieSameSiteValue();
+        var domain = GetCookieDomainAttribute();
+        return
+            $"{AuthConstants.SessionCookieName}=; Path=/; HttpOnly; SameSite={sameSite}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT{secure}{domain}";
     }
 
     public bool IsSecureCookieEnabled()
     {
         var fromConfig = configuration["ADMIN_AUTH_COOKIE_SECURE"];
         return !string.Equals(fromConfig, "false", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public string GetCookieSameSiteValue()
+    {
+        var configured = configuration["ADMIN_AUTH_COOKIE_SAMESITE"];
+        if (string.IsNullOrWhiteSpace(configured))
+        {
+            return IsSecureCookieEnabled() ? "None" : "Lax";
+        }
+
+        return configured switch
+        {
+            "None" => "None",
+            "Strict" => "Strict",
+            _ => "Lax"
+        };
+    }
+
+    public string GetCookieDomainAttribute()
+    {
+        var cookieDomain = configuration["ADMIN_AUTH_COOKIE_DOMAIN"];
+        if (string.IsNullOrWhiteSpace(cookieDomain))
+        {
+            return string.Empty;
+        }
+
+        return $"; Domain={cookieDomain.Trim()}";
     }
 
     public string GetJwtIssuer() => configuration["ADMIN_AUTH_JWT_ISSUER"] ?? "marryly-backend";
