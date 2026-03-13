@@ -96,23 +96,47 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
         }
     }
 
-    public string BuildSessionCookie(string token, DateTimeOffset expiresAt)
+    public void AppendSessionCookie(HttpResponseData response, string token, DateTimeOffset expiresAt)
     {
-        var secure = IsSecureCookieEnabled() ? "; Secure" : string.Empty;
-        var sameSite = GetCookieSameSiteValue();
-        var domain = GetCookieDomainAttribute();
         var maxAge = (int)Math.Max((expiresAt - DateTimeOffset.UtcNow).TotalSeconds, 0);
-        return
-            $"{AuthConstants.SessionCookieName}={token}; Path=/; HttpOnly; SameSite={sameSite}; Max-Age={maxAge}; Expires={expiresAt:ddd, dd MMM yyyy HH:mm:ss GMT}{secure}{domain}";
+        var cookie = new HttpCookie(AuthConstants.SessionCookieName, token)
+        {
+            Path = "/",
+            HttpOnly = true,
+            Secure = IsSecureCookieEnabled(),
+            SameSite = GetCookieSameSiteValue(),
+            MaxAge = maxAge,
+            Expires = expiresAt.UtcDateTime,
+        };
+
+        var domain = GetCookieDomain();
+        if (!string.IsNullOrWhiteSpace(domain))
+        {
+            cookie.Domain = domain;
+        }
+
+        response.Cookies.Append(cookie);
     }
 
-    public string BuildExpiredSessionCookie()
+    public void AppendExpiredSessionCookie(HttpResponseData response)
     {
-        var secure = IsSecureCookieEnabled() ? "; Secure" : string.Empty;
-        var sameSite = GetCookieSameSiteValue();
-        var domain = GetCookieDomainAttribute();
-        return
-            $"{AuthConstants.SessionCookieName}=; Path=/; HttpOnly; SameSite={sameSite}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT{secure}{domain}";
+        var cookie = new HttpCookie(AuthConstants.SessionCookieName, string.Empty)
+        {
+            Path = "/",
+            HttpOnly = true,
+            Secure = IsSecureCookieEnabled(),
+            SameSite = GetCookieSameSiteValue(),
+            MaxAge = 0,
+            Expires = DateTime.UnixEpoch,
+        };
+
+        var domain = GetCookieDomain();
+        if (!string.IsNullOrWhiteSpace(domain))
+        {
+            cookie.Domain = domain;
+        }
+
+        response.Cookies.Append(cookie);
     }
 
     public bool IsSecureCookieEnabled()
@@ -121,31 +145,32 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
         return !string.Equals(fromConfig, "false", StringComparison.OrdinalIgnoreCase);
     }
 
-    public string GetCookieSameSiteValue()
+    public SameSite GetCookieSameSiteValue()
     {
         var configured = configuration["ADMIN_AUTH_COOKIE_SAMESITE"];
         if (string.IsNullOrWhiteSpace(configured))
         {
-            return IsSecureCookieEnabled() ? "None" : "Lax";
+            return IsSecureCookieEnabled() ? SameSite.None : SameSite.Lax;
         }
 
         return configured switch
         {
-            "None" => "None",
-            "Strict" => "Strict",
-            _ => "Lax"
+            "None" => SameSite.None,
+            "Strict" => SameSite.Strict,
+            "ExplicitNone" => SameSite.ExplicitNone,
+            _ => SameSite.Lax
         };
     }
 
-    public string GetCookieDomainAttribute()
+    public string? GetCookieDomain()
     {
         var cookieDomain = configuration["ADMIN_AUTH_COOKIE_DOMAIN"];
         if (string.IsNullOrWhiteSpace(cookieDomain))
         {
-            return string.Empty;
+            return null;
         }
 
-        return $"; Domain={cookieDomain.Trim()}";
+        return cookieDomain.Trim();
     }
 
     public string GetJwtIssuer() => configuration["ADMIN_AUTH_JWT_ISSUER"] ?? "marryly-backend";

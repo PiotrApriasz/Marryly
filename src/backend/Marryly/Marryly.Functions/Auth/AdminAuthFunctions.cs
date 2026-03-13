@@ -81,7 +81,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
                 displayName = adminDisplayName
             }
         });
-        response.Headers.Add("Set-Cookie", authService.BuildSessionCookie(token, expiresAt));
+        authService.AppendSessionCookie(response, token, expiresAt);
 
         return response;
     }
@@ -133,7 +133,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         HttpRequestData req)
     {
         var response = req.CreateResponse(HttpStatusCode.NoContent);
-        response.Headers.Add("Set-Cookie", authService.BuildExpiredSessionCookie());
+        authService.AppendExpiredSessionCookie(response);
         return response;
     }
 }
