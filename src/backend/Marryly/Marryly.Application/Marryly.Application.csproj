@@ -8,6 +8,8 @@
 
     <ItemGroup>
       <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.57.0-preview.1" />
+      <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="2.51.0" />
+      <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.14.0" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.5-beta1" />
     </ItemGroup>
 

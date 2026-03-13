@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Marryly.Functions.Result;
@@ -10,7 +9,6 @@ public static class ApiResponse
         string code, string title, string detail)
     {
         var res = req.CreateResponse(status);
-        res.Headers.Add("Content-Type", "application/problem+json");
 
         var body = new
         {
@@ -21,7 +19,7 @@ public static class ApiResponse
             code
         };
 
-        await res.WriteAsJsonAsync(body);
+        await res.WriteAsJsonAsync(body, "application/problem+json");
         return res;
     }
     

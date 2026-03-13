@@ -13,9 +13,32 @@ W pliku `local.settings.json` (lub w konfiguracji Azure Functions) ustaw:
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "COSMOS_CONNECTION_STRING": "your-cosmos-db-connection-string",
-    "COSMOS_DATABASE_NAME": "MarrylyDB"
+    "COSMOS_DATABASE_NAME": "MarrylyDB",
+    "ADMIN_AUTH_EMAIL": "admin@example.com",
+    "ADMIN_AUTH_PASSWORD_HASH": "<ASP.NET Identity hash>",
+    "ADMIN_AUTH_SECRET": "<min-32-bytes-jwt-secret>",
+    "ADMIN_AUTH_SESSION_HOURS": "12",
+    "ADMIN_AUTH_COOKIE_SECURE": "true",
+    "ADMIN_AUTH_JWT_ISSUER": "marryly-backend",
+    "ADMIN_AUTH_JWT_AUDIENCE": "marryly-admin"
   }
 }
+```
+
+`ADMIN_AUTH_PASSWORD_HASH` should be generated once and stored as a secret (Azure Key Vault / Function App settings), not committed to git.
+
+### Generator hasha hasła admina
+
+W repo jest narzędzie CLI do generowania `ADMIN_AUTH_PASSWORD_HASH`:
+
+```bash
+dotnet run --project Marryly.Tools.PasswordHash -- "twoje-silne-haslo"
+```
+
+albo bez argumentu (interaktywnie, bez wyświetlania wpisywanych znaków):
+
+```bash
+dotnet run --project Marryly.Tools.PasswordHash
 ```
 
 ## Struktura danych Cosmos DB

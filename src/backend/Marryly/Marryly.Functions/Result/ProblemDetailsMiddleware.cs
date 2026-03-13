@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
@@ -23,7 +22,6 @@ public class ProblemDetailsMiddleware(ILogger<ProblemDetailsMiddleware> logger) 
             if (req is null) throw; 
 
             var res = req.CreateResponse(HttpStatusCode.InternalServerError);
-            res.Headers.Add("Content-Type", "application/problem+json");
 
             var traceId = context.InvocationId;
             var problem = new
@@ -38,7 +36,7 @@ public class ProblemDetailsMiddleware(ILogger<ProblemDetailsMiddleware> logger) 
                 stackTrace = ex.StackTrace
             };
 
-            await res.WriteAsJsonAsync(problem);
+            await res.WriteAsJsonAsync(problem, "application/problem+json");
             context.GetInvocationResult().Value = res;
         }
     }

@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marryly.Application", "Marr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marryly.Infrastructure", "Marryly.Infrastructure\Marryly.Infrastructure.csproj", "{8621F8BA-A5CC-4C2F-A02B-6ED8EB8CCED8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Marryly.Tools.PasswordHash", "Marryly.Tools.PasswordHash\Marryly.Tools.PasswordHash.csproj", "{7F7D4A9E-E747-4477-8D6B-0F268A4C2815}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{8621F8BA-A5CC-4C2F-A02B-6ED8EB8CCED8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8621F8BA-A5CC-4C2F-A02B-6ED8EB8CCED8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8621F8BA-A5CC-4C2F-A02B-6ED8EB8CCED8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F7D4A9E-E747-4477-8D6B-0F268A4C2815}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F7D4A9E-E747-4477-8D6B-0F268A4C2815}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F7D4A9E-E747-4477-8D6B-0F268A4C2815}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F7D4A9E-E747-4477-8D6B-0F268A4C2815}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
