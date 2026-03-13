@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminAuthClient } from '../api/adminAuthClient';
+import { subscribeToAdminAuthFailures } from '../api/adminAuthEvents';
 import { ApiError } from '../errors/apiError';
 import type { AdminUser } from '../types/admin.types';
 
@@ -23,6 +24,11 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState<AdminUser | null>(null);
 
+    const clearSessionState = useCallback(() => {
+        setIsAuthenticated(false);
+        setUser(null);
+    }, []);
+
     const refreshSession = useCallback(async () => {
         try {
             const session = await adminAuthClient.getSession();
@@ -32,18 +38,16 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
                 return;
             }
 
-            setIsAuthenticated(false);
-            setUser(null);
+            clearSessionState();
         } catch (error: unknown) {
             if (error instanceof ApiError && error.status === 401) {
-                setIsAuthenticated(false);
-                setUser(null);
+                clearSessionState();
                 return;
             }
 
             throw error;
         }
-    }, []);
+    }, [clearSessionState]);
 
     useEffect(() => {
         let isActive = true;
@@ -54,8 +58,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
             } catch (error) {
                 console.error('Failed to verify admin session', error);
                 if (isActive) {
-                    setIsAuthenticated(false);
-                    setUser(null);
+                    clearSessionState();
                 }
             } finally {
                 if (isActive) {
@@ -69,7 +72,15 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
         return () => {
             isActive = false;
         };
-    }, [refreshSession]);
+    }, [clearSessionState, refreshSession]);
+
+    useEffect(() => {
+        return subscribeToAdminAuthFailures((detail) => {
+            if (detail.reason === 'unauthorized') {
+                clearSessionState();
+            }
+        });
+    }, [clearSessionState]);
 
     const login = useCallback(async (email: string, password: string) => {
         const response = await adminAuthClient.login(email, password);
@@ -79,9 +90,8 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
 
     const logout = useCallback(async () => {
         await adminAuthClient.logout();
-        setIsAuthenticated(false);
-        setUser(null);
-    }, []);
+        clearSessionState();
+    }, [clearSessionState]);
 
     const value = useMemo<AdminAuthContextValue>(
         () => ({

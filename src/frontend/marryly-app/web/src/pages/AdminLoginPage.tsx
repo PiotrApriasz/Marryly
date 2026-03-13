@@ -9,6 +9,7 @@ import { getErrorMessageForDisplay } from '../errors/apiError';
 
 interface LoginLocationState {
     from?: string;
+    reason?: 'session-expired';
 }
 
 export default function AdminLoginPage() {
@@ -19,7 +20,9 @@ export default function AdminLoginPage() {
     const { login, isAuthenticated, isChecking } = useAdminAuth();
     const navigate = useNavigate();
     const location = useLocation();
-    const redirectPath = (location.state as LoginLocationState | null)?.from ?? '/admin/dashboard';
+    const locationState = location.state as LoginLocationState | null;
+    const redirectPath = locationState?.from ?? '/admin/dashboard';
+    const sessionExpired = locationState?.reason === 'session-expired';
 
     useEffect(() => {
         if (!isChecking && isAuthenticated) {
@@ -55,6 +58,13 @@ export default function AdminLoginPage() {
                     </div>
 
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+                        {sessionExpired && !error && (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-left">
+                                <p className="font-sans text-sm text-amber-800">
+                                    Sesja wygasła. Zaloguj się ponownie.
+                                </p>
+                            </div>
+                        )}
                         {error && <ApiErrorAlert message={error} />}
                         <div>
                             <label htmlFor="email" className="block text-left font-sans text-sm font-medium text-ink">

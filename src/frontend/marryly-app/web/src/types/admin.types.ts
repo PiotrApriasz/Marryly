@@ -13,3 +13,12 @@ export interface AdminLoginResponse {
     authenticated: boolean;
     user: AdminUser;
 }
+
+export interface AdminOverview {
+    photosCount: number;
+    guestsCount: number;
+    wishesCount: number;
+    menuPublished: boolean;
+    attractionsCount: number;
+    settingsCount: number;
+}

@@ -1,68 +1,45 @@
-import { config } from '../app/config';
 import type { AdminLoginResponse, AdminSessionResponse } from '../types/admin.types';
-import { responseProcessor } from './responseProcessor.ts';
-
-const ACCEPT_HEADER = 'application/json, application/problem+json';
-
-async function parseOptionalJson<T>(response: Response): Promise<T | null> {
-    const text = await response.text().catch(() => '');
-    if (!text.trim()) {
-        return null;
-    }
-
-    return JSON.parse(text) as T;
-}
+import { ApiError } from '../errors/apiError';
+import { adminApiClient } from './adminApiClient';
 
 export class AdminAuthClient {
-    private readonly baseUrl: string;
-
-    constructor() {
-        this.baseUrl = config.apiBaseUrl;
-    }
-
     async login(email: string, password: string): Promise<AdminLoginResponse> {
-        const response = await fetch(`${this.baseUrl}/panel/auth/login`, {
-            method: 'POST',
-            headers: {
-                Accept: ACCEPT_HEADER,
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ email, password }),
-        });
-
-        return responseProcessor.parseResponse<AdminLoginResponse>(response);
+        return adminApiClient.post<AdminLoginResponse>(
+            '/panel/auth/login',
+            { email, password },
+            { suppressAuthFailureEvent: true }
+        );
     }
 
     async getSession(): Promise<AdminSessionResponse> {
-        const response = await fetch(`${this.baseUrl}/panel/auth/session`, {
-            headers: {
-                Accept: ACCEPT_HEADER,
-            },
-            credentials: 'include',
-        });
+        try {
+            return await adminApiClient.get<AdminSessionResponse>(
+                '/panel/auth/session',
+                { suppressAuthFailureEvent: true }
+            );
+        } catch (error: unknown) {
+            if (error instanceof ApiError && error.status === 401) {
+                return { authenticated: false };
+            }
 
-        if (response.status === 401) {
-            return { authenticated: false };
+            throw error;
         }
-
-        return responseProcessor.parseResponse<AdminSessionResponse>(response);
     }
 
     async logout(): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/panel/auth/logout`, {
-            method: 'POST',
-            headers: {
-                Accept: ACCEPT_HEADER,
-            },
-            credentials: 'include',
-        });
+        try {
+            await adminApiClient.post<void>(
+                '/panel/auth/logout',
+                undefined,
+                { suppressAuthFailureEvent: true }
+            );
+        } catch (error: unknown) {
+            if (error instanceof ApiError && error.status === 401) {
+                return;
+            }
 
-        if (!response.ok) {
-            throw await responseProcessor.parseError(response);
+            throw error;
         }
-
-        await parseOptionalJson<unknown>(response);
     }
 }
 

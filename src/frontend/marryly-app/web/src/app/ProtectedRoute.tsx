@@ -14,7 +14,7 @@ export default function ProtectedRoute() {
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/admin" replace state={{ from: location.pathname }} />;
+        return <Navigate to="/admin" replace state={{ from: location.pathname, reason: 'session-expired' }} />;
     }
 
     return <Outlet />;
