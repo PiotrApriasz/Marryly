@@ -83,9 +83,15 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     }, [clearSessionState]);
 
     const login = useCallback(async (email: string, password: string) => {
-        const response = await adminAuthClient.login(email, password);
-        setIsAuthenticated(response.authenticated);
-        setUser(response.user);
+        await adminAuthClient.login(email, password);
+        const session = await adminAuthClient.getSession();
+
+        if (!session.authenticated || !session.user) {
+            throw new Error('Sesja nie została zapisana w przeglądarce. Sprawdź ustawienia cookie (SameSite/Secure/CORS/domena).');
+        }
+
+        setIsAuthenticated(true);
+        setUser(session.user);
     }, []);
 
     const logout = useCallback(async () => {

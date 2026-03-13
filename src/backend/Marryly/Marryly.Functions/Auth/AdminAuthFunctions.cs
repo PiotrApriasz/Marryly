@@ -71,7 +71,6 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         var token = authService.CreateSignedToken(adminEmail, expiresAt);
 
         var response = req.CreateResponse(HttpStatusCode.OK);
-        response.Headers.Add("Set-Cookie", authService.BuildSessionCookie(token, expiresAt));
         await response.WriteAsJsonAsync(new
         {
             authenticated = true,
@@ -82,6 +81,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
                 displayName = adminDisplayName
             }
         });
+        response.Headers.Add("Set-Cookie", authService.BuildSessionCookie(token, expiresAt));
 
         return response;
     }
