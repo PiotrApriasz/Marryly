@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using Marryly.Application.Models.EventDetails;
+using Marryly.Application.Models.GuestBook;
 using Microsoft.Azure.Cosmos;
 
 namespace Marryly.Infrastructure.Database;
@@ -11,9 +12,12 @@ public static class PartitionKeyResolver
         EventDetail g => new PartitionKeyBuilder()
             .Add(g.EventId)
             .Build(),
+        GuestBookEntry g => new PartitionKeyBuilder()
+            .Add(g.EventId)
+            .Build(),
         _ => throw new InvalidOperationException("No partition key definition for this entity type.")
     };
     
-    public static PartitionKey ForEventDetail(string eventId) =>
+    public static PartitionKey ForEventIdBasedData(string eventId) =>
         new PartitionKeyBuilder().Add(eventId).Build();
 }

@@ -9,4 +9,5 @@ public interface ICosmosDbService<T>
     Task<T> UpsertAsync(T entity, CancellationToken ct = default);
     Task DeleteAsync(string id, PartitionKey pk, CancellationToken ct = default);
     IAsyncEnumerable<T> QueryAsync(string? query = null, QueryRequestOptions? opts = null, CancellationToken ct = default);
+    IAsyncEnumerable<T> QueryAsync(QueryDefinition queryDefinition, QueryRequestOptions? opts = null, CancellationToken ct = default);
 }

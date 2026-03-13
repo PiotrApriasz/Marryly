@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.EventDetails;
+using Marryly.Application.Models.GuestBook;
 using Marryly.Functions.Result;
 using Marryly.Infrastructure.Database;
 using Marryly.Infrastructure.Serialization;
@@ -57,6 +58,7 @@ builder.Services.AddSingleton<ICosmosContainerProvider, CosmosContainerProvider>
 builder.Services.AddScoped(typeof(ICosmosDbService<>), typeof(CosmosDbService<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEventDetailsService, EventDetailsService>();
+builder.Services.AddScoped<IGuestBookService, GuestBookService>();
 builder.Services.AddScoped<IOverviewService, OverviewService>();
 
 builder.Build().Run();

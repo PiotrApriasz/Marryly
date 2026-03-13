@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.EventDetails;
+using Marryly.Application.Models.GuestBook;
 using Microsoft.Azure.Cosmos;
 
 namespace Marryly.Infrastructure.Database;
@@ -15,6 +16,7 @@ public class CosmosDbService<T> : ICosmosDbService<T>
     private readonly Dictionary<Type,string> _containerMap = new()
     {
         { typeof(EventDetail), "EventData" },
+        { typeof(GuestBookEntry), "GuestbookEntry" },
     };
 
     public CosmosDbService(ICosmosContainerProvider provider)

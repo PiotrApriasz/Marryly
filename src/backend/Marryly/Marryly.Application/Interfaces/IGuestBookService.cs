@@ -1,9 +1,9 @@
-using Marryly.Application.Models.Wishes;
+using Marryly.Application.Models.GuestBook;
 
 namespace Marryly.Application.Interfaces;
 
 public interface IGuestBookService
 {
-    Task<bool> AddWishAsync(string eventId, GuestBookEntry guestBookEntry, CancellationToken ct = default);
-    Task<bool> GetAllWishesAsync(string eventId, CancellationToken ct = default);
+    Task<GuestBookEntry> AddGuestBookEntryAsync(string eventId, GuestBookEntry guestBookEntry, CancellationToken ct = default);
+    Task<List<GuestBookEntry>> GetAllGuestBookEntriesAsync(string eventId, CancellationToken ct = default);
 }

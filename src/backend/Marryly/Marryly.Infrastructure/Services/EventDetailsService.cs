@@ -10,7 +10,7 @@ public class EventDetailsService(ICosmosDbService<EventDetail> cosmosDbService) 
     public async Task<WeddingMenu?> GetMenuAsync(string eventId, CancellationToken ct = default)
     {
         var menuId = $"{eventId}:menu";
-        var partitionKey = PartitionKeyResolver.ForEventDetail(eventId);
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
         
         var result = await cosmosDbService.GetAsync(menuId, partitionKey, ct);
         return result as WeddingMenu;
@@ -21,7 +21,7 @@ public class EventDetailsService(ICosmosDbService<EventDetail> cosmosDbService) 
         var query = $"SELECT * FROM c WHERE c.eventId = '{eventId}' AND c.type = 'event'";
         var queryOptions = new QueryRequestOptions
         {
-            PartitionKey = PartitionKeyResolver.ForEventDetail(eventId)
+            PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId)
         };
 
         var events = new List<WeddingEvent>();
