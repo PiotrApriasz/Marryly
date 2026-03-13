@@ -57,5 +57,6 @@ builder.Services.AddSingleton<ICosmosContainerProvider, CosmosContainerProvider>
 builder.Services.AddScoped(typeof(ICosmosDbService<>), typeof(CosmosDbService<>));
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEventDetailsService, EventDetailsService>();
+builder.Services.AddScoped<IOverviewService, OverviewService>();
 
 builder.Build().Run();
