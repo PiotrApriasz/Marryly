@@ -27,8 +27,11 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     const [user, setUser] = useState<AdminUser | null>(null);
     const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
 
-    const clearSessionState = useCallback(() => {
-        clearAdminAccessToken();
+    const clearSessionState = useCallback((options?: { preserveToken?: boolean }) => {
+        if (!options?.preserveToken) {
+            clearAdminAccessToken();
+        }
+
         setIsAuthenticated(false);
         setUser(null);
     }, []);
@@ -68,7 +71,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
                     return;
                 }
 
-                clearSessionState();
+                clearSessionState({ preserveToken: true });
                 return;
             }
 
@@ -107,7 +110,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
                 const diagnosticMessage = detail.detail || detail.message || 'Sesja wygasła lub token został odrzucony.';
                 const diagnosticCode = detail.code ? ` [${detail.code}]` : '';
                 setAuthErrorMessage(`${diagnosticMessage}${diagnosticCode}`);
-                clearSessionState();
+                clearSessionState({ preserveToken: true });
             }
         });
     }, [clearSessionState]);
