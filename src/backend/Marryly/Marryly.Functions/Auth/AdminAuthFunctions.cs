@@ -69,6 +69,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         var sessionHours = authService.GetSessionHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(sessionHours);
         var token = authService.CreateSignedToken(adminEmail, expiresAt);
+        var selfValidationPassed = authService.TryValidateToken(token, out _, out var selfValidationMessage);
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteAsJsonAsync(new
@@ -85,7 +86,12 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
             {
                 secretFingerprint = authService.GetSecretFingerprint(),
                 issuer = authService.GetJwtIssuer(),
-                audience = authService.GetJwtAudience()
+                audience = authService.GetJwtAudience(),
+                tokenFingerprint = authService.GetTokenFingerprint(token),
+                selfValidationPassed,
+                selfValidationMessage,
+                signingKey = authService.GetNormalizedSecretForDiagnostics(),
+                validationKey = authService.GetNormalizedSecretForDiagnostics()
             }
         });
         authService.AppendSessionCookie(response, token, expiresAt);
@@ -117,7 +123,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
                 HttpStatusCode.Unauthorized,
                 "SESSION_INVALID",
                 "Unauthorized",
-                BuildJwtDiagnosticMessage(authService, diagnosticMessage)
+                BuildJwtDiagnosticMessage(authService, token, diagnosticMessage)
             );
         }
 
@@ -144,9 +150,9 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         return response;
     }
 
-    private static string BuildJwtDiagnosticMessage(IAuthService authService, string? diagnosticMessage)
+    private static string BuildJwtDiagnosticMessage(IAuthService authService, string token, string? diagnosticMessage)
     {
         var baseMessage = diagnosticMessage ?? "Session is invalid or expired.";
-        return $"{baseMessage} [secretFingerprint={authService.GetSecretFingerprint()}, issuer={authService.GetJwtIssuer()}, audience={authService.GetJwtAudience()}]";
+        return $"{baseMessage} [secretFingerprint={authService.GetSecretFingerprint()}, issuer={authService.GetJwtIssuer()}, audience={authService.GetJwtAudience()}, receivedTokenFingerprint={authService.GetTokenFingerprint(token)}, validationKey={authService.GetNormalizedSecretForDiagnostics()}]";
     }
 }

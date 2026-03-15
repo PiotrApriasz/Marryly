@@ -14,6 +14,8 @@ public interface IAuthService
     bool TryValidateToken(string token, out string email);
     bool TryValidateToken(string token, out string email, out string? diagnosticMessage);
     string GetSecretFingerprint();
+    string GetNormalizedSecretForDiagnostics();
+    string GetTokenFingerprint(string token);
     string GetJwtIssuer();
     string GetJwtAudience();
     string CreateSignedToken(string email, DateTimeOffset expiresAt);

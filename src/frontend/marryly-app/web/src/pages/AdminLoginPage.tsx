@@ -5,6 +5,7 @@ import ApiErrorAlert from '../components/ApiErrorAlert';
 import Layout from '../components/Layout';
 import Section from '../components/Section';
 import Button from '../components/Button';
+import { readAdminLoginDiagnostics } from '../api/adminTokenStorage';
 import { getErrorMessageForDisplay } from '../errors/apiError';
 
 interface LoginLocationState {
@@ -23,6 +24,7 @@ export default function AdminLoginPage() {
     const locationState = location.state as LoginLocationState | null;
     const redirectPath = locationState?.from ?? '/admin/dashboard';
     const sessionExpired = locationState?.reason === 'session-expired';
+    const loginDiagnostics = readAdminLoginDiagnostics();
 
     useEffect(() => {
         if (!isChecking && isAuthenticated) {
@@ -59,10 +61,29 @@ export default function AdminLoginPage() {
 
                     <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
                         {sessionExpired && !error && (
-                            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-left">
-                                <p className="font-sans text-sm text-amber-800">
+                            <div className="space-y-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-left">
+                                <p className="font-sans text-sm text-amber-800 whitespace-pre-wrap">
                                     {authErrorMessage ?? 'Sesja wygasła. Zaloguj się ponownie.'}
                                 </p>
+                                {loginDiagnostics && (
+                                    <div className="rounded-md border border-amber-200 bg-white/70 p-3">
+                                        <p className="font-sans text-xs font-semibold uppercase tracking-[0.24em] text-amber-900">
+                                            Login Diagnostics
+                                        </p>
+                                        <div className="mt-2 space-y-1 font-mono text-xs text-amber-900 break-all">
+                                            <p>tokenFingerprint: {loginDiagnostics.tokenFingerprint ?? 'n/a'}</p>
+                                            <p>secretFingerprint: {loginDiagnostics.secretFingerprint ?? 'n/a'}</p>
+                                            <p>issuer: {loginDiagnostics.issuer ?? 'n/a'}</p>
+                                            <p>audience: {loginDiagnostics.audience ?? 'n/a'}</p>
+                                            <p>selfValidationPassed: {String(loginDiagnostics.selfValidationPassed ?? false)}</p>
+                                            <p>signingKey: {loginDiagnostics.signingKey ?? 'n/a'}</p>
+                                            <p>validationKey: {loginDiagnostics.validationKey ?? 'n/a'}</p>
+                                            {loginDiagnostics.selfValidationMessage && (
+                                                <p>selfValidationMessage: {loginDiagnostics.selfValidationMessage}</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                         {error && <ApiErrorAlert message={error} />}

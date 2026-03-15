@@ -276,6 +276,19 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
         return Convert.ToHexString(hash)[..12];
     }
 
+    public string GetNormalizedSecretForDiagnostics() => GetNormalizedSecret() ?? string.Empty;
+
+    public string GetTokenFingerprint(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return "missing";
+        }
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(token.Trim()));
+        return Convert.ToHexString(hash)[..12];
+    }
+
     public SymmetricSecurityKey GetJwtSigningKey()
     {
         var secret = GetNormalizedSecret();
