@@ -9,6 +9,7 @@ interface AdminAuthContextValue {
     isAuthenticated: boolean;
     isChecking: boolean;
     user: AdminUser | null;
+    authErrorMessage: string | null;
     login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     refreshSession: () => Promise<void>;
@@ -24,6 +25,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     const [isChecking, setIsChecking] = useState(true);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState<AdminUser | null>(null);
+    const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
 
     const clearSessionState = useCallback(() => {
         clearAdminAccessToken();
@@ -46,12 +48,14 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
                 writeAdminUser(session.user);
                 setIsAuthenticated(true);
                 setUser(session.user);
+                setAuthErrorMessage(null);
                 return;
             }
 
             if (storedUser) {
                 setIsAuthenticated(true);
                 setUser(storedUser);
+                setAuthErrorMessage(null);
                 return;
             }
 
@@ -100,18 +104,23 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     useEffect(() => {
         return subscribeToAdminAuthFailures((detail) => {
             if (detail.reason === 'unauthorized') {
+                const diagnosticMessage = detail.detail || detail.message || 'Sesja wygasła lub token został odrzucony.';
+                const diagnosticCode = detail.code ? ` [${detail.code}]` : '';
+                setAuthErrorMessage(`${diagnosticMessage}${diagnosticCode}`);
                 clearSessionState();
             }
         });
     }, [clearSessionState]);
 
     const login = useCallback(async (email: string, password: string) => {
+        setAuthErrorMessage(null);
         const loginResponse = await adminAuthClient.login(email, password);
 
         if (loginResponse.authenticated && loginResponse.user && loginResponse.accessToken) {
             writeAdminUser(loginResponse.user);
             setIsAuthenticated(true);
             setUser(loginResponse.user);
+            setAuthErrorMessage(null);
             return;
         }
 
@@ -120,6 +129,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
 
     const logout = useCallback(async () => {
         await adminAuthClient.logout();
+        setAuthErrorMessage(null);
         clearSessionState();
     }, [clearSessionState]);
 
@@ -128,11 +138,12 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
             isAuthenticated,
             isChecking,
             user,
+            authErrorMessage,
             login,
             logout,
             refreshSession,
         }),
-        [isAuthenticated, isChecking, user, login, logout, refreshSession]
+        [isAuthenticated, isChecking, user, authErrorMessage, login, logout, refreshSession]
     );
 
     return (

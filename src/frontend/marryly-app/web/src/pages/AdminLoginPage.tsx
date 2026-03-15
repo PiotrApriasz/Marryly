@@ -17,7 +17,7 @@ export default function AdminLoginPage() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const { login, isAuthenticated, isChecking } = useAdminAuth();
+    const { login, isAuthenticated, isChecking, authErrorMessage } = useAdminAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const locationState = location.state as LoginLocationState | null;
@@ -61,7 +61,7 @@ export default function AdminLoginPage() {
                         {sessionExpired && !error && (
                             <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-left">
                                 <p className="font-sans text-sm text-amber-800">
-                                    Sesja wygasła. Zaloguj się ponownie.
+                                    {authErrorMessage ?? 'Sesja wygasła. Zaloguj się ponownie.'}
                                 </p>
                             </div>
                         )}

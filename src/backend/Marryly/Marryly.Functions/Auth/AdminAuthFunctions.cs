@@ -104,14 +104,14 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
             );
         }
 
-        if (!authService.TryValidateToken(token, out var email))
+        if (!authService.TryValidateToken(token, out var email, out var diagnosticMessage))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "SESSION_INVALID",
                 "Unauthorized",
-                "Session is invalid or expired."
+                diagnosticMessage ?? "Session is invalid or expired."
             );
         }
 

@@ -35,14 +35,14 @@ public class GetGuestBookEntriesFunction(
             );
         }
 
-        if (!authService.TryValidateToken(token, out _))
+        if (!authService.TryValidateToken(token, out _, out var diagnosticMessage))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "SESSION_INVALID",
                 "Unauthorized",
-                "Session is invalid or expired."
+                diagnosticMessage ?? "Session is invalid or expired."
             );
         }
 

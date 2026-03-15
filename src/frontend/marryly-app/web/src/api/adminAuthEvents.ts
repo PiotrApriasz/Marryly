@@ -3,6 +3,9 @@ export type AdminAuthFailureReason = 'unauthorized' | 'forbidden';
 export interface AdminAuthFailureDetail {
     reason: AdminAuthFailureReason;
     status: number;
+    code?: string;
+    message?: string;
+    detail?: string;
 }
 
 const ADMIN_AUTH_FAILURE_EVENT = 'admin-auth-failure';

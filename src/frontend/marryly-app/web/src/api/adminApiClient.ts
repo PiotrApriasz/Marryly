@@ -57,9 +57,21 @@ export class AdminApiClient {
 
             if (!suppressAuthFailureEvent && apiError instanceof ApiError) {
                 if (apiError.status === 401) {
-                    notifyAdminAuthFailure({ reason: 'unauthorized', status: 401 });
+                    notifyAdminAuthFailure({
+                        reason: 'unauthorized',
+                        status: 401,
+                        code: apiError.code,
+                        message: apiError.message,
+                        detail: apiError.detail,
+                    });
                 } else if (apiError.status === 403) {
-                    notifyAdminAuthFailure({ reason: 'forbidden', status: 403 });
+                    notifyAdminAuthFailure({
+                        reason: 'forbidden',
+                        status: 403,
+                        code: apiError.code,
+                        message: apiError.message,
+                        detail: apiError.detail,
+                    });
                 }
             }
 

@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace Marryly.Infrastructure.Services;
@@ -68,7 +69,13 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
 
     public bool TryValidateToken(string token, out string email)
     {
+        return TryValidateToken(token, out email, out _);
+    }
+
+    public bool TryValidateToken(string token, out string email, out string? diagnosticMessage)
+    {
         email = string.Empty;
+        diagnosticMessage = null;
         var validationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
@@ -90,8 +97,52 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
                     ?? string.Empty;
             return !string.IsNullOrWhiteSpace(email);
         }
+        catch (SecurityTokenExpiredException ex)
+        {
+            diagnosticMessage = $"JWT expired at {ex.Expires:O}.";
+            logger.LogWarning(ex, "Admin JWT validation failed: token expired.");
+            return false;
+        }
+        catch (SecurityTokenInvalidSignatureException ex)
+        {
+            diagnosticMessage = "JWT signature validation failed. Check ADMIN_AUTH_SECRET across all environments.";
+            logger.LogWarning(ex, "Admin JWT validation failed: invalid signature.");
+            return false;
+        }
+        catch (SecurityTokenInvalidIssuerException ex)
+        {
+            diagnosticMessage = $"JWT issuer mismatch. Expected '{GetJwtIssuer()}', received '{ex.InvalidIssuer ?? "unknown"}'.";
+            logger.LogWarning(ex, "Admin JWT validation failed: invalid issuer.");
+            return false;
+        }
+        catch (SecurityTokenInvalidAudienceException ex)
+        {
+            diagnosticMessage = $"JWT audience mismatch. Expected '{GetJwtAudience()}', received '{ex.InvalidAudience ?? "unknown"}'.";
+            logger.LogWarning(ex, "Admin JWT validation failed: invalid audience.");
+            return false;
+        }
+        catch (SecurityTokenNotYetValidException ex)
+        {
+            diagnosticMessage = $"JWT is not valid before {ex.NotBefore:O}.";
+            logger.LogWarning(ex, "Admin JWT validation failed: token not yet valid.");
+            return false;
+        }
+        catch (ArgumentException ex)
+        {
+            diagnosticMessage = $"JWT format is invalid: {ex.Message}";
+            logger.LogWarning(ex, "Admin JWT validation failed: malformed token.");
+            return false;
+        }
+        catch (CryptographicException ex)
+        {
+            diagnosticMessage = $"JWT cryptographic validation failed: {ex.Message}";
+            logger.LogWarning(ex, "Admin JWT validation failed: cryptographic error.");
+            return false;
+        }
         catch (Exception)
         {
+            diagnosticMessage = "JWT validation failed for an unexpected reason.";
+            logger.LogWarning("Admin JWT validation failed: unexpected error.");
             return false;
         }
     }
