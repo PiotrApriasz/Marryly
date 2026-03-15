@@ -171,9 +171,28 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
         return null;
     }
 
+    public string? ReadCustomHeaderToken(HttpRequestData req)
+    {
+        if (!req.Headers.TryGetValues(AuthConstants.AdminTokenHeaderName, out var values))
+        {
+            return null;
+        }
+
+        foreach (var value in values)
+        {
+            var token = value.Trim();
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                return token;
+            }
+        }
+
+        return null;
+    }
+
     public string? ReadAccessToken(HttpRequestData req, string cookieName)
     {
-        return ReadBearerToken(req) ?? ReadCookie(req, cookieName);
+        return ReadCustomHeaderToken(req) ?? ReadBearerToken(req) ?? ReadCookie(req, cookieName);
     }
 
     public bool TryValidateRequest(HttpRequestData req, string cookieName, out string email)

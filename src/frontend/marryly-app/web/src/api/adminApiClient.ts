@@ -5,6 +5,7 @@ import { readAdminAccessToken } from './adminTokenStorage';
 import { responseProcessor } from './responseProcessor.ts';
 
 const ACCEPT_HEADER = 'application/json, application/problem+json';
+const ADMIN_TOKEN_HEADER = 'X-Marryly-Admin-Token';
 
 interface AdminRequestOptions {
     method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -46,7 +47,7 @@ export class AdminApiClient {
             headers: {
                 Accept: ACCEPT_HEADER,
                 ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
-                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+                ...(accessToken ? { [ADMIN_TOKEN_HEADER]: accessToken } : {}),
                 ...headers,
             },
             ...(hasBody ? { body: JSON.stringify(body) } : {}),
