@@ -42,7 +42,7 @@ public class GetGuestBookEntriesFunction(
                 HttpStatusCode.Unauthorized,
                 "SESSION_INVALID",
                 "Unauthorized",
-                diagnosticMessage ?? "Session is invalid or expired."
+                BuildJwtDiagnosticMessage(authService, diagnosticMessage)
             );
         }
 
@@ -83,5 +83,11 @@ public class GetGuestBookEntriesFunction(
     {
         var query = QueryHelpers.ParseQuery(req.Url.Query);
         return query.TryGetValue("eventId", out var eventId) ? eventId.ToString() : configuration["EVENT_ID"];
+    }
+
+    private static string BuildJwtDiagnosticMessage(IAuthService authService, string? diagnosticMessage)
+    {
+        var baseMessage = diagnosticMessage ?? "Session is invalid or expired.";
+        return $"{baseMessage} [secretFingerprint={authService.GetSecretFingerprint()}, issuer={authService.GetJwtIssuer()}, audience={authService.GetJwtAudience()}]";
     }
 }

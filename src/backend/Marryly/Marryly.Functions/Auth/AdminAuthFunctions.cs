@@ -80,6 +80,12 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
                 id = "bride-groom-admin",
                 email = adminEmail,
                 displayName = adminDisplayName
+            },
+            diagnostics = new
+            {
+                secretFingerprint = authService.GetSecretFingerprint(),
+                issuer = authService.GetJwtIssuer(),
+                audience = authService.GetJwtAudience()
             }
         });
         authService.AppendSessionCookie(response, token, expiresAt);
@@ -111,7 +117,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
                 HttpStatusCode.Unauthorized,
                 "SESSION_INVALID",
                 "Unauthorized",
-                diagnosticMessage ?? "Session is invalid or expired."
+                BuildJwtDiagnosticMessage(authService, diagnosticMessage)
             );
         }
 
@@ -136,5 +142,11 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         var response = req.CreateResponse(HttpStatusCode.NoContent);
         authService.AppendExpiredSessionCookie(response);
         return response;
+    }
+
+    private static string BuildJwtDiagnosticMessage(IAuthService authService, string? diagnosticMessage)
+    {
+        var baseMessage = diagnosticMessage ?? "Session is invalid or expired.";
+        return $"{baseMessage} [secretFingerprint={authService.GetSecretFingerprint()}, issuer={authService.GetJwtIssuer()}, audience={authService.GetJwtAudience()}]";
     }
 }

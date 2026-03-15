@@ -13,6 +13,9 @@ public interface IAuthService
     void AppendExpiredSessionCookie(HttpResponseData response);
     bool TryValidateToken(string token, out string email);
     bool TryValidateToken(string token, out string email, out string? diagnosticMessage);
+    string GetSecretFingerprint();
+    string GetJwtIssuer();
+    string GetJwtAudience();
     string CreateSignedToken(string email, DateTimeOffset expiresAt);
     int GetSessionHours();
     bool MatchesPassword(string candidatePassword, string? passwordHash, string? plainTextPassword);

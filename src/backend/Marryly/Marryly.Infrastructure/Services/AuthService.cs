@@ -264,6 +264,18 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
 
     public string GetJwtAudience() => configuration["ADMIN_AUTH_JWT_AUDIENCE"] ?? "marryly-admin";
 
+    public string GetSecretFingerprint()
+    {
+        var secret = configuration["ADMIN_AUTH_SECRET"];
+        if (string.IsNullOrWhiteSpace(secret))
+        {
+            return "missing";
+        }
+
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(secret.Trim()));
+        return Convert.ToHexString(hash)[..12];
+    }
+
     public SymmetricSecurityKey GetJwtSigningKey()
     {
         var secret = configuration["ADMIN_AUTH_SECRET"];
