@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminAuthClient } from '../api/adminAuthClient';
 import { subscribeToAdminAuthFailures } from '../api/adminAuthEvents';
-import { clearAdminAccessToken } from '../api/adminTokenStorage';
+import { clearAdminAccessToken, hasValidAdminAccessToken, readAdminUser, writeAdminUser } from '../api/adminTokenStorage';
 import { ApiError } from '../errors/apiError';
 import type { AdminUser } from '../types/admin.types';
 
@@ -32,17 +32,38 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     }, []);
 
     const refreshSession = useCallback(async () => {
+        const hasValidToken = hasValidAdminAccessToken();
+        const storedUser = readAdminUser();
+
+        if (!hasValidToken) {
+            clearSessionState();
+            return;
+        }
+
         try {
             const session = await adminAuthClient.getSession();
             if (session.authenticated && session.user) {
+                writeAdminUser(session.user);
                 setIsAuthenticated(true);
                 setUser(session.user);
+                return;
+            }
+
+            if (storedUser) {
+                setIsAuthenticated(true);
+                setUser(storedUser);
                 return;
             }
 
             clearSessionState();
         } catch (error: unknown) {
             if (error instanceof ApiError && error.status === 401) {
+                if (storedUser && hasValidAdminAccessToken()) {
+                    setIsAuthenticated(true);
+                    setUser(storedUser);
+                    return;
+                }
+
                 clearSessionState();
                 return;
             }
@@ -87,19 +108,14 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     const login = useCallback(async (email: string, password: string) => {
         const loginResponse = await adminAuthClient.login(email, password);
 
-        if (loginResponse.authenticated && loginResponse.user) {
+        if (loginResponse.authenticated && loginResponse.user && loginResponse.accessToken) {
+            writeAdminUser(loginResponse.user);
             setIsAuthenticated(true);
             setUser(loginResponse.user);
+            return;
         }
 
-        const session = await adminAuthClient.getSession();
-
-        if (!session.authenticated || !session.user) {
-            throw new Error('Sesja nie została potwierdzona po logowaniu. Sprawdź konfigurację auth na produkcji.');
-        }
-
-        setIsAuthenticated(true);
-        setUser(session.user);
+        throw new Error('Logowanie zwróciło niepełną odpowiedź. Brakuje accessToken lub danych użytkownika.');
     }, []);
 
     const logout = useCallback(async () => {
