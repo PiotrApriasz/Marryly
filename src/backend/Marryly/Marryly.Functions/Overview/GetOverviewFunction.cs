@@ -22,7 +22,7 @@ public class GetOverviewFunction(
         HttpRequestData req,
         CancellationToken ct)
     {
-        var token = authService.ReadCookie(req, AuthConstants.SessionCookieName);
+        var token = authService.ReadAccessToken(req, AuthConstants.SessionCookieName);
         if (string.IsNullOrWhiteSpace(token))
         {
             return await ApiResponse.ProduceErrorResponse(

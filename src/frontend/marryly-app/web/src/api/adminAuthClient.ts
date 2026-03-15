@@ -1,14 +1,21 @@
 import type { AdminLoginResponse, AdminSessionResponse } from '../types/admin.types';
 import { ApiError } from '../errors/apiError';
 import { adminApiClient } from './adminApiClient';
+import { clearAdminAccessToken, writeAdminAccessToken } from './adminTokenStorage';
 
 export class AdminAuthClient {
     async login(email: string, password: string): Promise<AdminLoginResponse> {
-        return adminApiClient.post<AdminLoginResponse>(
+        const response = await adminApiClient.post<AdminLoginResponse>(
             '/panel/auth/login',
             { email, password },
             { suppressAuthFailureEvent: true }
         );
+
+        if (response.accessToken) {
+            writeAdminAccessToken(response.accessToken);
+        }
+
+        return response;
     }
 
     async getSession(): Promise<AdminSessionResponse> {
@@ -35,10 +42,13 @@ export class AdminAuthClient {
             );
         } catch (error: unknown) {
             if (error instanceof ApiError && error.status === 401) {
+                clearAdminAccessToken();
                 return;
             }
 
             throw error;
+        } finally {
+            clearAdminAccessToken();
         }
     }
 }

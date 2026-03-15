@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { adminAuthClient } from '../api/adminAuthClient';
 import { subscribeToAdminAuthFailures } from '../api/adminAuthEvents';
+import { clearAdminAccessToken } from '../api/adminTokenStorage';
 import { ApiError } from '../errors/apiError';
 import type { AdminUser } from '../types/admin.types';
 
@@ -25,6 +26,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     const [user, setUser] = useState<AdminUser | null>(null);
 
     const clearSessionState = useCallback(() => {
+        clearAdminAccessToken();
         setIsAuthenticated(false);
         setUser(null);
     }, []);
@@ -83,11 +85,17 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     }, [clearSessionState]);
 
     const login = useCallback(async (email: string, password: string) => {
-        await adminAuthClient.login(email, password);
+        const loginResponse = await adminAuthClient.login(email, password);
+
+        if (loginResponse.authenticated && loginResponse.user) {
+            setIsAuthenticated(true);
+            setUser(loginResponse.user);
+        }
+
         const session = await adminAuthClient.getSession();
 
         if (!session.authenticated || !session.user) {
-            throw new Error('Sesja nie została zapisana w przeglądarce. Sprawdź ustawienia cookie (SameSite/Secure/CORS/domena).');
+            throw new Error('Sesja nie została potwierdzona po logowaniu. Sprawdź konfigurację auth na produkcji.');
         }
 
         setIsAuthenticated(true);

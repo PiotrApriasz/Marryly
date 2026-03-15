@@ -1,6 +1,7 @@
 import { config } from '../app/config';
 import { ApiError } from '../errors/apiError';
 import { notifyAdminAuthFailure } from './adminAuthEvents';
+import { readAdminAccessToken } from './adminTokenStorage';
 import { responseProcessor } from './responseProcessor.ts';
 
 const ACCEPT_HEADER = 'application/json, application/problem+json';
@@ -38,12 +39,14 @@ export class AdminApiClient {
     private async request<T>(path: string, options: AdminRequestOptions): Promise<T> {
         const { method = 'GET', body, headers, suppressAuthFailureEvent = false } = options;
         const hasBody = body !== undefined;
+        const accessToken = readAdminAccessToken();
         const response = await fetch(`${this.baseUrl}${path}`, {
             method,
             credentials: 'include',
             headers: {
                 Accept: ACCEPT_HEADER,
                 ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+                ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
                 ...headers,
             },
             ...(hasBody ? { body: JSON.stringify(body) } : {}),

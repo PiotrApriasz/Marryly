@@ -11,6 +11,7 @@ export interface AdminSessionResponse {
 
 export interface AdminLoginResponse {
     authenticated: boolean;
+    accessToken?: string;
     user: AdminUser;
 }
 

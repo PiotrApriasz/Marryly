@@ -96,6 +96,42 @@ public class AuthService(ILogger<AuthService> logger, IConfiguration configurati
         }
     }
 
+    public string? ReadBearerToken(HttpRequestData req)
+    {
+        if (!req.Headers.TryGetValues("Authorization", out var values))
+        {
+            return null;
+        }
+
+        foreach (var value in values)
+        {
+            if (!value.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var token = value["Bearer ".Length..].Trim();
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                return token;
+            }
+        }
+
+        return null;
+    }
+
+    public string? ReadAccessToken(HttpRequestData req, string cookieName)
+    {
+        return ReadBearerToken(req) ?? ReadCookie(req, cookieName);
+    }
+
+    public bool TryValidateRequest(HttpRequestData req, string cookieName, out string email)
+    {
+        email = string.Empty;
+        var token = ReadAccessToken(req, cookieName);
+        return !string.IsNullOrWhiteSpace(token) && TryValidateToken(token, out email);
+    }
+
     public void AppendSessionCookie(HttpResponseData response, string token, DateTimeOffset expiresAt)
     {
         var maxAge = (int)Math.Max((expiresAt - DateTimeOffset.UtcNow).TotalSeconds, 0);

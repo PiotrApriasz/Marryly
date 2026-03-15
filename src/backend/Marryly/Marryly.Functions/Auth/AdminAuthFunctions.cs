@@ -74,6 +74,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         await response.WriteAsJsonAsync(new
         {
             authenticated = true,
+            accessToken = token,
             user = new
             {
                 id = "bride-groom-admin",
@@ -91,7 +92,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "panel/auth/session")]
         HttpRequestData req)
     {
-        var token = authService.ReadCookie(req, AuthConstants.SessionCookieName);
+        var token = authService.ReadAccessToken(req, AuthConstants.SessionCookieName);
         if (string.IsNullOrWhiteSpace(token))
         {
             return await ApiResponse.ProduceErrorResponse(
