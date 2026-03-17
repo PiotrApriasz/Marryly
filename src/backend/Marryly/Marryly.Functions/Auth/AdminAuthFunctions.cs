@@ -3,7 +3,6 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using Marryly.Application.Constants;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Auth;
 using Marryly.Functions.Result;
@@ -69,10 +68,8 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         var sessionHours = authService.GetSessionHours();
         var expiresAt = DateTimeOffset.UtcNow.AddHours(sessionHours);
         var token = authService.CreateSignedToken(adminEmail, expiresAt);
-        var selfValidationPassed = authService.TryValidateToken(token, out _, out var selfValidationMessage);
 
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        await response.WriteAsJsonAsync(new
+        return await ApiResponse.ProduceSuccessResponse(req, new
         {
             authenticated = true,
             accessToken = token,
@@ -81,22 +78,8 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
                 id = "bride-groom-admin",
                 email = adminEmail,
                 displayName = adminDisplayName
-            },
-            diagnostics = new
-            {
-                secretFingerprint = authService.GetSecretFingerprint(),
-                issuer = authService.GetJwtIssuer(),
-                audience = authService.GetJwtAudience(),
-                tokenFingerprint = authService.GetTokenFingerprint(token),
-                selfValidationPassed,
-                selfValidationMessage,
-                signingKey = authService.GetNormalizedSecretForDiagnostics(),
-                validationKey = authService.GetNormalizedSecretForDiagnostics()
             }
         });
-        authService.AppendSessionCookie(response, token, expiresAt);
-
-        return response;
     }
 
     [Function("AdminSession")]
@@ -104,7 +87,7 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "panel/auth/session")]
         HttpRequestData req)
     {
-        var token = authService.ReadAccessToken(req, AuthConstants.SessionCookieName);
+        var token = authService.ReadAccessToken(req);
         if (string.IsNullOrWhiteSpace(token))
         {
             return await ApiResponse.ProduceErrorResponse(
@@ -112,18 +95,18 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
                 HttpStatusCode.Unauthorized,
                 "SESSION_NOT_FOUND",
                 "Unauthorized",
-                "Session cookie is missing."
+                "Admin token is missing."
             );
         }
 
-        if (!authService.TryValidateToken(token, out var email, out var diagnosticMessage))
+        if (!authService.TryValidateToken(token, out var email))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "SESSION_INVALID",
                 "Unauthorized",
-                BuildJwtDiagnosticMessage(authService, token, diagnosticMessage)
+                "Session is invalid or expired."
             );
         }
 
@@ -145,14 +128,6 @@ public class AdminAuthFunctions(ILogger<AdminAuthFunctions> logger, IConfigurati
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "panel/auth/logout")]
         HttpRequestData req)
     {
-        var response = req.CreateResponse(HttpStatusCode.NoContent);
-        authService.AppendExpiredSessionCookie(response);
-        return response;
-    }
-
-    private static string BuildJwtDiagnosticMessage(IAuthService authService, string token, string? diagnosticMessage)
-    {
-        var baseMessage = diagnosticMessage ?? "Session is invalid or expired.";
-        return $"{baseMessage} [secretFingerprint={authService.GetSecretFingerprint()}, issuer={authService.GetJwtIssuer()}, audience={authService.GetJwtAudience()}, receivedTokenFingerprint={authService.GetTokenFingerprint(token)}, validationKey={authService.GetNormalizedSecretForDiagnostics()}]";
+        return req.CreateResponse(HttpStatusCode.NoContent);
     }
 }

@@ -18,7 +18,6 @@ W pliku `local.settings.json` (lub w konfiguracji Azure Functions) ustaw:
     "ADMIN_AUTH_PASSWORD_HASH": "<ASP.NET Identity hash>",
     "ADMIN_AUTH_SECRET": "<min-32-bytes-jwt-secret>",
     "ADMIN_AUTH_SESSION_HOURS": "12",
-    "ADMIN_AUTH_COOKIE_SECURE": "true",
     "ADMIN_AUTH_JWT_ISSUER": "marryly-backend",
     "ADMIN_AUTH_JWT_AUDIENCE": "marryly-admin"
   }
@@ -26,6 +25,8 @@ W pliku `local.settings.json` (lub w konfiguracji Azure Functions) ustaw:
 ```
 
 `ADMIN_AUTH_PASSWORD_HASH` should be generated once and stored as a secret (Azure Key Vault / Function App settings), not committed to git.
+
+Admin panel requests use JWT sent in `X-Marryly-Admin-Token`.
 
 ### Generator hasha hasła admina
 

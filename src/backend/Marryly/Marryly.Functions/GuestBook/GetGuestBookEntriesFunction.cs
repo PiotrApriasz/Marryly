@@ -1,5 +1,4 @@
 using System.Net;
-using Marryly.Application.Constants;
 using Marryly.Application.Interfaces;
 using Marryly.Functions.Result;
 using Microsoft.AspNetCore.WebUtilities;
@@ -23,7 +22,7 @@ public class GetGuestBookEntriesFunction(
         HttpRequestData req,
         CancellationToken ct)
     {
-        var token = authService.ReadAccessToken(req, AuthConstants.SessionCookieName);
+        var token = authService.ReadAccessToken(req);
         if (string.IsNullOrWhiteSpace(token))
         {
             return await ApiResponse.ProduceErrorResponse(
@@ -31,18 +30,18 @@ public class GetGuestBookEntriesFunction(
                 HttpStatusCode.Unauthorized,
                 "SESSION_NOT_FOUND",
                 "Unauthorized",
-                "Session cookie is missing."
+                "Admin token is missing."
             );
         }
 
-        if (!authService.TryValidateToken(token, out _, out var diagnosticMessage))
+        if (!authService.TryValidateToken(token, out _))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.Unauthorized,
                 "SESSION_INVALID",
                 "Unauthorized",
-                BuildJwtDiagnosticMessage(authService, token, diagnosticMessage)
+                "Session is invalid or expired."
             );
         }
 
@@ -83,11 +82,5 @@ public class GetGuestBookEntriesFunction(
     {
         var query = QueryHelpers.ParseQuery(req.Url.Query);
         return query.TryGetValue("eventId", out var eventId) ? eventId.ToString() : configuration["EVENT_ID"];
-    }
-
-    private static string BuildJwtDiagnosticMessage(IAuthService authService, string token, string? diagnosticMessage)
-    {
-        var baseMessage = diagnosticMessage ?? "Session is invalid or expired.";
-        return $"{baseMessage} [secretFingerprint={authService.GetSecretFingerprint()}, issuer={authService.GetJwtIssuer()}, audience={authService.GetJwtAudience()}, receivedTokenFingerprint={authService.GetTokenFingerprint(token)}, validationKey={authService.GetNormalizedSecretForDiagnostics()}]";
     }
 }

@@ -43,7 +43,6 @@ export class AdminApiClient {
         const accessToken = readAdminAccessToken();
         const response = await fetch(`${this.baseUrl}${path}`, {
             method,
-            credentials: 'include',
             headers: {
                 Accept: ACCEPT_HEADER,
                 ...(hasBody ? { 'Content-Type': 'application/json' } : {}),

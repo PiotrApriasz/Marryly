@@ -1,23 +1,11 @@
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Marryly.Application.Interfaces;
 
 public interface IAuthService
 {
-    string? ReadCookie(HttpRequestData req, string name);
-    string? ReadBearerToken(HttpRequestData req);
-    string? ReadAccessToken(HttpRequestData req, string cookieName);
-    bool TryValidateRequest(HttpRequestData req, string cookieName, out string email);
-    void AppendSessionCookie(HttpResponseData response, string token, DateTimeOffset expiresAt);
-    void AppendExpiredSessionCookie(HttpResponseData response);
+    string? ReadAccessToken(HttpRequestData req);
     bool TryValidateToken(string token, out string email);
-    bool TryValidateToken(string token, out string email, out string? diagnosticMessage);
-    string GetSecretFingerprint();
-    string GetNormalizedSecretForDiagnostics();
-    string GetTokenFingerprint(string token);
-    string GetJwtIssuer();
-    string GetJwtAudience();
     string CreateSignedToken(string email, DateTimeOffset expiresAt);
     int GetSessionHours();
     bool MatchesPassword(string candidatePassword, string? passwordHash, string? plainTextPassword);

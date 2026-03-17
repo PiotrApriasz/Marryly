@@ -27,11 +27,8 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     const [user, setUser] = useState<AdminUser | null>(null);
     const [authErrorMessage, setAuthErrorMessage] = useState<string | null>(null);
 
-    const clearSessionState = useCallback((options?: { preserveToken?: boolean }) => {
-        if (!options?.preserveToken) {
-            clearAdminAccessToken();
-        }
-
+    const clearSessionState = useCallback(() => {
+        clearAdminAccessToken();
         setIsAuthenticated(false);
         setUser(null);
     }, []);
@@ -65,13 +62,7 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
             clearSessionState();
         } catch (error: unknown) {
             if (error instanceof ApiError && error.status === 401) {
-                if (storedUser && hasValidAdminAccessToken()) {
-                    setIsAuthenticated(true);
-                    setUser(storedUser);
-                    return;
-                }
-
-                clearSessionState({ preserveToken: true });
+                clearSessionState();
                 return;
             }
 
@@ -107,10 +98,8 @@ export function AdminAuthProvider({ children }: AdminAuthProviderProps) {
     useEffect(() => {
         return subscribeToAdminAuthFailures((detail) => {
             if (detail.reason === 'unauthorized') {
-                const diagnosticMessage = detail.detail || detail.message || 'Sesja wygasła lub token został odrzucony.';
-                const diagnosticCode = detail.code ? ` [${detail.code}]` : '';
-                setAuthErrorMessage(`${diagnosticMessage}${diagnosticCode}`);
-                clearSessionState({ preserveToken: true });
+                setAuthErrorMessage(detail.detail || detail.message || 'Sesja wygasła. Zaloguj się ponownie.');
+                clearSessionState();
             }
         });
     }, [clearSessionState]);

@@ -1,8 +1,7 @@
-import type { AdminLoginDiagnostics, AdminUser } from '../types/admin.types';
+import type { AdminUser } from '../types/admin.types';
 
 const ADMIN_ACCESS_TOKEN_KEY = 'admin_access_token';
 const ADMIN_USER_KEY = 'admin_user';
-const ADMIN_LOGIN_DIAGNOSTICS_KEY = 'admin_login_diagnostics';
 
 interface JwtPayload {
     exp?: number;
@@ -97,31 +96,6 @@ export function readAdminUser(): AdminUser | null {
     }
 }
 
-export function writeAdminLoginDiagnostics(diagnostics: AdminLoginDiagnostics): void {
-    if (typeof window === 'undefined') {
-        return;
-    }
-
-    window.sessionStorage.setItem(ADMIN_LOGIN_DIAGNOSTICS_KEY, JSON.stringify(diagnostics));
-}
-
-export function readAdminLoginDiagnostics(): AdminLoginDiagnostics | null {
-    if (typeof window === 'undefined') {
-        return null;
-    }
-
-    const storedValue = window.sessionStorage.getItem(ADMIN_LOGIN_DIAGNOSTICS_KEY);
-    if (!storedValue) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(storedValue) as AdminLoginDiagnostics;
-    } catch {
-        return null;
-    }
-}
-
 export function clearAdminAccessToken(): void {
     if (typeof window === 'undefined') {
         return;
@@ -129,5 +103,4 @@ export function clearAdminAccessToken(): void {
 
     window.sessionStorage.removeItem(ADMIN_ACCESS_TOKEN_KEY);
     window.sessionStorage.removeItem(ADMIN_USER_KEY);
-    window.sessionStorage.removeItem(ADMIN_LOGIN_DIAGNOSTICS_KEY);
 }

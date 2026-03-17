@@ -4,17 +4,6 @@ export interface AdminUser {
     displayName?: string;
 }
 
-export interface AdminLoginDiagnostics {
-    secretFingerprint?: string;
-    issuer?: string;
-    audience?: string;
-    tokenFingerprint?: string;
-    selfValidationPassed?: boolean;
-    selfValidationMessage?: string | null;
-    signingKey?: string;
-    validationKey?: string;
-}
-
 export interface AdminSessionResponse {
     authenticated: boolean;
     user?: AdminUser;
@@ -24,7 +13,6 @@ export interface AdminLoginResponse {
     authenticated: boolean;
     accessToken?: string;
     user: AdminUser;
-    diagnostics?: AdminLoginDiagnostics;
 }
 
 export interface AdminOverview {

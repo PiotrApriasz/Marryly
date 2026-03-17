@@ -1,7 +1,7 @@
 import type { AdminLoginResponse, AdminSessionResponse } from '../types/admin.types';
 import { ApiError } from '../errors/apiError';
 import { adminApiClient } from './adminApiClient';
-import { clearAdminAccessToken, writeAdminAccessToken, writeAdminLoginDiagnostics, writeAdminUser } from './adminTokenStorage';
+import { clearAdminAccessToken, writeAdminAccessToken, writeAdminUser } from './adminTokenStorage';
 
 export class AdminAuthClient {
     async login(email: string, password: string): Promise<AdminLoginResponse> {
@@ -17,10 +17,6 @@ export class AdminAuthClient {
 
         if (response.user) {
             writeAdminUser(response.user);
-        }
-
-        if (response.diagnostics) {
-            writeAdminLoginDiagnostics(response.diagnostics);
         }
 
         return response;
