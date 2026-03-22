@@ -1,6 +1,7 @@
 using System.Net;
 using Marryly.Application.Interfaces;
 using Marryly.Functions.Result;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -14,6 +15,8 @@ public class GetPhotosFunction(
     IConfiguration configuration,
     IMediaService mediaService)
 {
+    private const int DefaultLimit = 50;
+
     [Function("GetPhotos")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "events/{eventId}/photos")]
@@ -36,18 +39,29 @@ public class GetPhotosFunction(
 
         try
         {
-            var photos = await mediaService.GetApprovedPhotosAsync(eventId, ct);
-            var response = photos.Select(photo => new
+            var query = QueryHelpers.ParseQuery(req.Url.Query);
+            var limit = ParsePositiveInt(query, "limit", DefaultLimit);
+            var continuationToken = query.TryGetValue("continuationToken", out var tokenValue)
+                ? tokenValue.ToString()
+                : null;
+
+            var photosPage = await mediaService.GetApprovedPhotosPageAsync(eventId, limit, continuationToken, ct);
+            var response = new
             {
-                id = photo.Id,
-                eventId = photo.EventId,
-                url = photo.PreviewBlobUrl,
-                thumbnailUrl = photo.ThumbnailBlobUrl,
-                uploadedAt = photo.UploadedAt,
-                approved = photo.Approved,
-                width = photo.Width,
-                height = photo.Height
-            });
+                items = photosPage.Items.Select(photo => new
+                {
+                    id = photo.Id,
+                    eventId = photo.EventId,
+                    url = photo.PreviewBlobUrl,
+                    thumbnailUrl = photo.ThumbnailBlobUrl,
+                    uploadedAt = photo.UploadedAt,
+                    approved = photo.Approved,
+                    width = photo.Width,
+                    height = photo.Height
+                }),
+                continuationToken = photosPage.ContinuationToken,
+                hasMore = photosPage.HasMore
+            };
 
             return await ApiResponse.ProduceSuccessResponse(req, response);
         }
@@ -62,5 +76,17 @@ public class GetPhotosFunction(
                 "Media storage container is not available."
             );
         }
+    }
+
+    private static int ParsePositiveInt(Dictionary<string, Microsoft.Extensions.Primitives.StringValues> query, string key, int fallbackValue)
+    {
+        if (!query.TryGetValue(key, out var value))
+        {
+            return fallbackValue;
+        }
+
+        return int.TryParse(value.ToString(), out var parsedValue) && parsedValue > 0
+            ? parsedValue
+            : fallbackValue;
     }
 }
