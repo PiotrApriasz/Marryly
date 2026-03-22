@@ -59,6 +59,8 @@ builder.Services.AddScoped(typeof(ICosmosDbService<>), typeof(CosmosDbService<>)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEventDetailsService, EventDetailsService>();
 builder.Services.AddScoped<IGuestBookService, GuestBookService>();
+builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IPhotoDerivativeService, PhotoDerivativeService>();
 builder.Services.AddScoped<IOverviewService, OverviewService>();
 
 builder.Build().Run();

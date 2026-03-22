@@ -9,6 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Azure.Storage.Blobs" Version="12.25.1" />
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
         <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0"/>
         <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.57.0-preview.1" />
