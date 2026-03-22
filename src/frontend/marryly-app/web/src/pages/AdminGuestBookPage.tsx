@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
@@ -40,13 +40,7 @@ function formatDate(isoDate: string): string {
 export default function AdminGuestBookPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const { entriesPage, loading, error } = useAdminGuestBookEntries(currentPage, PAGE_SIZE);
-    const { entries, page, totalPages, totalCount } = entriesPage;
-
-    useEffect(() => {
-        if (page !== currentPage) {
-            setCurrentPage(page);
-        }
-    }, [currentPage, page]);
+    const { entries, totalPages, totalCount } = entriesPage;
 
     return (
         <Layout>
@@ -77,30 +71,8 @@ export default function AdminGuestBookPage() {
                         <div className="mx-auto mt-12 max-w-4xl">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <p className="font-sans text-sm text-muted">
-                                    Strona {page} z {totalPages} • {totalCount} wpisów łącznie
+                                    Strona {currentPage} z {totalPages} • {totalCount} wpisów łącznie
                                 </p>
-                                {totalPages > 1 ? (
-                                    <div className="flex items-center gap-3">
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                                            disabled={page === 1}
-                                        >
-                                            Poprzednia
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                                            disabled={page === totalPages}
-                                        >
-                                            Następna
-                                        </Button>
-                                    </div>
-                                ) : null}
                             </div>
 
                             <div className="mt-6 space-y-4">
@@ -119,6 +91,15 @@ export default function AdminGuestBookPage() {
 
                             {totalPages > 1 ? (
                                 <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                        disabled={currentPage === 1}
+                                    >
+                                        Poprzednia
+                                    </Button>
                                     {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                                         <Button
                                             key={page}
@@ -130,6 +111,15 @@ export default function AdminGuestBookPage() {
                                             {page}
                                         </Button>
                                     ))}
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        size="sm"
+                                        onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                                        disabled={currentPage === totalPages}
+                                    >
+                                        Następna
+                                    </Button>
                                 </div>
                             ) : null}
                         </div>

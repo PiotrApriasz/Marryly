@@ -68,6 +68,12 @@ export interface Photo {
     height: number;
 }
 
+export interface PhotosPage {
+    items: Photo[];
+    continuationToken: string | null;
+    hasMore: boolean;
+}
+
 export interface Video {
     id: string;
     url: string;

@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
+import Button from '../components/Button';
 import Section from '../components/Section';
 import PageState from '../components/PageState';
 import PhotoGalleryGrid from '../components/PhotoGalleryGrid';
-import { usePhotos } from '../hooks/usePhotos';
+import { useInfinitePhotos } from '../hooks/useInfinitePhotos';
 
 function PhotosLoadingFallback() {
     return (
@@ -18,10 +20,32 @@ function PhotosLoadingFallback() {
 }
 
 export default function CurrentPhotosPage() {
-    const { data: photos, loading, error } = usePhotos({
-        cacheKey: 'current-photos',
-        cacheDuration: 30 * 1000,
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const { photos, loading, error, hasMore, loadingMore, loadMore } = useInfinitePhotos({
+        pageSize: 50,
     });
+
+    useEffect(() => {
+        const node = sentinelRef.current;
+
+        if (!node || !hasMore || loadingMore) {
+            return;
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            const [entry] = entries;
+
+            if (entry?.isIntersecting) {
+                void loadMore();
+            }
+        }, {
+            rootMargin: '300px 0px',
+        });
+
+        observer.observe(node);
+
+        return () => observer.disconnect();
+    }, [hasMore, loadMore, loadingMore, photos.length]);
 
     return (
         <Layout>
@@ -57,7 +81,23 @@ export default function CurrentPhotosPage() {
                             emptyMessage="Tutaj pojawią się zdjęcia dodane przez gości."
                             loadingFallback={<PhotosLoadingFallback />}
                         >
-                            <PhotoGalleryGrid photos={photos} showUploadedAt />
+                            <>
+                                <PhotoGalleryGrid photos={photos} showUploadedAt />
+                                {hasMore ? (
+                                    <div className="mt-8 flex flex-col items-center gap-4">
+                                        <div ref={sentinelRef} className="h-1 w-full" />
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="md"
+                                            onClick={() => void loadMore()}
+                                            disabled={loadingMore}
+                                        >
+                                            {loadingMore ? 'Pobieranie...' : 'Pokaż więcej zdjęć'}
+                                        </Button>
+                                    </div>
+                                ) : null}
+                            </>
                         </PageState>
                     </div>
                 </Section>

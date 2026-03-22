@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Photo } from '../types/wedding.types';
 
 interface PhotoGalleryGridProps {
@@ -25,17 +25,58 @@ export default function PhotoGalleryGrid({
     photos,
     showUploadedAt = false,
 }: PhotoGalleryGridProps) {
-    const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
+    const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+    const selectedPhoto = selectedPhotoIndex === null ? null : photos[selectedPhotoIndex] ?? null;
+    const hasPreviousPhoto = selectedPhotoIndex !== null && selectedPhotoIndex > 0;
+    const hasNextPhoto = selectedPhotoIndex !== null && selectedPhotoIndex < photos.length - 1;
+
+    useEffect(() => {
+        if (selectedPhotoIndex === null) {
+            return;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setSelectedPhotoIndex(null);
+                return;
+            }
+
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                setSelectedPhotoIndex((currentIndex) => {
+                    if (currentIndex === null) {
+                        return null;
+                    }
+
+                    return Math.max(currentIndex - 1, 0);
+                });
+            }
+
+            if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                setSelectedPhotoIndex((currentIndex) => {
+                    if (currentIndex === null) {
+                        return null;
+                    }
+
+                    return Math.min(currentIndex + 1, photos.length - 1);
+                });
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [photos.length, selectedPhotoIndex]);
 
     return (
         <>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {photos.map((photo) => (
+                {photos.map((photo, index) => (
                     <button
                         key={photo.id}
                         type="button"
                         className="group overflow-hidden rounded-2xl border border-sand bg-white text-left shadow-sm transition-transform hover:-translate-y-1"
-                        onClick={() => setSelectedPhoto(photo)}
+                        onClick={() => setSelectedPhotoIndex(index)}
                     >
                         <div className="aspect-square overflow-hidden bg-sand/40">
                             <img
@@ -61,16 +102,37 @@ export default function PhotoGalleryGrid({
                     className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 px-4 py-6"
                     role="dialog"
                     aria-modal="true"
-                    onClick={() => setSelectedPhoto(null)}
+                    onClick={() => setSelectedPhotoIndex(null)}
                 >
                     <div
                         className="relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl"
                         onClick={(event) => event.stopPropagation()}
                     >
+                        <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 flex items-center justify-between px-3">
+                            <button
+                                type="button"
+                                className="pointer-events-auto rounded-full bg-white/90 px-4 py-3 text-sm font-medium text-ink shadow transition disabled:cursor-not-allowed disabled:opacity-40"
+                                onClick={() => setSelectedPhotoIndex((currentIndex) => currentIndex === null ? null : Math.max(currentIndex - 1, 0))}
+                                disabled={!hasPreviousPhoto}
+                                aria-label="Poprzednie zdjęcie"
+                            >
+                                ‹
+                            </button>
+                            <button
+                                type="button"
+                                className="pointer-events-auto rounded-full bg-white/90 px-4 py-3 text-sm font-medium text-ink shadow transition disabled:cursor-not-allowed disabled:opacity-40"
+                                onClick={() => setSelectedPhotoIndex((currentIndex) => currentIndex === null ? null : Math.min(currentIndex + 1, photos.length - 1))}
+                                disabled={!hasNextPhoto}
+                                aria-label="Następne zdjęcie"
+                            >
+                                ›
+                            </button>
+                        </div>
+
                         <button
                             type="button"
                             className="absolute right-4 top-4 z-10 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-ink shadow"
-                            onClick={() => setSelectedPhoto(null)}
+                            onClick={() => setSelectedPhotoIndex(null)}
                         >
                             Zamknij
                         </button>

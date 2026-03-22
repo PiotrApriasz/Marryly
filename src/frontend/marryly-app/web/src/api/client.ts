@@ -1,5 +1,5 @@
 import { config } from '../app/config';
-import type { Menu, Event, GuestbookEntry, Photo } from '../types/wedding.types';
+import type { Menu, Event, GuestbookEntry, PhotosPage } from '../types/wedding.types';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
 import {responseProcessor} from "./responseProcessor.ts";
 
@@ -74,8 +74,16 @@ export class ApiClient {
         await responseProcessor.parseResponse<Record<string, unknown>>(response);
     }
 
-    async getPhotos(): Promise<Photo[]> {
-        return this.fetchJson<Photo[]>(`/events/${this.eventId}/photos`);
+    async getPhotos(limit = 50, continuationToken?: string | null): Promise<PhotosPage> {
+        const params = new URLSearchParams({
+            limit: String(limit),
+        });
+
+        if (continuationToken) {
+            params.set('continuationToken', continuationToken);
+        }
+
+        return this.fetchJson<PhotosPage>(`/events/${this.eventId}/photos?${params.toString()}`);
     }
 }
 
