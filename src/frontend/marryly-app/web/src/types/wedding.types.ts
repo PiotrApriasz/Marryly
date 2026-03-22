@@ -62,7 +62,7 @@ export interface Photo {
     url: string;
     thumbnailUrl: string;
     uploadedBy?: string;
-    uploadedAt: Date;
+    uploadedAt: string;
     approved: boolean;
     width: number;
     height: number;

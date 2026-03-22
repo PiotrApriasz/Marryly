@@ -1,5 +1,6 @@
 import { config } from '../app/config';
-import type { Menu, Event, GuestbookEntry } from '../types/wedding.types';
+import type { Menu, Event, GuestbookEntry, Photo } from '../types/wedding.types';
+import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
 import {responseProcessor} from "./responseProcessor.ts";
 
 export class ApiClient {
@@ -40,6 +41,41 @@ export class ApiClient {
         });
 
         return responseProcessor.parseResponse<GuestbookEntry>(response);
+    }
+
+    async createPhotoUpload(payload: CreatePhotoUploadRequest): Promise<PhotoUploadTarget> {
+        const response = await fetch(`${this.baseUrl}/events/${this.eventId}/photos/uploads`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json, application/problem+json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        return responseProcessor.parseResponse<PhotoUploadTarget>(response);
+    }
+
+    async completePhotoUpload(payload: CompletePhotoUploadRequest): Promise<void> {
+        const response = await fetch(`${this.baseUrl}/events/${this.eventId}/photos/uploads/${payload.photoId}/complete`, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json, application/problem+json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                blobName: payload.blobName,
+                blobUrl: payload.blobUrl,
+                contentType: payload.contentType,
+                sizeBytes: payload.sizeBytes,
+            }),
+        });
+
+        await responseProcessor.parseResponse<Record<string, unknown>>(response);
+    }
+
+    async getPhotos(): Promise<Photo[]> {
+        return this.fetchJson<Photo[]>(`/events/${this.eventId}/photos`);
     }
 }
 

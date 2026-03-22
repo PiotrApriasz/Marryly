@@ -7,3 +7,4 @@ export { default as Layout } from './Layout';
 export { default as ApiErrorAlert } from './ApiErrorAlert';
 export { default as EmptyStateMessage } from './EmptyStateMessage';
 export { default as PageState } from './PageState';
+export { default as PhotoGalleryGrid } from './PhotoGalleryGrid';

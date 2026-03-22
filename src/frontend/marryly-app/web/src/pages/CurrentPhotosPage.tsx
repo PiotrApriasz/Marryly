@@ -1,7 +1,28 @@
 import Layout from '../components/Layout';
 import Section from '../components/Section';
+import PageState from '../components/PageState';
+import PhotoGalleryGrid from '../components/PhotoGalleryGrid';
+import { usePhotos } from '../hooks/usePhotos';
+
+function PhotosLoadingFallback() {
+    return (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+                <div
+                    key={item}
+                    className="aspect-square animate-pulse rounded-2xl border border-sand bg-white/50"
+                />
+            ))}
+        </div>
+    );
+}
 
 export default function CurrentPhotosPage() {
+    const { data: photos, loading, error } = usePhotos({
+        cacheKey: 'current-photos',
+        cacheDuration: 30 * 1000,
+    });
+
     return (
         <Layout>
             <div className="pt-20">
@@ -12,37 +33,32 @@ export default function CurrentPhotosPage() {
                         </h1>
                         <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
                         <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Zobacz najnowsze zdjęcia dodane przez gości - na żywo!
+                            Najnowsze zdjęcia dodane przez gości.
                         </p>
                     </div>
 
-                    {/* Live feed placeholder */}
                     <div className="mt-12">
-                        <div className="mb-6 flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <div className="h-3 w-3 animate-pulse rounded-full bg-gold"></div>
+                        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                            {/*<div className="flex items-center gap-2">
+                                <div className="h-3 w-3 animate-pulse rounded-full bg-gold" />
                                 <span className="font-sans text-sm font-medium text-ink">
-                                    Transmisja na żywo
+                                    Widok korzysta z krótkiego cache dla szybszego działania
                                 </span>
-                            </div>
+                            </div>*/}
                             <span className="font-sans text-sm text-muted">
-                                0 nowych zdjęć
+                                {photos.length} zdjęć gotowych do obejrzenia
                             </span>
                         </div>
 
-                        {/* Grid placeholder */}
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {[1, 2, 3, 4, 5, 6].map((i) => (
-                                <div
-                                    key={i}
-                                    className="aspect-square rounded-2xl border border-sand bg-white/50 animate-pulse"
-                                />
-                            ))}
-                        </div>
-
-                        <p className="mt-8 text-center text-sm text-muted">
-                            Zdjęcia pojawią się tutaj automatycznie, gdy goście zaczną je dodawać
-                        </p>
+                        <PageState
+                            loading={loading}
+                            error={error}
+                            isEmpty={photos.length === 0}
+                            emptyMessage="Tutaj pojawią się zdjęcia dodane przez gości."
+                            loadingFallback={<PhotosLoadingFallback />}
+                        >
+                            <PhotoGalleryGrid photos={photos} showUploadedAt />
+                        </PageState>
                     </div>
                 </Section>
             </div>
