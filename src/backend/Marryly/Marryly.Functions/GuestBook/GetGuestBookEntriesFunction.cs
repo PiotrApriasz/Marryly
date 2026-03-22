@@ -1,5 +1,6 @@
 using System.Net;
 using Marryly.Application.Interfaces;
+using Marryly.Application.Models.GuestBook;
 using Marryly.Functions.Result;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Cosmos;
@@ -16,6 +17,9 @@ public class GetGuestBookEntriesFunction(
     IAuthService authService,
     IGuestBookService guestBookService)
 {
+    private const int DefaultPage = 1;
+    private const int DefaultPageSize = 10;
+
     [Function("GetGuestBookEntries")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "panel/guestbook")]
@@ -62,8 +66,12 @@ public class GetGuestBookEntriesFunction(
 
         try
         {
-            var entries = await guestBookService.GetAllGuestBookEntriesAsync(eventId, ct);
-            return await ApiResponse.ProduceSuccessResponse(req, entries);
+            var query = QueryHelpers.ParseQuery(req.Url.Query);
+            var page = ParsePositiveInt(query, "page", DefaultPage);
+            var pageSize = ParsePositiveInt(query, "pageSize", DefaultPageSize);
+
+            var response = await guestBookService.GetGuestBookEntriesPageAsync(eventId, page, pageSize, ct);
+            return await ApiResponse.ProduceSuccessResponse(req, response);
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -82,5 +90,16 @@ public class GetGuestBookEntriesFunction(
     {
         var query = QueryHelpers.ParseQuery(req.Url.Query);
         return query.TryGetValue("eventId", out var eventId) ? eventId.ToString() : configuration["EVENT_ID"];
+    }
+
+    private static int ParsePositiveInt(Dictionary<string, Microsoft.Extensions.Primitives.StringValues> query, string key, int fallbackValue)
+    {
+        if (!query.TryGetValue(key, out var value)) {
+            return fallbackValue;
+        }
+
+        return int.TryParse(value.ToString(), out var parsedValue) && parsedValue > 0
+            ? parsedValue
+            : fallbackValue;
     }
 }

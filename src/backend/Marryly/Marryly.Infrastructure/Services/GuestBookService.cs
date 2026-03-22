@@ -5,7 +5,9 @@ using Microsoft.Azure.Cosmos;
 
 namespace Marryly.Infrastructure.Services;
 
-public class GuestBookService(ICosmosDbService<GuestBookEntry> cosmosDbService) : IGuestBookService
+public class GuestBookService(
+    ICosmosDbService<GuestBookEntry> cosmosDbService,
+    ICosmosContainerProvider cosmosContainerProvider) : IGuestBookService
 {
     public async Task<GuestBookEntry> AddGuestBookEntryAsync(string eventId, GuestBookEntry guestBookEntry, CancellationToken ct = default)
     {
@@ -30,5 +32,64 @@ public class GuestBookService(ICosmosDbService<GuestBookEntry> cosmosDbService) 
         }
 
         return entries;
+    }
+
+    public async Task<PagedGuestBookEntriesResponse> GetGuestBookEntriesPageAsync(
+        string eventId,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var normalizedPage = Math.Max(1, page);
+        var normalizedPageSize = Math.Clamp(pageSize, 1, 100);
+        var offset = (normalizedPage - 1) * normalizedPageSize;
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+
+        var container = cosmosContainerProvider.GetContainer("GuestbookEntry");
+
+        var countQuery = new QueryDefinition("SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId")
+            .WithParameter("@eventId", eventId);
+
+        using var countIterator = container.GetItemQueryIterator<int>(
+            countQuery,
+            requestOptions: new QueryRequestOptions
+            {
+                PartitionKey = partitionKey
+            });
+
+        var totalCount = 0;
+        while (countIterator.HasMoreResults)
+        {
+            var countPage = await countIterator.ReadNextAsync(ct);
+            totalCount = countPage.Resource.FirstOrDefault();
+        }
+
+        var entriesQuery = new QueryDefinition(
+                "SELECT * FROM c WHERE c.eventId = @eventId ORDER BY c.createdAt DESC OFFSET @offset LIMIT @pageSize")
+            .WithParameter("@eventId", eventId)
+            .WithParameter("@offset", offset)
+            .WithParameter("@pageSize", normalizedPageSize);
+
+        var entries = new List<GuestBookEntry>();
+        await foreach (var entry in cosmosDbService.QueryAsync(entriesQuery, new QueryRequestOptions
+                       {
+                           PartitionKey = partitionKey
+                       }, ct))
+        {
+            entries.Add(entry);
+        }
+
+        var totalPages = totalCount == 0
+            ? 1
+            : (int)Math.Ceiling(totalCount / (double)normalizedPageSize);
+
+        return new PagedGuestBookEntriesResponse
+        {
+            Entries = entries,
+            Page = Math.Min(normalizedPage, totalPages),
+            PageSize = normalizedPageSize,
+            TotalCount = totalCount,
+            TotalPages = totalPages
+        };
     }
 }
