@@ -1,8 +1,12 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import Button from '../components/Button';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useAdminGuestBookEntries } from '../hooks/admin/useAdminGuestBookEntries';
+
+const PAGE_SIZE = 10;
 
 function GuestBookEntriesSkeleton() {
     return (
@@ -34,7 +38,15 @@ function formatDate(isoDate: string): string {
 }
 
 export default function AdminGuestBookPage() {
-    const { entries, loading, error } = useAdminGuestBookEntries();
+    const [currentPage, setCurrentPage] = useState(1);
+    const { entriesPage, loading, error } = useAdminGuestBookEntries(currentPage, PAGE_SIZE);
+    const { entries, page, totalPages, totalCount } = entriesPage;
+
+    useEffect(() => {
+        if (page !== currentPage) {
+            setCurrentPage(page);
+        }
+    }, [currentPage, page]);
 
     return (
         <Layout>
@@ -62,8 +74,37 @@ export default function AdminGuestBookPage() {
                         emptyMessage="Brak życzeń od gości."
                         loadingFallback={<GuestBookEntriesSkeleton />}
                     >
-                        <div className="mx-auto mt-12 max-w-4xl space-y-4">
-                            {entries.map((entry) => (
+                        <div className="mx-auto mt-12 max-w-4xl">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="font-sans text-sm text-muted">
+                                    Strona {page} z {totalPages} • {totalCount} wpisów łącznie
+                                </p>
+                                {totalPages > 1 ? (
+                                    <div className="flex items-center gap-3">
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                                            disabled={page === 1}
+                                        >
+                                            Poprzednia
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                                            disabled={page === totalPages}
+                                        >
+                                            Następna
+                                        </Button>
+                                    </div>
+                                ) : null}
+                            </div>
+
+                            <div className="mt-6 space-y-4">
+                                {entries.map((entry) => (
                                 <article key={entry.id} className="rounded-2xl border border-sand bg-white p-6 shadow-sm">
                                     <header className="flex flex-wrap items-center justify-between gap-2">
                                         <h2 className="font-serif text-2xl text-ink">{entry.authorName}</h2>
@@ -73,7 +114,24 @@ export default function AdminGuestBookPage() {
                                         {entry.message}
                                     </p>
                                 </article>
-                            ))}
+                                ))}
+                            </div>
+
+                            {totalPages > 1 ? (
+                                <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+                                    {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
+                                        <Button
+                                            key={page}
+                                            type="button"
+                                            variant={page === currentPage ? 'primary' : 'secondary'}
+                                            size="sm"
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </Button>
+                                    ))}
+                                </div>
+                            ) : null}
                         </div>
                     </PageState>
                 </Section>

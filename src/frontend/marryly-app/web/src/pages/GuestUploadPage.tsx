@@ -125,6 +125,7 @@ function getStatusClasses(status: UploadStatus): string {
 
 export default function GuestUploadPage() {
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const autoUploadInFlightRef = useRef(false);
     const [items, setItems] = useState<UploadQueueItem[]>([]);
     const itemsRef = useRef<UploadQueueItem[]>([]);
     const [selectionError, setSelectionError] = useState<string | null>(null);
@@ -137,6 +138,21 @@ export default function GuestUploadPage() {
     const hasActiveUpload = items.some((item) => item.status === 'preparing' || item.status === 'uploading');
     const queuedCount = items.filter((item) => item.status === 'queued').length;
     const successCount = items.filter((item) => item.status === 'success').length;
+
+    useEffect(() => {
+        if (hasActiveUpload || queuedCount === 0 || autoUploadInFlightRef.current) {
+            return;
+        }
+
+        autoUploadInFlightRef.current = true;
+        const queuedIds = items
+            .filter((item) => item.status === 'queued')
+            .map((item) => item.id);
+
+        void runUploadQueue(queuedIds).finally(() => {
+            autoUploadInFlightRef.current = false;
+        });
+    }, [hasActiveUpload, items, queuedCount]);
 
     const updateItem = (itemId: string, updater: (item: UploadQueueItem) => UploadQueueItem) => {
         setItems((currentItems) =>
@@ -311,25 +327,6 @@ export default function GuestUploadPage() {
         event.target.value = '';
     };
 
-    const handleUploadAll = async () => {
-        const queueIds = itemsRef.current
-            .filter((item) => item.status === 'queued')
-            .map((item) => item.id);
-
-        if (queueIds.length === 0) {
-            return;
-        }
-
-        setUploadError(null);
-
-        try {
-            await runUploadQueue(queueIds);
-        } catch (error) {
-            logErrorDetails(error, 'Photo upload queue failed');
-            setUploadError(getErrorMessageForDisplay(error, 'Nie udało się zakończyć uploadu wszystkich zdjęć.'));
-        }
-    };
-
     const handleRetry = async (itemId: string) => {
         if (hasActiveUpload) {
             return;
@@ -337,14 +334,6 @@ export default function GuestUploadPage() {
 
         setUploadError(null);
         await runUploadQueue([itemId]);
-    };
-
-    const handleRemove = (itemId: string) => {
-        if (hasActiveUpload) {
-            return;
-        }
-
-        setItems((currentItems) => currentItems.filter((item) => item.id !== itemId));
     };
 
     return (
@@ -357,7 +346,8 @@ export default function GuestUploadPage() {
                         </h1>
                         <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
                         <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Dodaj zdjęcia którymi chcesz się z nami podzielić
+                            Wybierz zdjęcia, a wysyłanie rozpocznie się automatycznie. To ma działać szybko i wygodnie
+                            także na telefonie.
                         </p>
                     </div>
 
@@ -417,26 +407,9 @@ export default function GuestUploadPage() {
                                     </p>
                                 </div>
 
-                                <div className="flex flex-wrap gap-3">
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="md"
-                                        onClick={() => inputRef.current?.click()}
-                                        disabled={hasActiveUpload || items.length >= MAX_FILES_PER_BATCH}
-                                    >
-                                        Dodaj kolejne
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        variant="primary"
-                                        size="md"
-                                        onClick={handleUploadAll}
-                                        disabled={hasActiveUpload || queuedCount === 0}
-                                    >
-                                        {hasActiveUpload ? 'Wysyłanie...' : `Wyślij ${queuedCount} zdjęć`}
-                                    </Button>
-                                </div>
+                                <p className="font-sans text-sm text-muted">
+                                    {hasActiveUpload ? 'Trwa wysyłanie...' : 'Nowe zdjęcia startują od razu po wyborze.'}
+                                </p>
                             </div>
 
                             {items.length === 0 ? (
@@ -502,17 +475,6 @@ export default function GuestUploadPage() {
                                                             disabled={hasActiveUpload}
                                                         >
                                                             Ponów
-                                                        </Button>
-                                                    ) : null}
-                                                    {item.status !== 'uploading' && item.status !== 'preparing' ? (
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleRemove(item.id)}
-                                                            disabled={hasActiveUpload}
-                                                        >
-                                                            Usuń
                                                         </Button>
                                                     ) : null}
                                                 </div>

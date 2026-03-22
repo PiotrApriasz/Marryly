@@ -31,3 +31,11 @@ export interface AdminGuestBookEntry {
     message: string;
     createdAt: string;
 }
+
+export interface AdminGuestBookEntriesPage {
+    entries: AdminGuestBookEntry[];
+    page: number;
+    pageSize: number;
+    totalCount: number;
+    totalPages: number;
+}

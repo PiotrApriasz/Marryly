@@ -1,24 +1,30 @@
-import type { AdminGuestBookEntry } from '../../types/admin.types';
+import type { AdminGuestBookEntriesPage } from '../../types/admin.types';
 import { adminClient } from '../../api/adminClient';
 import { useAdminApiResource } from './useAdminApiResource';
 
 interface UseAdminGuestBookEntriesResult {
-    entries: AdminGuestBookEntry[];
+    entriesPage: AdminGuestBookEntriesPage;
     loading: boolean;
     error: string | null;
 }
 
-export function useAdminGuestBookEntries(): UseAdminGuestBookEntriesResult {
-    const { data, loading, error } = useAdminApiResource<AdminGuestBookEntry[]>({
-        cacheKey: 'guestbook_entries',
-        fetcher: () => adminClient.getGuestBookEntries(),
+export function useAdminGuestBookEntries(page: number, pageSize: number): UseAdminGuestBookEntriesResult {
+    const { data, loading, error } = useAdminApiResource<AdminGuestBookEntriesPage>({
+        cacheKey: `guestbook_entries_${page}_${pageSize}`,
+        fetcher: () => adminClient.getGuestBookEntries(page, pageSize),
         fallbackErrorMessage: 'Nie udało się pobrać życzeń.',
         logContext: 'Failed to load admin guestbook entries',
-        initialData: [],
+        initialData: {
+            entries: [],
+            page,
+            pageSize,
+            totalCount: 0,
+            totalPages: 1,
+        },
     });
 
     return {
-        entries: data,
+        entriesPage: data,
         loading,
         error,
     };

@@ -1,13 +1,13 @@
 import { adminApiClient } from './adminApiClient';
-import type { AdminGuestBookEntry, AdminOverview } from '../types/admin.types';
+import type { AdminGuestBookEntriesPage, AdminOverview } from '../types/admin.types';
 
 export class AdminClient {
     async getOverview(): Promise<AdminOverview> {
         return adminApiClient.get<AdminOverview>('/panel/overview');
     }
 
-    async getGuestBookEntries(): Promise<AdminGuestBookEntry[]> {
-        return adminApiClient.get<AdminGuestBookEntry[]>('/panel/guestbook');
+    async getGuestBookEntries(page: number, pageSize: number): Promise<AdminGuestBookEntriesPage> {
+        return adminApiClient.get<AdminGuestBookEntriesPage>(`/panel/guestbook?page=${page}&pageSize=${pageSize}`);
     }
 }
 
