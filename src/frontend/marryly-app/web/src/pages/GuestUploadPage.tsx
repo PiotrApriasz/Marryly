@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import Layout from '../components/Layout';
 import Section from '../components/Section';
@@ -20,6 +20,8 @@ interface UploadQueueItem {
     errorMessage: string | null;
     blobUrl?: string;
 }
+
+type UploadSingleResult = 'success' | 'error' | 'skipped';
 
 const MAX_FILES_PER_BATCH = 20;
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
@@ -130,6 +132,8 @@ export default function GuestUploadPage() {
     const itemsRef = useRef<UploadQueueItem[]>([]);
     const [selectionError, setSelectionError] = useState<string | null>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
+    const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
+    const [isUploadOverlayVisible, setIsUploadOverlayVisible] = useState(false);
 
     useEffect(() => {
         itemsRef.current = items;
@@ -137,7 +141,79 @@ export default function GuestUploadPage() {
 
     const hasActiveUpload = items.some((item) => item.status === 'preparing' || item.status === 'uploading');
     const queuedCount = items.filter((item) => item.status === 'queued').length;
-    const successCount = items.filter((item) => item.status === 'success').length;
+    const hasErroredItems = items.some((item) => item.status === 'error');
+    const shouldShowUploadOverlay = isUploadOverlayVisible || hasActiveUpload;
+
+    useEffect(() => {
+        if (!shouldShowUploadOverlay) {
+            return;
+        }
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [shouldShowUploadOverlay]);
+
+    const getPluralForm = (count: number, singular: string, paucal: string, plural: string): string => {
+        const remainderTen = count % 10;
+        const remainderHundred = count % 100;
+
+        if (count === 1) {
+            return singular;
+        }
+
+        if (remainderTen >= 2 && remainderTen <= 4 && (remainderHundred < 12 || remainderHundred > 14)) {
+            return paucal;
+        }
+
+        return plural;
+    };
+
+    const summarizeUploadResult = (successfulItemsCount: number, failedItemsCount: number) => {
+        if (successfulItemsCount > 0) {
+            if (failedItemsCount === 0) {
+                setUploadSuccessMessage(
+                    successfulItemsCount === 1
+                        ? 'Zdjęcie zostało wysłane. Możesz dodać kolejne.'
+                        : `Pomyślnie wysłano ${successfulItemsCount} ${getPluralForm(successfulItemsCount, 'zdjęcie', 'zdjęcia', 'zdjęć')}. Możesz dodać kolejne.`
+                );
+            } else {
+                setUploadSuccessMessage(
+                    `Pomyślnie wysłano ${successfulItemsCount} ${getPluralForm(successfulItemsCount, 'zdjęcie', 'zdjęcia', 'zdjęć')}. Sprawdź pozostałe.`
+                );
+            }
+        } else {
+            setUploadSuccessMessage(null);
+        }
+
+        if (failedItemsCount > 0) {
+            setUploadError(
+                `Nie udało się wysłać ${failedItemsCount} ${getPluralForm(failedItemsCount, 'zdjęcia', 'zdjęć', 'zdjęć')}. Spróbuj ponownie.`
+            );
+        } else {
+            setUploadError(null);
+        }
+    };
+
+    const finalizeBatch = (itemIds: string[], results: UploadSingleResult[]) => {
+        const ids = new Set(itemIds);
+        const successfulItemsCount = results.filter((result) => result === 'success').length;
+        const failedItemsCount = results.filter((result) => result === 'error').length;
+
+        setItems((currentItems) =>
+            currentItems.filter((item) => !ids.has(item.id) || item.status === 'error')
+        );
+
+        summarizeUploadResult(successfulItemsCount, failedItemsCount);
+    };
+
+    const processQueuedUploads = useEffectEvent(async (queuedIds: string[]) => {
+        const results = await runUploadQueue(queuedIds);
+        finalizeBatch(queuedIds, results);
+    });
 
     useEffect(() => {
         if (hasActiveUpload || queuedCount === 0 || autoUploadInFlightRef.current) {
@@ -145,13 +221,18 @@ export default function GuestUploadPage() {
         }
 
         autoUploadInFlightRef.current = true;
+        setUploadError(null);
+        setUploadSuccessMessage(null);
+        setIsUploadOverlayVisible(true);
         const queuedIds = items
             .filter((item) => item.status === 'queued')
             .map((item) => item.id);
 
-        void runUploadQueue(queuedIds).finally(() => {
-            autoUploadInFlightRef.current = false;
-        });
+        void processQueuedUploads(queuedIds)
+            .finally(() => {
+                autoUploadInFlightRef.current = false;
+                setIsUploadOverlayVisible(false);
+            });
     }, [hasActiveUpload, items, queuedCount]);
 
     const updateItem = (itemId: string, updater: (item: UploadQueueItem) => UploadQueueItem) => {
@@ -160,11 +241,11 @@ export default function GuestUploadPage() {
         );
     };
 
-    const uploadSingleItem = async (itemId: string) => {
+    const uploadSingleItem = async (itemId: string): Promise<UploadSingleResult> => {
         const item = itemsRef.current.find((candidate) => candidate.id === itemId);
 
         if (!item || item.status === 'success') {
-            return;
+            return 'skipped';
         }
 
         updateItem(itemId, (currentItem) => ({
@@ -234,6 +315,8 @@ export default function GuestUploadPage() {
                 errorMessage: null,
                 blobUrl: target.blobUrl,
             }));
+
+            return 'success';
         } catch (error) {
             logErrorDetails(error, 'Photo upload failed');
 
@@ -243,11 +326,14 @@ export default function GuestUploadPage() {
                 progress: 0,
                 errorMessage: getErrorMessageForDisplay(error, 'Nie udało się wysłać zdjęcia. Spróbuj ponownie.'),
             }));
+
+            return 'error';
         }
     };
 
     const runUploadQueue = async (itemIds: string[]) => {
         const pendingIds = [...itemIds];
+        const results: UploadSingleResult[] = [];
 
         const worker = async () => {
             while (pendingIds.length > 0) {
@@ -257,18 +343,22 @@ export default function GuestUploadPage() {
                     return;
                 }
 
-                await uploadSingleItem(nextItemId);
+                const result = await uploadSingleItem(nextItemId);
+                results.push(result);
             }
         };
 
         await Promise.all(
             Array.from({ length: Math.min(MAX_PARALLEL_UPLOADS, pendingIds.length) }, () => worker())
         );
+
+        return results;
     };
 
     const addFilesToQueue = (incomingFiles: FileList | File[]) => {
         setSelectionError(null);
         setUploadError(null);
+        setUploadSuccessMessage(null);
 
         const incomingArray = Array.from(incomingFiles);
         const currentIds = new Set(itemsRef.current.map((item) => item.id));
@@ -310,6 +400,7 @@ export default function GuestUploadPage() {
         }
 
         if (acceptedItems.length > 0) {
+            setIsUploadOverlayVisible(true);
             setItems((currentItems) => [...currentItems, ...acceptedItems]);
         }
 
@@ -333,7 +424,15 @@ export default function GuestUploadPage() {
         }
 
         setUploadError(null);
-        await runUploadQueue([itemId]);
+        setUploadSuccessMessage(null);
+        setIsUploadOverlayVisible(true);
+
+        try {
+            const results = await runUploadQueue([itemId]);
+            finalizeBatch([itemId], results);
+        } finally {
+            setIsUploadOverlayVisible(false);
+        }
     };
 
     return (
@@ -346,8 +445,7 @@ export default function GuestUploadPage() {
                         </h1>
                         <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
                         <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Wybierz zdjęcia, a wysyłanie rozpocznie się automatycznie. To ma działać szybko i wygodnie
-                            także na telefonie.
+                            Zrób lub wybierz zdjęcia, a wysyłanie rozpocznie się automatycznie.
                         </p>
                     </div>
 
@@ -363,28 +461,36 @@ export default function GuestUploadPage() {
 
                         <button
                             type="button"
-                            className="w-full rounded-2xl border-2 border-dashed border-sand bg-white p-10 text-center transition-colors hover:border-gold"
+                            className="w-full rounded-[2rem] border border-sand bg-white px-6 py-7 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:border-sand disabled:hover:shadow-sm"
                             onClick={() => inputRef.current?.click()}
+                            disabled={shouldShowUploadOverlay}
                         >
-                            <svg
-                                className="mx-auto h-16 w-16 text-muted"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                                />
-                            </svg>
-                            <p className="mt-4 font-sans text-lg text-ink">
-                                Kliknij, aby wybrać zdjęcia
-                            </p>
-                            <p className="mt-2 text-sm text-muted">
-                                JPG, PNG, WEBP, HEIC, HEIF • HEIC i HEIF są automatycznie konwertowane do JPEG • maks. {MAX_FILES_PER_BATCH} zdjęć • do {formatBytes(MAX_FILE_SIZE_BYTES)} każde
-                            </p>
+                            <div className="flex flex-col items-center gap-4">
+                                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gold/10 text-gold">
+                                    <svg
+                                        className="h-7 w-7"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                        />
+                                    </svg>
+                                </div>
+
+                                <div className="min-w-0">
+                                    <p className="font-sans text-lg font-medium text-ink">
+                                        Dodaj zdjęcia
+                                    </p>
+                                    <p className="mt-1 text-sm text-muted">
+                                        Otworzy aparat lub galerię w telefonie.
+                                    </p>
+                                </div>
+                            </div>
                         </button>
 
                         {selectionError ? (
@@ -395,30 +501,49 @@ export default function GuestUploadPage() {
                             </div>
                         ) : null}
                         {uploadError ? <ApiErrorAlert message={uploadError} /> : null}
-
-                        <div className="rounded-2xl border border-sand bg-paper/40 p-5">
-                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                                <div>
-                                    <p className="font-sans text-base font-medium text-ink">
-                                        Kolejka uploadu
+                        {uploadSuccessMessage ? (
+                            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 shadow-sm">
+                                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                                    <svg
+                                        className="h-5 w-5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2.5}
+                                            d="M5 13l4 4L19 7"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="font-sans text-sm font-medium text-emerald-900">
+                                        Zdjęcia zapisane
                                     </p>
-                                    <p className="mt-1 text-sm text-muted">
-                                        {items.length} plików na liście, {successCount} wysłanych, {queuedCount} czeka
+                                    <p className="text-sm text-emerald-800">
+                                        {uploadSuccessMessage}
                                     </p>
                                 </div>
-
-                                <p className="font-sans text-sm text-muted">
-                                    {hasActiveUpload ? 'Trwa wysyłanie...' : 'Nowe zdjęcia startują od razu po wyborze.'}
-                                </p>
                             </div>
+                        ) : null}
 
-                            {items.length === 0 ? (
-                                <p className="mt-6 rounded-xl border border-dashed border-sand bg-white px-4 py-6 text-center text-sm text-muted">
-                                    Po wybraniu zdjęć zobaczysz tu status każdego uploadu.
-                                </p>
-                            ) : (
+                        {hasErroredItems ? (
+                            <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-5">
+                                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                                    <div>
+                                        <p className="font-sans text-base font-medium text-ink">
+                                            Nie udało się wysłać części zdjęć
+                                        </p>
+                                        <p className="mt-1 text-sm text-muted">
+                                            Możesz ponowić tylko te pozycje, które mają błąd.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div className="mt-6 space-y-4">
-                                    {items.map((item) => (
+                                    {items.filter((item) => item.status === 'error').map((item) => (
                                         <article
                                             key={item.id}
                                             className="rounded-2xl border border-sand bg-white p-4 shadow-sm"
@@ -438,28 +563,13 @@ export default function GuestUploadPage() {
                                                     <p className="mt-1 text-sm text-muted">
                                                         {formatBytes(item.file.size)}
                                                     </p>
-
-                                                    <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-sand">
-                                                        <div
-                                                            className={`h-full rounded-full transition-all ${
-                                                                item.status === 'error' ? 'bg-rose-500' : 'bg-gold'
-                                                            }`}
-                                                            style={{ width: `${item.progress}%` }}
-                                                        />
-                                                    </div>
-
-                                                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm">
+                                                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                                                         <span className="text-muted">
-                                                            {item.progress}%
+                                                            Spróbuj wysłać ponownie to zdjęcie.
                                                         </span>
                                                         {item.errorMessage ? (
                                                             <span className="text-rose-700">
                                                                 {item.errorMessage}
-                                                            </span>
-                                                        ) : null}
-                                                        {item.status === 'success' && item.blobUrl ? (
-                                                            <span className="text-emerald-700">
-                                                                Zdjęcie zostało zapisane.
                                                             </span>
                                                         ) : null}
                                                     </div>
@@ -482,11 +592,29 @@ export default function GuestUploadPage() {
                                         </article>
                                     ))}
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        ) : null}
                     </div>
                 </Section>
             </div>
+            {shouldShowUploadOverlay ? (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper/95 px-6 backdrop-blur-sm">
+                    <div className="w-full max-w-sm rounded-[2rem] border border-sand bg-white p-8 text-center shadow-xl">
+                        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gold/10">
+                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-gold/20 border-t-gold" />
+                        </div>
+                        <h2 className="mt-6 font-sans text-2xl font-medium text-ink">
+                            Wysyłamy zdjęcia
+                        </h2>
+                        <p className="mt-3 text-base text-muted">
+                            Zaczekaj chwilę i nie zamykaj tej strony.
+                        </p>
+                        <p className="mt-2 text-sm text-muted">
+                            Po zakończeniu od razu pokażemy potwierdzenie.
+                        </p>
+                    </div>
+                </div>
+            ) : null}
         </Layout>
     );
 }
