@@ -6,25 +6,47 @@ using Marryly.Functions.Result;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Marryly.Functions.Media;
 
 public class CompletePhotoUploadFunction(
     ILogger<CompletePhotoUploadFunction> logger,
-    IConfiguration configuration,
+    IAuthService authService,
     IMediaService mediaService,
     IPhotoDerivativeService photoDerivativeService)
 {
     [Function("CompletePhotoUpload")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "events/{eventId}/photos/uploads/{photoId}/complete")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "app/photos/uploads/{photoId}/complete")]
         HttpRequestData req,
-        string eventId,
         string photoId,
         CancellationToken ct)
     {
+        var token = authService.ReadAccessToken(req);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return await ApiResponse.ProduceErrorResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "SESSION_NOT_FOUND",
+                "Unauthorized",
+                "Access token is missing."
+            );
+        }
+
+        if (!authService.TryValidateToken(token, out var context))
+        {
+            return await ApiResponse.ProduceErrorResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "SESSION_INVALID",
+                "Unauthorized",
+                "Session is invalid or expired."
+            );
+        }
+
+        var eventId = context.EventId;
         CompletePhotoUploadRequest? request;
 
         try
@@ -43,19 +65,6 @@ public class CompletePhotoUploadFunction(
                 "INVALID_PHOTO_UPLOAD_COMPLETION_PAYLOAD",
                 "Invalid photo upload completion payload",
                 "Request body must contain valid photo upload completion data."
-            );
-        }
-
-        var expectedEventId = configuration["EVENT_ID"];
-        if (!string.IsNullOrWhiteSpace(expectedEventId) &&
-            !string.Equals(expectedEventId, eventId, StringComparison.Ordinal))
-        {
-            return await ApiResponse.ProduceErrorResponse(
-                req,
-                HttpStatusCode.NotFound,
-                "EVENT_NOT_FOUND",
-                "Event not found",
-                "Photo uploads are not enabled for this event."
             );
         }
 
