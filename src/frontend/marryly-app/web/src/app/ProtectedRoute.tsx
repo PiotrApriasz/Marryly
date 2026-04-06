@@ -1,9 +1,14 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useAdminAuth } from '../auth/AdminAuthContext';
+import { useAuth } from '../auth/AuthContext';
 
-export default function ProtectedRoute() {
-    const { isAuthenticated, isChecking } = useAdminAuth();
+interface ProtectedRouteProps {
+    requireAdmin?: boolean;
+}
+
+export default function ProtectedRoute({ requireAdmin = false }: ProtectedRouteProps) {
+    const { isAdmin, isAuthenticated, isChecking } = useAuth();
     const location = useLocation();
+    const from = `${location.pathname}${location.search}${location.hash}`;
 
     if (isChecking) {
         return (
@@ -14,7 +19,11 @@ export default function ProtectedRoute() {
     }
 
     if (!isAuthenticated) {
-        return <Navigate to="/admin" replace state={{ from: location.pathname, reason: 'session-expired' }} />;
+        return <Navigate to="/access" replace state={{ from }} />;
+    }
+
+    if (requireAdmin && !isAdmin) {
+        return <Navigate to="/access?mode=admin" replace state={{ from, reason: 'admin-required' as const }} />;
     }
 
     return <Outlet />;

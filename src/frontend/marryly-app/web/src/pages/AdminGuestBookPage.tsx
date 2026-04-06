@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
+import Card from '../components/Card';
+import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useAdminGuestBookEntries } from '../hooks/admin/useAdminGuestBookEntries';
@@ -12,11 +14,11 @@ function GuestBookEntriesSkeleton() {
     return (
         <div className="mx-auto max-w-4xl space-y-4 animate-pulse">
             {[1, 2, 3].map((item) => (
-                <div key={item} className="rounded-2xl border border-sand bg-white p-6">
+                <Card key={item}>
                     <div className="h-6 w-56 rounded bg-sand" />
                     <div className="mt-2 h-4 w-40 rounded bg-sand/70" />
                     <div className="mt-4 h-16 rounded bg-sand/60" />
-                </div>
+                </Card>
             ))}
         </div>
     );
@@ -44,22 +46,17 @@ export default function AdminGuestBookPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Życzenia Gości
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                        <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Wszystkie wiadomości dodane przez gości
-                        </p>
-                        <div className="mt-8">
-                            <Link to="/admin/dashboard" className="font-sans text-sm font-medium text-ink underline-offset-4 transition-colors hover:text-gold hover:underline">
+                    <PageHeader
+                        title="Życzenia Gości"
+                        description="Wszystkie wiadomości dodane przez gości"
+                        actions={(
+                            <Link to="/admin/dashboard" className="inline-link">
                                 Powrót do panelu
                             </Link>
-                        </div>
-                    </div>
+                        )}
+                    />
 
                     <PageState
                         loading={loading}
@@ -77,15 +74,17 @@ export default function AdminGuestBookPage() {
 
                             <div className="mt-6 space-y-4">
                                 {entries.map((entry) => (
-                                <article key={entry.id} className="rounded-2xl border border-sand bg-white p-6 shadow-sm">
-                                    <header className="flex flex-wrap items-center justify-between gap-2">
-                                        <h2 className="font-serif text-2xl text-ink">{entry.authorName}</h2>
-                                        <time className="font-sans text-sm text-muted">{formatDate(entry.createdAt)}</time>
-                                    </header>
-                                    <p className="mt-4 whitespace-pre-wrap break-words font-sans text-base leading-relaxed text-ink">
-                                        {entry.message}
-                                    </p>
-                                </article>
+                                    <article key={entry.id}>
+                                        <Card className="p-6">
+                                            <header className="flex flex-wrap items-center justify-between gap-2">
+                                                <h2 className="font-serif text-2xl text-ink">{entry.authorName}</h2>
+                                                <time className="font-sans text-sm text-muted">{formatDate(entry.createdAt)}</time>
+                                            </header>
+                                            <p className="mt-4 whitespace-pre-wrap break-words font-sans text-base leading-relaxed text-ink">
+                                                {entry.message}
+                                            </p>
+                                        </Card>
+                                    </article>
                                 ))}
                             </div>
 

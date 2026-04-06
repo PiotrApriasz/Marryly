@@ -1,11 +1,10 @@
 import { config } from '../app/config';
 import { ApiError } from '../errors/apiError';
-import { notifyAdminAuthFailure } from './adminAuthEvents';
-import { readAdminAccessToken } from './adminTokenStorage';
+import { notifyAuthFailure } from './authEvents';
+import { ACCESS_TOKEN_HEADER, readAccessToken } from './accessTokenStorage';
 import { responseProcessor } from './responseProcessor.ts';
 
 const ACCEPT_HEADER = 'application/json, application/problem+json';
-const ADMIN_TOKEN_HEADER = 'X-Marryly-Admin-Token';
 
 interface AdminRequestOptions {
     method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
@@ -40,13 +39,13 @@ export class AdminApiClient {
     private async request<T>(path: string, options: AdminRequestOptions): Promise<T> {
         const { method = 'GET', body, headers, suppressAuthFailureEvent = false } = options;
         const hasBody = body !== undefined;
-        const accessToken = readAdminAccessToken();
+        const accessToken = readAccessToken();
         const response = await fetch(`${this.baseUrl}${path}`, {
             method,
             headers: {
                 Accept: ACCEPT_HEADER,
                 ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
-                ...(accessToken ? { [ADMIN_TOKEN_HEADER]: accessToken } : {}),
+                ...(accessToken ? { [ACCESS_TOKEN_HEADER]: accessToken } : {}),
                 ...headers,
             },
             ...(hasBody ? { body: JSON.stringify(body) } : {}),
@@ -57,7 +56,7 @@ export class AdminApiClient {
 
             if (!suppressAuthFailureEvent && apiError instanceof ApiError) {
                 if (apiError.status === 401) {
-                    notifyAdminAuthFailure({
+                    notifyAuthFailure({
                         reason: 'unauthorized',
                         status: 401,
                         code: apiError.code,
@@ -65,7 +64,7 @@ export class AdminApiClient {
                         detail: apiError.detail,
                     });
                 } else if (apiError.status === 403) {
-                    notifyAdminAuthFailure({
+                    notifyAuthFailure({
                         reason: 'forbidden',
                         status: 403,
                         code: apiError.code,

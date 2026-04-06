@@ -1,4 +1,5 @@
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
+import { cn } from '../utils/cn';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -10,9 +11,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
-    primary: 'bg-gold text-white hover:bg-gold/90 hover:shadow-md border-gold',
-    secondary: 'bg-transparent text-ink border-2 border-ink hover:bg-ink hover:text-paper',
-    ghost: 'bg-transparent text-ink hover:bg-accent border-transparent',
+    primary: 'border border-gold bg-gold text-white hover:bg-gold/90 hover:shadow-md',
+    secondary: 'border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper',
+    ghost: 'border border-transparent bg-transparent text-ink hover:bg-accent',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -29,14 +30,15 @@ export default function Button({
     ...props
 }: ButtonProps) {
     return (
-        <button className={`
-                rounded-lg font-medium transition-all duration-300
-                hover:scale-105 active:scale-95
-                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
-                ${variantStyles[variant]}
-                ${sizeStyles[size]}
-                ${className}
-            `}
+        <button
+            className={cn(
+                'rounded-lg font-medium transition-all duration-300',
+                'hover:scale-105 active:scale-95',
+                'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100',
+                variantStyles[variant],
+                sizeStyles[size],
+                className
+            )}
             {...props}>
             {children}
         </button>

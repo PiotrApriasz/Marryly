@@ -1,9 +1,14 @@
 import { type FormEvent, useState } from 'react';
 import { apiClient } from '../api/client';
 import ApiErrorAlert from '../components/ApiErrorAlert';
+import Field from '../components/Field';
+import Input from '../components/Input';
 import Layout from '../components/Layout';
+import Notice from '../components/Notice';
+import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
 import Button from '../components/Button';
+import Textarea from '../components/Textarea';
 import { getErrorMessageForDisplay } from '../errors/apiError';
 
 export default function GuestbookPage() {
@@ -36,54 +41,45 @@ export default function GuestbookPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Księga gości
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                        <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Zostaw nam swoje życzenia i wspomnienia z tego wyjątkowego dnia
-                        </p>
-                    </div>
+                    <PageHeader
+                        title="Księga gości"
+                        description="Zostaw nam swoje życzenia i wspomnienia z tego wyjątkowego dnia"
+                    />
 
                     <div className="mx-auto mt-12 max-w-2xl">
                         <form className="space-y-6" onSubmit={handleSubmit}>
                             {isSubmitted && !error && (
-                                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-left">
-                                    <p className="font-sans text-sm text-emerald-800">
+                                <Notice tone="success" className="rounded-lg p-4 text-left">
+                                    <p className="font-sans text-sm">
                                         Dziękujemy! Twoje życzenia zostały zapisane.
                                     </p>
-                                </div>
+                                </Notice>
                             )}
                             {error && <ApiErrorAlert message={error} />}
 
-                            <div>
-                                <label htmlFor="name" className="block text-left font-sans text-sm font-medium text-ink">
-                                    Twoje imię
-                                </label>
-                                <input type="text"
+                            <Field label="Twoje imię" htmlFor="name" labelTone="strong">
+                                <Input
+                                    type="text"
                                     id="name"
                                     value={authorName}
                                     onChange={(event) => setAuthorName(event.target.value)}
-                                    className="mt-2 w-full rounded-lg border border-sand bg-white px-4 py-3 font-sans text-ink transition-colors focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                                     required
-                                    placeholder="Jan Kowalski"/>
-                            </div>
+                                    placeholder="Jan Kowalski"
+                                />
+                            </Field>
 
-                            <div>
-                                <label htmlFor="message" className="block text-left font-sans text-sm font-medium text-ink">
-                                    Twoja wiadomość
-                                </label>
-                                <textarea id="message"
+                            <Field label="Twoja wiadomość" htmlFor="message" labelTone="strong">
+                                <Textarea
+                                    id="message"
                                     rows={6}
                                     value={message}
                                     onChange={(event) => setMessage(event.target.value)}
-                                    className="mt-2 w-full rounded-lg border border-sand bg-white px-4 py-3 font-sans text-ink transition-colors focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20"
                                     required
-                                    placeholder="Podziel się z nami czymkolwiek chcesz..."/>
-                            </div>
+                                    placeholder="Podziel się z nami czymkolwiek chcesz..."
+                                />
+                            </Field>
 
                             <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
                                 {loading ? 'Wysyłanie...' : 'Wyślij życzenia'}

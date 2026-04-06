@@ -1,0 +1,179 @@
+.page-header {
+  @apply text-center;
+}
+
+.page-header-left {
+  @apply text-left;
+}
+
+.page-title {
+  @apply font-script text-5xl text-ink md:text-6xl;
+}
+
+.page-title-elevated {
+  @apply mt-3 font-script text-4xl text-ink md:text-6xl;
+}
+
+.page-divider {
+  @apply mx-auto mt-6 h-px w-24 bg-gold;
+}
+
+.page-divider-left {
+  @apply ml-0 mr-auto;
+}
+
+.page-description {
+  @apply mx-auto mt-8 max-w-2xl font-sans text-lg text-muted;
+}
+
+.page-description-compact {
+  @apply mx-auto mt-8 max-w-xl font-sans text-base leading-8 text-muted md:text-lg;
+}
+
+.surface-card {
+  @apply rounded-2xl border border-sand bg-white shadow-sm;
+}
+
+.surface-card-hover {
+  @apply transition-all duration-300 hover:-translate-y-1 hover:border-gold hover:shadow-md;
+}
+
+.surface-panel {
+  @apply rounded-lg border border-sand bg-white shadow-sm;
+}
+
+.field-label {
+  @apply block text-left font-sans text-sm font-medium text-muted;
+}
+
+.field-label-strong {
+  @apply text-ink;
+}
+
+.field-control {
+  @apply mt-2 w-full rounded-lg border border-sand bg-white px-4 py-3 font-sans text-ink transition-colors placeholder:text-muted/60 focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/20;
+}
+
+.field-control-muted {
+  @apply bg-paper/60;
+}
+
+.notice {
+  @apply rounded-2xl border px-4 py-3 shadow-sm;
+}
+
+.notice-title {
+  @apply font-sans text-sm font-medium;
+}
+
+.notice-body {
+  @apply mt-1 text-sm;
+}
+
+.status-badge {
+  @apply rounded-full border px-2 py-1 text-xs font-medium;
+}
+
+.dialog-surface {
+  @apply relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl;
+}
+
+.overlay-surface {
+  @apply w-full max-w-sm rounded-[2rem] border border-sand bg-white p-8 text-center shadow-xl;
+}
+
+.nav-shell {
+  @apply fixed top-0 z-50 w-full transition-all duration-300;
+}
+
+.nav-shell-scrolled {
+  @apply bg-white/95 shadow-md backdrop-blur-sm;
+}
+
+.nav-brand-letter {
+  @apply font-script text-3xl text-ink transition-colors duration-300 md:text-4xl;
+}
+
+.nav-link {
+  @apply relative px-4 py-2 font-sans text-base font-medium text-ink transition-all duration-300 hover:scale-110 hover:text-gold;
+}
+
+.nav-link-active {
+  @apply text-gold;
+}
+
+.nav-link-indicator {
+  @apply absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-gold transition-all duration-300;
+}
+
+.nav-link-indicator-active {
+  @apply w-3/4;
+}
+
+.nav-icon-button {
+  @apply flex h-10 w-10 items-center justify-center rounded-full border border-gold bg-gold text-white shadow-sm transition-all duration-300 hover:scale-105 hover:bg-gold/90;
+}
+
+.mobile-menu-link {
+  @apply block animate-slideDown px-4 py-3 font-sans text-base text-ink transition-colors duration-300 hover:text-gold;
+}
+
+.mobile-menu-link-active {
+  @apply text-gold;
+}
+
+.hero-shell {
+  @apply relative h-[85vh] min-h-[600px] w-full overflow-hidden;
+}
+
+.hero-backdrop {
+  @apply absolute inset-0 scale-100 bg-cover bg-center bg-no-repeat opacity-30 blur-[2px];
+}
+
+.hero-backdrop-default {
+  background: linear-gradient(135deg, #F5EFE6 0%, #E9E4DC 50%, #F5EFE6 100%);
+}
+
+.hero-name {
+  @apply font-script text-6xl tracking-tight text-ink sm:text-7xl md:text-8xl lg:text-9xl;
+}
+
+.hero-name-joiner {
+  @apply mx-3 text-5xl font-light text-ink/70 sm:mx-4 sm:text-6xl md:mx-6 md:text-7xl lg:text-8xl;
+}
+
+.hero-divider {
+  @apply mx-auto mt-8 h-[2px] w-64 bg-gold md:w-96;
+}
+
+.hero-meta {
+  @apply mt-8 font-serif text-xl tracking-wide text-ink sm:text-2xl md:text-3xl;
+}
+
+.hero-location {
+  @apply mt-6 flex items-center justify-center gap-2 text-lg text-ink sm:text-xl;
+}
+
+.footer-meta {
+  @apply font-sans text-sm text-muted;
+}
+
+.footer-subtle {
+  @apply font-sans text-xs text-muted;
+}
+
+.auth-shell {
+  @apply surface-card relative overflow-hidden p-6 text-center text-ink shadow-[0_24px_70px_rgba(135,106,77,0.18)] md:p-10;
+}
+
+.auth-shell-glow {
+  @apply pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,110,0.16),transparent_40%)];
+}
+
+.interactive-surface {
+  @apply surface-card surface-card-hover;
+}
+
+.upload-dropzone {
+  @apply interactive-surface w-full rounded-[2rem] px-6 py-7 text-center disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:border-sand disabled:hover:shadow-sm;
+}

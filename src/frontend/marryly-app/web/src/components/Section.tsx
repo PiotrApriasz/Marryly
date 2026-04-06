@@ -1,4 +1,5 @@
 import {type ReactNode, useEffect, useRef, useState } from 'react';
+import { cn } from '../utils/cn';
 
 type SectionBackground = 'white' | 'paper' | 'transparent';
 
@@ -53,12 +54,12 @@ export default function Section({
     return (
         <section
             ref={sectionRef}
-            className={`
-                w-full px-4 py-12 md:py-16 lg:py-20
-                ${backgroundStyles[background]}
-                ${isVisible ? 'animate-fadeIn' : 'opacity-0'}
-                ${className}
-            `}
+            className={cn(
+                'w-full px-4 py-12 md:py-16 lg:py-20',
+                backgroundStyles[background],
+                isVisible ? 'animate-fadeIn' : 'opacity-0',
+                className
+            )}
         >
             <div className="mx-auto max-w-7xl">
                 {children}

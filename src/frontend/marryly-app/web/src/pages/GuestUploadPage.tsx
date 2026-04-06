@@ -4,6 +4,10 @@ import Layout from '../components/Layout';
 import Section from '../components/Section';
 import Button from '../components/Button';
 import ApiErrorAlert from '../components/ApiErrorAlert';
+import Card from '../components/Card';
+import Notice from '../components/Notice';
+import PageHeader from '../components/PageHeader';
+import { cn } from '../utils/cn';
 import { apiClient } from '../api/client';
 import { uploadFileToSignedUrl } from '../api/photoUploadTransport';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
@@ -113,15 +117,15 @@ function getStatusLabel(status: UploadStatus): string {
 function getStatusClasses(status: UploadStatus): string {
     switch (status) {
         case 'success':
-            return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+            return 'border-emerald-200 bg-emerald-50 text-emerald-700';
         case 'error':
-            return 'bg-rose-50 text-rose-700 border-rose-200';
+            return 'border-rose-200 bg-rose-50 text-rose-700';
         case 'uploading':
         case 'preparing':
-            return 'bg-amber-50 text-amber-700 border-amber-200';
+            return 'border-amber-200 bg-amber-50 text-amber-700';
         case 'queued':
         default:
-            return 'bg-sand/50 text-ink border-sand';
+            return 'border-sand bg-sand/50 text-ink';
     }
 }
 
@@ -437,17 +441,12 @@ export default function GuestUploadPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Dodaj zdjęcia
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                        <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Zrób lub wybierz zdjęcia, a wysyłanie rozpocznie się automatycznie.
-                        </p>
-                    </div>
+                    <PageHeader
+                        title="Dodaj zdjęcia"
+                        description="Zrób lub wybierz zdjęcia, a wysyłanie rozpocznie się automatycznie."
+                    />
 
                     <div className="mx-auto mt-12 max-w-3xl space-y-6">
                         <input
@@ -461,7 +460,7 @@ export default function GuestUploadPage() {
 
                         <button
                             type="button"
-                            className="w-full rounded-[2rem] border border-sand bg-white px-6 py-7 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:border-sand disabled:hover:shadow-sm"
+                            className="upload-dropzone"
                             onClick={() => inputRef.current?.click()}
                             disabled={shouldShowUploadOverlay}
                         >
@@ -494,15 +493,15 @@ export default function GuestUploadPage() {
                         </button>
 
                         {selectionError ? (
-                            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-                                <p className="whitespace-pre-wrap break-words text-left text-sm text-amber-800">
+                            <Notice tone="warning" className="p-5 text-left">
+                                <p className="whitespace-pre-wrap break-words text-sm">
                                     {selectionError}
                                 </p>
-                            </div>
+                            </Notice>
                         ) : null}
                         {uploadError ? <ApiErrorAlert message={uploadError} /> : null}
                         {uploadSuccessMessage ? (
-                            <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/90 px-4 py-3 shadow-sm">
+                            <Notice tone="success" className="bg-emerald-50/90 px-4 py-3" contentClassName="mt-0 flex items-center gap-3">
                                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
                                     <svg
                                         className="h-5 w-5"
@@ -526,11 +525,11 @@ export default function GuestUploadPage() {
                                         {uploadSuccessMessage}
                                     </p>
                                 </div>
-                            </div>
+                            </Notice>
                         ) : null}
 
                         {hasErroredItems ? (
-                            <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-5">
+                            <Notice tone="error" className="bg-rose-50/40 p-5">
                                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                                     <div>
                                         <p className="font-sans text-base font-medium text-ink">
@@ -546,60 +545,62 @@ export default function GuestUploadPage() {
                                     {items.filter((item) => item.status === 'error').map((item) => (
                                         <article
                                             key={item.id}
-                                            className="rounded-2xl border border-sand bg-white p-4 shadow-sm"
+                                            className="mt-6"
                                         >
-                                            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <p className="truncate font-sans text-base font-medium text-ink">
-                                                            {item.file.name}
-                                                        </p>
-                                                        <span
-                                                            className={`rounded-full border px-2 py-1 text-xs font-medium ${getStatusClasses(item.status)}`}
-                                                        >
-                                                            {getStatusLabel(item.status)}
-                                                        </span>
-                                                    </div>
-                                                    <p className="mt-1 text-sm text-muted">
-                                                        {formatBytes(item.file.size)}
-                                                    </p>
-                                                    <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                                                        <span className="text-muted">
-                                                            Spróbuj wysłać ponownie to zdjęcie.
-                                                        </span>
-                                                        {item.errorMessage ? (
-                                                            <span className="text-rose-700">
-                                                                {item.errorMessage}
+                                            <Card padding="md">
+                                                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <p className="truncate font-sans text-base font-medium text-ink">
+                                                                {item.file.name}
+                                                            </p>
+                                                            <span
+                                                                className={cn('status-badge', getStatusClasses(item.status))}
+                                                            >
+                                                                {getStatusLabel(item.status)}
                                                             </span>
+                                                        </div>
+                                                        <p className="mt-1 text-sm text-muted">
+                                                            {formatBytes(item.file.size)}
+                                                        </p>
+                                                        <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
+                                                            <span className="text-muted">
+                                                                Spróbuj wysłać ponownie to zdjęcie.
+                                                            </span>
+                                                            {item.errorMessage ? (
+                                                                <span className="text-rose-700">
+                                                                    {item.errorMessage}
+                                                                </span>
+                                                            ) : null}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-wrap gap-3">
+                                                        {item.status === 'error' ? (
+                                                            <Button
+                                                                type="button"
+                                                                variant="primary"
+                                                                size="sm"
+                                                                onClick={() => void handleRetry(item.id)}
+                                                                disabled={hasActiveUpload}
+                                                            >
+                                                                Ponów
+                                                            </Button>
                                                         ) : null}
                                                     </div>
                                                 </div>
-
-                                                <div className="flex flex-wrap gap-3">
-                                                    {item.status === 'error' ? (
-                                                        <Button
-                                                            type="button"
-                                                            variant="primary"
-                                                            size="sm"
-                                                            onClick={() => void handleRetry(item.id)}
-                                                            disabled={hasActiveUpload}
-                                                        >
-                                                            Ponów
-                                                        </Button>
-                                                    ) : null}
-                                                </div>
-                                            </div>
+                                            </Card>
                                         </article>
                                     ))}
                                 </div>
-                            </div>
+                            </Notice>
                         ) : null}
                     </div>
                 </Section>
             </div>
             {shouldShowUploadOverlay ? (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper/95 px-6 backdrop-blur-sm">
-                    <div className="w-full max-w-sm rounded-[2rem] border border-sand bg-white p-8 text-center shadow-xl">
+                    <div className="overlay-surface">
                         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gold/10">
                             <div className="h-12 w-12 animate-spin rounded-full border-4 border-gold/20 border-t-gold" />
                         </div>

@@ -1,4 +1,6 @@
 import Layout from '../components/Layout';
+import Card from '../components/Card';
+import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useEvents } from '../hooks/useEvents';
@@ -7,7 +9,7 @@ function EventsSkeleton() {
     return (
         <div className="mx-auto max-w-3xl space-y-4 animate-pulse">
             {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="rounded-lg border border-sand bg-white p-6">
+                <Card key={item} className="rounded-lg">
                     <div className="flex items-start gap-4">
                         <div className="h-16 w-16 bg-sand rounded-lg" />
                         <div className="flex-1 space-y-2">
@@ -16,7 +18,7 @@ function EventsSkeleton() {
                             <div className="h-4 w-40 bg-sand/50 rounded" />
                         </div>
                     </div>
-                </div>
+                </Card>
             ))}
         </div>
     );
@@ -36,14 +38,9 @@ export default function EventsPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center mb-12">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Wydarzenia
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                    </div>
+                    <PageHeader title="Wydarzenia" className="mb-12" />
 
                     <PageState
                         loading={loading}
@@ -55,9 +52,9 @@ export default function EventsPage() {
                         <div className="mx-auto max-w-3xl">
                             <div className="space-y-4">
                                 {events.map((event) => (
-                                    <div
+                                    <Card
                                         key={event.id}
-                                        className="rounded-lg border border-sand bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+                                        className="rounded-lg transition-shadow hover:shadow-md"
                                     >
                                         <div className="flex items-start gap-6">
                                             <div className="flex-shrink-0 text-center">
@@ -111,7 +108,7 @@ export default function EventsPage() {
                                                 </p>
                                             </div>
                                         </div>
-                                    </div>
+                                    </Card>
                                 ))}
                             </div>
                         </div>

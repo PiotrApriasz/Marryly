@@ -1,4 +1,6 @@
 import Layout from '../components/Layout';
+import Card from '../components/Card';
+import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useAdminOverview } from '../hooks/admin/useAdminOverview';
@@ -8,11 +10,11 @@ function DashboardSkeleton() {
     return (
         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3 animate-pulse">
             {[1, 2, 3, 4, 5, 6].map((item) => (
-                <div key={item} className="rounded-2xl border border-sand bg-white p-6 text-center">
+                <Card key={item} className="text-center">
                     <div className="mx-auto h-10 w-10 rounded-full bg-sand" />
                     <div className="mx-auto mt-4 h-6 w-24 rounded bg-sand" />
                     <div className="mx-auto mt-3 h-8 w-12 rounded bg-sand/70" />
-                </div>
+                </Card>
             ))}
         </div>
     );
@@ -31,17 +33,12 @@ export default function AdminDashboardPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Panel Młodej Pary
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                        <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Zarządzanie treścią, gośćmi i ustawieniami wesela
-                        </p>
-                    </div>
+                    <PageHeader
+                        title="Panel Młodej Pary"
+                        description="Zarządzanie treścią, gośćmi i ustawieniami wesela"
+                    />
 
                     <PageState
                         loading={loading}
@@ -53,11 +50,11 @@ export default function AdminDashboardPage() {
                         <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {dashboardItems.map((item) => {
                                 const cardContent = (
-                                    <div className="rounded-2xl border border-sand bg-white p-6 text-center transition-all hover:shadow-md">
+                                    <Card className="text-center transition-all hover:shadow-md">
                                         <div className="text-4xl">{item.icon}</div>
                                         <h3 className="mt-4 font-serif text-xl text-ink">{item.title}</h3>
                                         <p className="mt-2 text-3xl font-bold text-gold">{item.count}</p>
-                                    </div>
+                                    </Card>
                                 );
 
                                 if (!item.path) {

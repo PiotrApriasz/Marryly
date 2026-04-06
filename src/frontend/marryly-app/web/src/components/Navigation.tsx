@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAdminAuth } from '../auth/AdminAuthContext';
+import { useAuth } from '../auth/AuthContext';
 import Button from './Button';
+import { cn } from '../utils/cn';
 
 interface NavLink {
     label: string;
@@ -23,10 +24,10 @@ export default function Navigation() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
-    const { isAuthenticated, user, logout } = useAdminAuth();
+    const { isAuthenticated, isAdmin, user, logout } = useAuth();
     const isMainPage = location.pathname === '/';
     const isAdminArea = location.pathname.startsWith('/admin');
-    const showAdminSessionControls = isAdminArea && isAuthenticated;
+    const showAdminSessionControls = isAdminArea && isAuthenticated && isAdmin;
     const adminDisplayName = user?.displayName?.trim() || 'Państwo Młodzi';
 
     useEffect(() => {
@@ -49,26 +50,14 @@ export default function Navigation() {
             console.error('Failed to logout admin session', error);
         } finally {
             setIsMobileMenuOpen(false);
-            navigate('/admin', { replace: true });
+            navigate('/access', { replace: true });
         }
     };
 
-    const adminLinkClassName = `
-        group flex h-10 w-10 items-center justify-center rounded-full border border-gold bg-gold text-white
-        shadow-sm transition-all duration-300 hover:scale-105 hover:bg-gold/90
-    `;
+    const adminLinkClassName = 'nav-icon-button';
 
     return (
-        <nav
-            className={`
-                fixed top-0 z-50 w-full transition-all duration-300
-                ${
-                    isScrolled
-                        ? 'bg-white/95 shadow-md backdrop-blur-sm'
-                        : 'bg-transparent'
-                }
-            `}
-        >
+        <nav className={cn('nav-shell', isScrolled && 'nav-shell-scrolled')}>
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex h-16 items-center justify-between md:h-20">
                     {/* Logo / Initials */}
@@ -76,13 +65,13 @@ export default function Navigation() {
                         onClick={handleLinkClick}
                         className="group flex items-center gap-2 transition-transform duration-300 hover:scale-105">
                         <div className="flex items-center">
-                            <span className="font-script text-3xl text-ink transition-colors duration-300 group-hover:text-gold md:text-4xl">
+                            <span className="nav-brand-letter group-hover:text-gold">
                                 A
                             </span>
                             <span className="mx-2 font-serif text-2xl text-muted md:text-3xl">
                                 &
                             </span>
-                            <span className="font-script text-3xl text-ink transition-colors duration-300 group-hover:text-gold md:text-4xl">
+                            <span className="nav-brand-letter group-hover:text-gold">
                                 P
                             </span>
                         </div>
@@ -94,30 +83,21 @@ export default function Navigation() {
                             <Link
                                 key={link.path}
                                 to={link.path}
-                                className={`
-                                    group relative px-4 py-2 font-sans text-base font-medium transition-all duration-300
-                                    hover:scale-110
-                                    ${
-                                        location.pathname === link.path
-                                            ? 'text-gold'
-                                            : 'text-ink hover:text-gold'
-                                    }
-                                `}
+                                className={cn('group nav-link', location.pathname === link.path && 'nav-link-active')}
                             >
                                 <span className="relative z-10">{link.label}</span>
                                 <span
-                                    className={`
-                                        absolute bottom-0 left-1/2 h-[2px] w-0 -translate-x-1/2 bg-gold transition-all duration-300
-                                        group-hover:w-3/4
-                                        ${location.pathname === link.path ? 'w-3/4' : ''}
-                                    `}
+                                    className={cn(
+                                        'nav-link-indicator group-hover:w-3/4',
+                                        location.pathname === link.path && 'nav-link-indicator-active'
+                                    )}
                                 />
                             </Link>
                         ))}
 
                         {isMainPage && !showAdminSessionControls && (
                             <Link
-                                to="/admin"
+                                to="/access?mode=admin"
                                 onClick={handleLinkClick}
                                 aria-label="Panel Młodej Pary"
                                 title="Panel Młodej Pary"
@@ -154,29 +134,29 @@ export default function Navigation() {
                             >
                                 <div className="flex h-6 w-6 flex-col justify-center gap-1.5">
                                     <span
-                                        className={`
-                                            h-0.5 w-full bg-current transition-all duration-300
-                                            ${isMobileMenuOpen ? 'translate-y-2 rotate-45' : ''}
-                                        `}
+                                        className={cn(
+                                            'h-0.5 w-full bg-current transition-all duration-300',
+                                            isMobileMenuOpen && 'translate-y-2 rotate-45'
+                                        )}
                                     />
                                     <span
-                                        className={`
-                                            h-0.5 w-full bg-current transition-all duration-300
-                                            ${isMobileMenuOpen ? 'opacity-0' : ''}
-                                        `}
+                                        className={cn(
+                                            'h-0.5 w-full bg-current transition-all duration-300',
+                                            isMobileMenuOpen && 'opacity-0'
+                                        )}
                                     />
                                     <span
-                                        className={`
-                                            h-0.5 w-full bg-current transition-all duration-300
-                                            ${isMobileMenuOpen ? '-translate-y-2 -rotate-45' : ''}
-                                        `}
+                                        className={cn(
+                                            'h-0.5 w-full bg-current transition-all duration-300',
+                                            isMobileMenuOpen && '-translate-y-2 -rotate-45'
+                                        )}
                                     />
                                 </div>
                             </button>
 
                             {isMainPage && (
                                 <Link
-                                    to="/admin"
+                                    to="/access?mode=admin"
                                     onClick={handleLinkClick}
                                     aria-label="Panel Młodej Pary"
                                     title="Panel Młodej Pary"
@@ -207,26 +187,14 @@ export default function Navigation() {
             </div>
 
             {/* Mobile Menu */}
-            <div
-                className={`
-                    overflow-hidden transition-all duration-300 lg:hidden
-                    ${isMobileMenuOpen ? 'max-h-screen' : 'max-h-0'}
-                `}
-            >
+            <div className={cn('overflow-hidden transition-all duration-300 lg:hidden', isMobileMenuOpen ? 'max-h-screen' : 'max-h-0')}>
                 <div className="border-t border-sand bg-white/95 px-4 py-4 backdrop-blur-sm">
                     {navLinks.map((link, index) => (
                         <Link
                             key={link.path}
                             to={link.path}
                             onClick={handleLinkClick}
-                            className={`
-                                block animate-slideDown px-4 py-3 font-sans text-base transition-colors duration-300
-                                ${
-                                    location.pathname === link.path
-                                        ? 'text-gold'
-                                        : 'text-ink hover:text-gold'
-                                }
-                            `}
+                            className={cn('mobile-menu-link', location.pathname === link.path && 'mobile-menu-link-active')}
                             style={{
                                 animationDelay: `${index * 50}ms`,
                             }}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { cn } from '../utils/cn';
 import type { Photo } from '../types/wedding.types';
 
 interface PhotoGalleryGridProps {
@@ -29,6 +30,10 @@ export default function PhotoGalleryGrid({
     const selectedPhoto = selectedPhotoIndex === null ? null : photos[selectedPhotoIndex] ?? null;
     const hasPreviousPhoto = selectedPhotoIndex !== null && selectedPhotoIndex > 0;
     const hasNextPhoto = selectedPhotoIndex !== null && selectedPhotoIndex < photos.length - 1;
+    const galleryNavigationButtonClassName = cn(
+        'pointer-events-auto rounded-full bg-white/90 px-4 py-3 text-sm font-medium text-ink shadow transition',
+        'disabled:cursor-not-allowed disabled:opacity-40'
+    );
 
     useEffect(() => {
         if (selectedPhotoIndex === null) {
@@ -75,7 +80,7 @@ export default function PhotoGalleryGrid({
                     <button
                         key={photo.id}
                         type="button"
-                        className="group overflow-hidden rounded-2xl border border-sand bg-white text-left shadow-sm transition-transform hover:-translate-y-1"
+                        className="surface-card group overflow-hidden text-left transition-transform hover:-translate-y-1"
                         onClick={() => setSelectedPhotoIndex(index)}
                     >
                         <div className="aspect-square overflow-hidden bg-sand/40">
@@ -105,13 +110,13 @@ export default function PhotoGalleryGrid({
                     onClick={() => setSelectedPhotoIndex(null)}
                 >
                     <div
-                        className="relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl"
+                        className="dialog-surface"
                         onClick={(event) => event.stopPropagation()}
                     >
                         <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-10 flex items-center justify-between px-3">
                             <button
                                 type="button"
-                                className="pointer-events-auto rounded-full bg-white/90 px-4 py-3 text-sm font-medium text-ink shadow transition disabled:cursor-not-allowed disabled:opacity-40"
+                                className={galleryNavigationButtonClassName}
                                 onClick={() => setSelectedPhotoIndex((currentIndex) => currentIndex === null ? null : Math.max(currentIndex - 1, 0))}
                                 disabled={!hasPreviousPhoto}
                                 aria-label="Poprzednie zdjęcie"
@@ -120,7 +125,7 @@ export default function PhotoGalleryGrid({
                             </button>
                             <button
                                 type="button"
-                                className="pointer-events-auto rounded-full bg-white/90 px-4 py-3 text-sm font-medium text-ink shadow transition disabled:cursor-not-allowed disabled:opacity-40"
+                                className={galleryNavigationButtonClassName}
                                 onClick={() => setSelectedPhotoIndex((currentIndex) => currentIndex === null ? null : Math.min(currentIndex + 1, photos.length - 1))}
                                 disabled={!hasNextPhoto}
                                 aria-label="Następne zdjęcie"

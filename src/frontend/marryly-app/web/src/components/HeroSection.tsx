@@ -1,3 +1,5 @@
+import { cn } from '../utils/cn';
+
 interface HeroSectionProps {
     names: {
         first: string;
@@ -14,16 +16,12 @@ export default function HeroSection({
     location,
     backgroundImage,
 }: HeroSectionProps) {
-    const backgroundStyle = backgroundImage
-        ? { backgroundImage: `url(${backgroundImage})` }
-        : {
-              background: 'linear-gradient(135deg, #F5EFE6 0%, #E9E4DC 50%, #F5EFE6 100%)',
-          };
+    const backgroundStyle = backgroundImage ? { backgroundImage: `url(${backgroundImage})` } : undefined;
 
     return (
-        <section className="relative h-[85vh] min-h-[600px] w-full overflow-hidden">
+        <section className="hero-shell">
             {/* Background Image/Gradient */}
-            <div className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30 blur-[2px] scale-100"
+            <div className={cn('hero-backdrop', !backgroundImage && 'hero-backdrop-default')}
                 style={backgroundStyle}>
             </div>
 
@@ -31,9 +29,9 @@ export default function HeroSection({
             <div className="relative z-10 flex h-full items-center justify-center px-4">
                 <div className="animate-scaleIn text-center">
                     {/* Names */}
-                    <h1 className="font-script text-6xl tracking-tight text-ink sm:text-7xl md:text-8xl lg:text-9xl">
+                    <h1 className="hero-name">
                         {names.first}
-                        <span className="mx-3 text-5xl font-light text-ink/70 sm:mx-4 sm:text-6xl md:mx-6 md:text-7xl lg:text-8xl">
+                        <span className="hero-name-joiner">
                             {' '}
                             oraz{' '}
                         </span>
@@ -41,16 +39,16 @@ export default function HeroSection({
                     </h1>
 
                     {/* Divider */}
-                    <div className="mx-auto mt-8 h-[2px] w-64 bg-gold md:w-96" />
+                    <div className="hero-divider" />
 
                     {/* Date */}
-                    <p className="mt-8 font-serif text-xl tracking-wide text-ink sm:text-2xl md:text-3xl">
+                    <p className="hero-meta">
                         {date}
                     </p>
 
                     {/* Location */}
-                    <div className="mt-6 flex items-center justify-center gap-2 text-lg text-ink sm:text-xl">
-                        <svg className="h-5 w-5 text-gold sm:h-6 sm:w-6"
+                    <div className="hero-location">
+                        <svg className={cn('h-5 w-5 text-gold sm:h-6 sm:w-6')}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24">

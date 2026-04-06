@@ -1,59 +1,17 @@
-import type { AdminLoginResponse, AdminSessionResponse } from '../types/admin.types';
-import { ApiError } from '../errors/apiError';
-import { adminApiClient } from './adminApiClient';
-import { clearAdminAccessToken, writeAdminAccessToken, writeAdminUser } from './adminTokenStorage';
+import type { AccessLoginResponse, AccessSessionResponse } from '../types/auth.types';
+import { authApiClient } from './authApiClient';
 
 export class AdminAuthClient {
-    async login(email: string, password: string): Promise<AdminLoginResponse> {
-        const response = await adminApiClient.post<AdminLoginResponse>(
-            '/panel/auth/login',
-            { email, password },
-            { suppressAuthFailureEvent: true }
-        );
-
-        if (response.accessToken) {
-            writeAdminAccessToken(response.accessToken);
-        }
-
-        if (response.user) {
-            writeAdminUser(response.user);
-        }
-
-        return response;
+    async login(email: string, password: string): Promise<AccessLoginResponse> {
+        return authApiClient.loginAsAdmin(email, password);
     }
 
-    async getSession(): Promise<AdminSessionResponse> {
-        try {
-            return await adminApiClient.get<AdminSessionResponse>(
-                '/panel/auth/session',
-                { suppressAuthFailureEvent: true }
-            );
-        } catch (error: unknown) {
-            if (error instanceof ApiError && error.status === 401) {
-                return { authenticated: false };
-            }
-
-            throw error;
-        }
+    async getSession(): Promise<AccessSessionResponse> {
+        return authApiClient.getSession();
     }
 
     async logout(): Promise<void> {
-        try {
-            await adminApiClient.post<void>(
-                '/panel/auth/logout',
-                undefined,
-                { suppressAuthFailureEvent: true }
-            );
-        } catch (error: unknown) {
-            if (error instanceof ApiError && error.status === 401) {
-                clearAdminAccessToken();
-                return;
-            }
-
-            throw error;
-        } finally {
-            clearAdminAccessToken();
-        }
+        await authApiClient.logout();
     }
 }
 

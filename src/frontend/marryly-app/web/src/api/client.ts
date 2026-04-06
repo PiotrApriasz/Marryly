@@ -1,66 +1,90 @@
 import { config } from '../app/config';
 import type { Menu, Event, GuestbookEntry, PhotosPage } from '../types/wedding.types';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
-import {responseProcessor} from "./responseProcessor.ts";
+import { ApiError } from '../errors/apiError';
+import { notifyAuthFailure } from './authEvents';
+import { ACCESS_TOKEN_HEADER, readAccessToken } from './accessTokenStorage';
+import { responseProcessor } from './responseProcessor.ts';
 
 export class ApiClient {
     private readonly baseUrl: string;
-    private readonly eventId: string;
 
     constructor() {
         this.baseUrl = config.apiBaseUrl;
-        this.eventId = config.eventId;
     }
 
-    private async fetchJson<T>(path: string): Promise<T> {
+    private async fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+        const accessToken = readAccessToken();
         const response = await fetch(`${this.baseUrl}${path}`, {
+            ...init,
             headers: {
                 Accept: 'application/json, application/problem+json',
+                ...(accessToken ? { [ACCESS_TOKEN_HEADER]: accessToken } : {}),
+                ...(init?.headers ?? {}),
             },
         });
+
+        if (!response.ok) {
+            const apiError = await responseProcessor.parseError(response);
+
+            if (apiError instanceof ApiError) {
+                if (apiError.status === 401) {
+                    notifyAuthFailure({
+                        reason: 'unauthorized',
+                        status: 401,
+                        code: apiError.code,
+                        message: apiError.message,
+                        detail: apiError.detail,
+                    });
+                } else if (apiError.status === 403) {
+                    notifyAuthFailure({
+                        reason: 'forbidden',
+                        status: 403,
+                        code: apiError.code,
+                        message: apiError.message,
+                        detail: apiError.detail,
+                    });
+                }
+            }
+
+            throw apiError;
+        }
 
         return responseProcessor.parseResponse<T>(response);
     }
 
     async getMenu(): Promise<Menu> {
-        return this.fetchJson<Menu>(`/events/${this.eventId}/menu`);
+        return this.fetchJson<Menu>('/app/menu');
     }
 
     async getEvents(): Promise<Event[]> {
-        return this.fetchJson<Event[]>(`/events/${this.eventId}/schedule`);
+        return this.fetchJson<Event[]>('/app/schedule');
     }
 
     async addGuestBookEntry(payload: { authorName: string; message: string }): Promise<GuestbookEntry> {
-        const response = await fetch(`${this.baseUrl}/events/${this.eventId}/guestbook`, {
+        return this.fetchJson<GuestbookEntry>('/app/guestbook', {
             method: 'POST',
             headers: {
-                Accept: 'application/json, application/problem+json',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
         });
-
-        return responseProcessor.parseResponse<GuestbookEntry>(response);
     }
 
     async createPhotoUpload(payload: CreatePhotoUploadRequest): Promise<PhotoUploadTarget> {
-        const response = await fetch(`${this.baseUrl}/events/${this.eventId}/photos/uploads`, {
+        return this.fetchJson<PhotoUploadTarget>('/app/photos/uploads', {
             method: 'POST',
             headers: {
-                Accept: 'application/json, application/problem+json',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
         });
-
-        return responseProcessor.parseResponse<PhotoUploadTarget>(response);
     }
 
     async completePhotoUpload(payload: CompletePhotoUploadRequest): Promise<void> {
-        const response = await fetch(`${this.baseUrl}/events/${this.eventId}/photos/uploads/${payload.photoId}/complete`, {
+        await this.fetchJson<Record<string, unknown>>(`/app/photos/uploads/${payload.photoId}/complete`, {
             method: 'POST',
             headers: {
-                Accept: 'application/json, application/problem+json',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
@@ -70,8 +94,6 @@ export class ApiClient {
                 sizeBytes: payload.sizeBytes,
             }),
         });
-
-        await responseProcessor.parseResponse<Record<string, unknown>>(response);
     }
 
     async getPhotos(limit = 50, continuationToken?: string | null): Promise<PhotosPage> {
@@ -83,7 +105,7 @@ export class ApiClient {
             params.set('continuationToken', continuationToken);
         }
 
-        return this.fetchJson<PhotosPage>(`/events/${this.eventId}/photos?${params.toString()}`);
+        return this.fetchJson<PhotosPage>(`/app/photos?${params.toString()}`);
     }
 }
 

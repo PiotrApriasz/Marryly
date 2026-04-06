@@ -1,11 +1,11 @@
 import { RouterProvider } from 'react-router-dom';
 import { router } from './app/router';
-import { AdminAuthProvider } from './auth/AdminAuthContext';
+import { AuthProvider } from './auth/AuthContext';
 
 export default function App() {
     return (
-        <AdminAuthProvider>
+        <AuthProvider>
             <RouterProvider router={router} />
-        </AdminAuthProvider>
+        </AuthProvider>
     );
 }

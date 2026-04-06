@@ -1,4 +1,6 @@
 import Layout from '../components/Layout';
+import Card from '../components/Card';
+import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useMenu } from '../hooks/useMenu';
@@ -7,14 +9,14 @@ function MenuSkeleton() {
     return (
         <div className="mx-auto max-w-3xl space-y-8 animate-pulse">
             {[1, 2, 3].map((section) => (
-                <div key={section} className="rounded-lg border border-sand bg-white p-6">
+                <Card key={section} className="rounded-lg">
                     <div className="mb-4 h-8 w-48 bg-sand rounded" />
                     <div className="space-y-3">
                         {[1, 2].map((item) => (
                             <div key={item} className="h-6 bg-sand/50 rounded" />
                         ))}
                     </div>
-                </div>
+                </Card>
             ))}
         </div>
     );
@@ -25,14 +27,9 @@ export default function MenuPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center mb-12">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Menu wesela
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                    </div>
+                    <PageHeader title="Menu wesela" className="mb-12" />
 
                     <PageState
                         loading={loading}
@@ -48,9 +45,9 @@ export default function MenuPage() {
 
                             <div className="space-y-8">
                                 {menu?.sections.map((section, idx) => (
-                                    <div
+                                    <Card
                                         key={idx}
-                                        className="rounded-lg border border-sand bg-white p-8 shadow-sm transition-shadow hover:shadow-md"
+                                        className="rounded-lg p-8 transition-shadow hover:shadow-md"
                                     >
                                         <h3 className="mb-6 border-b border-gold pb-2 font-script text-2xl text-ink">
                                             {section.name}
@@ -75,7 +72,7 @@ export default function MenuPage() {
                                                 </li>
                                             ))}
                                         </ul>
-                                    </div>
+                                    </Card>
                                 ))}
                             </div>
                         </div>

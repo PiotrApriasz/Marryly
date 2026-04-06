@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
+import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
 import PageState from '../components/PageState';
 import PhotoGalleryGrid from '../components/PhotoGalleryGrid';
@@ -49,14 +50,9 @@ export default function GalleryPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Album
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                    </div>
+                    <PageHeader title="Album" />
 
                     <div className="mt-12">
                         <PageState

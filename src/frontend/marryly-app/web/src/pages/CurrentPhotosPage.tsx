@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
+import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
 import PageState from '../components/PageState';
 import PhotoGalleryGrid from '../components/PhotoGalleryGrid';
@@ -49,17 +50,12 @@ export default function CurrentPhotosPage() {
 
     return (
         <Layout>
-            <div className="pt-20">
+            <div className="page-offset">
                 <Section background="white">
-                    <div className="text-center">
-                        <h1 className="font-script text-5xl text-ink md:text-6xl">
-                            Aktualne zdjęcia
-                        </h1>
-                        <div className="mx-auto mt-6 h-[1px] w-24 bg-gold" />
-                        <p className="mx-auto mt-8 max-w-2xl font-sans text-lg text-muted">
-                            Najnowsze zdjęcia dodane przez gości.
-                        </p>
-                    </div>
+                    <PageHeader
+                        title="Aktualne zdjęcia"
+                        description="Najnowsze zdjęcia dodane przez gości."
+                    />
 
                     <div className="mt-12">
                         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">

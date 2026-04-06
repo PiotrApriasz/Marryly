@@ -1,0 +1,19 @@
+.elegant-link {
+  @apply text-ink transition-all duration-300 hover:text-gold;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.page-offset {
+  @apply pt-20;
+}
+
+.glass-link {
+  @apply rounded-lg bg-paper/10 px-4 py-2 font-sans text-paper backdrop-blur-sm transition-colors hover:bg-paper/20;
+}
+
+.inline-link {
+  @apply font-sans text-sm font-medium text-ink underline-offset-4 transition-colors hover:text-gold hover:underline;
+}
