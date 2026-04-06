@@ -10,15 +10,41 @@ using Microsoft.Extensions.Logging;
 
 namespace Marryly.Functions.GuestBook;
 
-public class AddGuestBookEntryFunction(ILogger<AddGuestBookEntryFunction> logger, IGuestBookService guestBookService)
+public class AddGuestBookEntryFunction(
+    ILogger<AddGuestBookEntryFunction> logger,
+    IAuthService authService,
+    IGuestBookService guestBookService)
 {
     [Function("AddGuestBookEntry")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "events/{eventId}/guestbook")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "app/guestbook")]
         HttpRequestData req,
-        string eventId,
         CancellationToken ct)
     {
+        var token = authService.ReadAccessToken(req);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return await ApiResponse.ProduceErrorResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "SESSION_NOT_FOUND",
+                "Unauthorized",
+                "Access token is missing."
+            );
+        }
+
+        if (!authService.TryValidateToken(token, out var context))
+        {
+            return await ApiResponse.ProduceErrorResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "SESSION_INVALID",
+                "Unauthorized",
+                "Session is invalid or expired."
+            );
+        }
+
+        var eventId = context.EventId;
         AddGuestBookEntryRequest? request;
 
         try

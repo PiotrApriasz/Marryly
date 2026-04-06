@@ -1,19 +1,17 @@
 using System.Net;
 using Marryly.Application.Interfaces;
-using Marryly.Application.Models.GuestBook;
+using Marryly.Application.Constants;
 using Marryly.Functions.Result;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Marryly.Functions.GuestBook;
 
 public class GetGuestBookEntriesFunction(
     ILogger<GetGuestBookEntriesFunction> logger,
-    IConfiguration configuration,
     IAuthService authService,
     IGuestBookService guestBookService)
 {
@@ -34,11 +32,11 @@ public class GetGuestBookEntriesFunction(
                 HttpStatusCode.Unauthorized,
                 "SESSION_NOT_FOUND",
                 "Unauthorized",
-                "Admin token is missing."
+                "Access token is missing."
             );
         }
 
-        if (!authService.TryValidateToken(token, out _))
+        if (!authService.TryValidateToken(token, out var context))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
@@ -49,19 +47,18 @@ public class GetGuestBookEntriesFunction(
             );
         }
 
-        var eventId = ResolveEventId(req);
-        if (string.IsNullOrWhiteSpace(eventId))
+        if (!string.Equals(context.Role, AuthConstants.AdminRole, StringComparison.Ordinal))
         {
-            logger.LogError("Guestbook entries requested without event id. Set EVENT_ID or pass ?eventId=...");
             return await ApiResponse.ProduceErrorResponse(
                 req,
-                HttpStatusCode.InternalServerError,
-                "EVENT_ID_MISSING",
-                "Configuration error",
-                "Guestbook event id is not configured."
+                HttpStatusCode.Forbidden,
+                "ACCESS_FORBIDDEN",
+                "Forbidden",
+                "Admin access is required."
             );
         }
 
+        var eventId = context.EventId;
         logger.LogInformation("Downloading guestbook entries for event: {EventId}", eventId);
 
         try
@@ -84,12 +81,6 @@ public class GetGuestBookEntriesFunction(
                 "Guestbook storage container is not available."
             );
         }
-    }
-
-    private string? ResolveEventId(HttpRequestData req)
-    {
-        var query = QueryHelpers.ParseQuery(req.Url.Query);
-        return query.TryGetValue("eventId", out var eventId) ? eventId.ToString() : configuration["EVENT_ID"];
     }
 
     private static int ParsePositiveInt(Dictionary<string, Microsoft.Extensions.Primitives.StringValues> query, string key, int fallbackValue)

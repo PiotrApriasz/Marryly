@@ -5,38 +5,47 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Marryly.Functions.Media;
 
 public class GetPhotosFunction(
     ILogger<GetPhotosFunction> logger,
-    IConfiguration configuration,
+    IAuthService authService,
     IMediaService mediaService)
 {
     private const int DefaultLimit = 50;
 
     [Function("GetPhotos")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "events/{eventId}/photos")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "app/photos")]
         HttpRequestData req,
-        string eventId,
         CancellationToken ct)
     {
-        var expectedEventId = configuration["EVENT_ID"];
-        if (!string.IsNullOrWhiteSpace(expectedEventId) &&
-            !string.Equals(expectedEventId, eventId, StringComparison.Ordinal))
+        var token = authService.ReadAccessToken(req);
+        if (string.IsNullOrWhiteSpace(token))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
-                HttpStatusCode.NotFound,
-                "EVENT_NOT_FOUND",
-                "Event not found",
-                "Photos are not enabled for this event."
+                HttpStatusCode.Unauthorized,
+                "SESSION_NOT_FOUND",
+                "Unauthorized",
+                "Access token is missing."
             );
         }
 
+        if (!authService.TryValidateToken(token, out var context))
+        {
+            return await ApiResponse.ProduceErrorResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "SESSION_INVALID",
+                "Unauthorized",
+                "Session is invalid or expired."
+            );
+        }
+
+        var eventId = context.EventId;
         try
         {
             var query = QueryHelpers.ParseQuery(req.Url.Query);

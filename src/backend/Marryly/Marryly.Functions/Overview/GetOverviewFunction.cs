@@ -4,15 +4,12 @@ using Marryly.Application.Interfaces;
 using Marryly.Functions.Result;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Marryly.Functions.Overview;
 
 public class GetOverviewFunction(
     ILogger<GetOverviewFunction> logger,
-    IConfiguration configuration,
     IAuthService authService,
     IOverviewService overviewService)
 {
@@ -30,11 +27,11 @@ public class GetOverviewFunction(
                 HttpStatusCode.Unauthorized,
                 "SESSION_NOT_FOUND",
                 "Unauthorized",
-                "Admin token is missing."
+                "Access token is missing."
             );
         }
 
-        if (!authService.TryValidateToken(token, out _))
+        if (!authService.TryValidateToken(token, out var context))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
@@ -45,26 +42,19 @@ public class GetOverviewFunction(
             );
         }
 
-        var eventId = ResolveEventId(req);
-        if (string.IsNullOrWhiteSpace(eventId))
+        if (!string.Equals(context.Role, AuthConstants.AdminRole, StringComparison.Ordinal))
         {
-            logger.LogError("Overview requested without event id. Set EVENT_ID or pass ?eventId=...");
             return await ApiResponse.ProduceErrorResponse(
                 req,
-                HttpStatusCode.InternalServerError,
-                "EVENT_ID_MISSING",
-                "Configuration error",
-                "Overview event id is not configured."
+                HttpStatusCode.Forbidden,
+                "ACCESS_FORBIDDEN",
+                "Forbidden",
+                "Admin access is required."
             );
         }
 
+        var eventId = context.EventId;
         var overview = await overviewService.GetOverviewAsync(eventId, ct);
         return await ApiResponse.ProduceSuccessResponse(req, overview);
-    }
-
-    private string? ResolveEventId(HttpRequestData req)
-    {
-        var query = QueryHelpers.ParseQuery(req.Url.Query);
-        return query.TryGetValue("eventId", out var eventId) ? eventId.ToString() : configuration["EVENT_ID"];
     }
 }

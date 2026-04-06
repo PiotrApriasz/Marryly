@@ -3,6 +3,7 @@ using System.Text.Json;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
+using Marryly.Application.Interfaces;
 using Marryly.Functions.Result;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -13,7 +14,8 @@ namespace Marryly.Functions.Media;
 
 public class CreatePhotoUploadFunction(
     ILogger<CreatePhotoUploadFunction> logger,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    IAuthService authService)
 {
     private static readonly HashSet<string> AllowedContentTypes = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -32,11 +34,34 @@ public class CreatePhotoUploadFunction(
 
     [Function("CreatePhotoUpload")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "events/{eventId}/photos/uploads")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "app/photos/uploads")]
         HttpRequestData req,
-        string eventId,
         CancellationToken ct)
     {
+        var token = authService.ReadAccessToken(req);
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return await ApiResponse.ProduceErrorResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "SESSION_NOT_FOUND",
+                "Unauthorized",
+                "Access token is missing."
+            );
+        }
+
+        if (!authService.TryValidateToken(token, out var context))
+        {
+            return await ApiResponse.ProduceErrorResponse(
+                req,
+                HttpStatusCode.Unauthorized,
+                "SESSION_INVALID",
+                "Unauthorized",
+                "Session is invalid or expired."
+            );
+        }
+
+        var eventId = context.EventId;
         CreatePhotoUploadRequest? request;
 
         try
@@ -55,19 +80,6 @@ public class CreatePhotoUploadFunction(
                 "INVALID_PHOTO_UPLOAD_PAYLOAD",
                 "Invalid photo upload payload",
                 "Request body must contain valid photo upload data."
-            );
-        }
-
-        var expectedEventId = configuration["EVENT_ID"];
-        if (!string.IsNullOrWhiteSpace(expectedEventId) &&
-            !string.Equals(expectedEventId, eventId, StringComparison.Ordinal))
-        {
-            return await ApiResponse.ProduceErrorResponse(
-                req,
-                HttpStatusCode.NotFound,
-                "EVENT_NOT_FOUND",
-                "Event not found",
-                "Photo uploads are not enabled for this event."
             );
         }
 
