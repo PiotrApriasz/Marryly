@@ -87,9 +87,9 @@ export default function CurrentPhotosPage() {
                                             variant="secondary"
                                             size="md"
                                             onClick={() => void loadMore()}
-                                            disabled={loadingMore}
+                                            loading={loadingMore}
                                         >
-                                            {loadingMore ? 'Pobieranie...' : 'Pokaż więcej zdjęć'}
+                                            Pokaż więcej zdjęć
                                         </Button>
                                     </div>
                                 ) : null}

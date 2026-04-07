@@ -1,13 +1,14 @@
 import type { ReactNode } from 'react';
 import ApiErrorAlert from './ApiErrorAlert';
 import EmptyStateMessage from './EmptyStateMessage';
+import LoadingState from './LoadingState';
 
 interface PageStateProps {
     loading: boolean;
     error: string | null;
     isEmpty: boolean;
     emptyMessage: string;
-    loadingFallback: ReactNode;
+    loadingFallback?: ReactNode;
     children: ReactNode;
 }
 
@@ -20,7 +21,7 @@ export default function PageState({
     children,
 }: PageStateProps) {
     if (loading) {
-        return <>{loadingFallback}</>;
+        return <>{loadingFallback ?? <LoadingState />}</>;
     }
 
     if (error) {

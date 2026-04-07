@@ -5,6 +5,7 @@ import Section from '../components/Section';
 import Button from '../components/Button';
 import ApiErrorAlert from '../components/ApiErrorAlert';
 import Card from '../components/Card';
+import LoadingState from '../components/LoadingState';
 import Notice from '../components/Notice';
 import PageHeader from '../components/PageHeader';
 import { cn } from '../utils/cn';
@@ -599,22 +600,7 @@ export default function GuestUploadPage() {
                 </Section>
             </div>
             {shouldShowUploadOverlay ? (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-paper/95 px-6 backdrop-blur-sm">
-                    <div className="overlay-surface">
-                        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gold/10">
-                            <div className="h-12 w-12 animate-spin rounded-full border-4 border-gold/20 border-t-gold" />
-                        </div>
-                        <h2 className="mt-6 font-sans text-2xl font-medium text-ink">
-                            Wysyłamy zdjęcia
-                        </h2>
-                        <p className="mt-3 text-base text-muted">
-                            Zaczekaj chwilę i nie zamykaj tej strony.
-                        </p>
-                        <p className="mt-2 text-sm text-muted">
-                            Po zakończeniu od razu pokażemy potwierdzenie.
-                        </p>
-                    </div>
-                </div>
+                <LoadingState fullscreen className="fixed inset-0 z-50 backdrop-blur-sm" />
             ) : null}
         </Layout>
     );

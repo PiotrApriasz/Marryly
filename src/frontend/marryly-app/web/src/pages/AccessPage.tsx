@@ -251,9 +251,10 @@ export default function AccessPage() {
                                         variant="primary"
                                         size="lg"
                                         className="flex-1"
-                                        disabled={adminLoading || isChecking}
+                                        loading={adminLoading}
+                                        disabled={isChecking}
                                     >
-                                        {adminLoading ? 'Logowanie...' : 'Przejdź do panelu admina'}
+                                        Przejdź do panelu admina
                                     </Button>
                                     <Button
                                         type="button"
@@ -294,9 +295,10 @@ export default function AccessPage() {
                                         variant="primary"
                                         size="lg"
                                         className="w-full"
-                                        disabled={guestLoading || isChecking}
+                                        loading={guestLoading}
+                                        disabled={isChecking}
                                     >
-                                        {guestLoading ? 'Sprawdzanie...' : 'Wejdź do aplikacji'}
+                                        Wejdź do aplikacji
                                     </Button>
                                     <span className="text-center font-sans text-sm uppercase tracking-[0.28em] text-muted">
                                         lub

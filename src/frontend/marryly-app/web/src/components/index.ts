@@ -9,6 +9,8 @@ export { default as Card } from './Card';
 export { default as EmptyStateMessage } from './EmptyStateMessage';
 export { default as Field } from './Field';
 export { default as Input } from './Input';
+export { default as LoadingSpinner } from './LoadingSpinner';
+export { default as LoadingState } from './LoadingState';
 export { default as Notice } from './Notice';
 export { default as PageHeader } from './PageHeader';
 export { default as PageState } from './PageState';

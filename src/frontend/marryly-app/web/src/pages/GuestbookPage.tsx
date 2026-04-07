@@ -81,8 +81,8 @@ export default function GuestbookPage() {
                                 />
                             </Field>
 
-                            <Button type="submit" variant="primary" size="lg" className="w-full" disabled={loading}>
-                                {loading ? 'Wysyłanie...' : 'Wyślij życzenia'}
+                            <Button type="submit" variant="primary" size="lg" className="w-full" loading={loading}>
+                                Wyślij życzenia
                             </Button>
                         </form>
                     </div>

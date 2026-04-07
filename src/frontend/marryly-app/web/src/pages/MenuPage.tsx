@@ -10,10 +10,10 @@ function MenuSkeleton() {
         <div className="mx-auto max-w-3xl space-y-8 animate-pulse">
             {[1, 2, 3].map((section) => (
                 <Card key={section} className="rounded-lg">
-                    <div className="mb-4 h-8 w-48 bg-sand rounded" />
+                    <div className="mb-4 h-8 w-48 rounded bg-sand" />
                     <div className="space-y-3">
                         {[1, 2].map((item) => (
-                            <div key={item} className="h-6 bg-sand/50 rounded" />
+                            <div key={item} className="h-6 rounded bg-sand/50" />
                         ))}
                     </div>
                 </Card>

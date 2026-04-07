@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import LoadingState from '../components/LoadingState';
 import { useAuth } from '../auth/AuthContext';
 
 interface ProtectedRouteProps {
@@ -11,11 +12,7 @@ export default function ProtectedRoute({ requireAdmin = false }: ProtectedRouteP
     const from = `${location.pathname}${location.search}${location.hash}`;
 
     if (isChecking) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-paper px-4">
-                <p className="font-sans text-muted">Sprawdzanie sesji...</p>
-            </div>
-        );
+        return <LoadingState fullscreen />;
     }
 
     if (!isAuthenticated) {

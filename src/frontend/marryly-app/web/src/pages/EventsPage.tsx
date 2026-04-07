@@ -11,11 +11,11 @@ function EventsSkeleton() {
             {[1, 2, 3, 4].map((item) => (
                 <Card key={item} className="rounded-lg">
                     <div className="flex items-start gap-4">
-                        <div className="h-16 w-16 bg-sand rounded-lg" />
+                        <div className="h-16 w-16 rounded-lg bg-sand" />
                         <div className="flex-1 space-y-2">
-                            <div className="h-6 w-48 bg-sand rounded" />
-                            <div className="h-4 w-32 bg-sand/50 rounded" />
-                            <div className="h-4 w-40 bg-sand/50 rounded" />
+                            <div className="h-6 w-48 rounded bg-sand" />
+                            <div className="h-4 w-32 rounded bg-sand/50" />
+                            <div className="h-4 w-40 rounded bg-sand/50" />
                         </div>
                     </div>
                 </Card>

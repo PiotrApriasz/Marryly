@@ -1,4 +1,5 @@
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
+import LoadingSpinner from './LoadingSpinner';
 import { cn } from '../utils/cn';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost';
@@ -8,6 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
     size?: ButtonSize;
     children: ReactNode;
+    loading?: boolean;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {
@@ -27,6 +29,8 @@ export default function Button({
     size = 'md',
     className = '',
     children,
+    loading = false,
+    disabled,
     ...props
 }: ButtonProps) {
     return (
@@ -39,8 +43,21 @@ export default function Button({
                 sizeStyles[size],
                 className
             )}
+            disabled={disabled || loading}
+            aria-busy={loading}
             {...props}>
-            {children}
+            <span className="relative inline-flex items-center justify-center">
+                {loading ? (
+                    <>
+                        <span className="invisible">{children}</span>
+                        <span className="absolute inset-0 flex items-center justify-center">
+                            <LoadingSpinner size="sm" className="text-current" />
+                        </span>
+                    </>
+                ) : (
+                    children
+                )}
+            </span>
         </button>
     );
 }
