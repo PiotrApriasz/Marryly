@@ -6,6 +6,7 @@ import Button from '../components/Button';
 import Field from '../components/Field';
 import Input from '../components/Input';
 import Layout from '../components/Layout';
+import LoadingState from '../components/LoadingState';
 import Notice from '../components/Notice';
 import PageHeader from '../components/PageHeader';
 import { getErrorMessageForDisplay } from '../errors/apiError';
@@ -190,6 +191,11 @@ export default function AccessPage() {
         ? 'Trwa sprawdzanie kodu dostępu z kodu QR.'
         : 'Aby uzyskać dostęp do aplikacji, wpisz kod dostępu lub zeskanuj kod QR dostępny na sali.';
     const adminDescription = 'Zaloguj się jako admin.';
+    const isQrAutoAccess = Boolean(queryAccessCode && queryRedirectTo);
+
+    if (isQrAutoAccess && !guestError) {
+        return <LoadingState fullscreen />;
+    }
 
     return (
         <Layout showNavigation={false} showFooter={false}>
