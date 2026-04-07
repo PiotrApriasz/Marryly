@@ -41,6 +41,20 @@ function AccessShell({ title, description, children }: AccessShellProps) {
     );
 }
 
+function normalizeRedirectPath(value?: string | null): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+
+    const trimmedValue = value.trim();
+
+    if (!trimmedValue.startsWith('/') || trimmedValue.startsWith('//')) {
+        return undefined;
+    }
+
+    return trimmedValue;
+}
+
 function getRedirectPath(role: AccessRole, requestedPath?: string): string {
     if (role === 'admin') {
         return requestedPath?.startsWith('/admin') ? requestedPath : '/admin/dashboard';
@@ -56,11 +70,12 @@ function getRedirectPath(role: AccessRole, requestedPath?: string): string {
 export default function AccessPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const queryAccessCode = searchParams.get('accessCode')?.trim() ?? '';
+    const queryRedirectTo = normalizeRedirectPath(searchParams.get('redirectTo'));
     const adminModeRequested = searchParams.get('mode') === 'admin';
     const location = useLocation();
     const navigate = useNavigate();
     const locationState = location.state as AccessLocationState | null;
-    const requestedPath = locationState?.from;
+    const requestedPath = normalizeRedirectPath(locationState?.from) ?? queryRedirectTo;
     const [accessCode, setAccessCode] = useState(queryAccessCode);
     const [adminEmail, setAdminEmail] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
