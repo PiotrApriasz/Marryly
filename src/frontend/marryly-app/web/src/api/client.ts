@@ -1,5 +1,5 @@
 import { config } from '../app/config';
-import type { Menu, Event, GuestbookEntry, PhotosPage } from '../types/wedding.types';
+import type { Menu, Event, GuestbookEntry, PhotosPage, GalleryAlbum, GalleryAlbumsResponse, AlbumMediaPage } from '../types/wedding.types';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
 import { ApiError } from '../errors/apiError';
 import { notifyAuthFailure } from './authEvents';
@@ -106,6 +106,26 @@ export class ApiClient {
         }
 
         return this.fetchJson<PhotosPage>(`/app/photos?${params.toString()}`);
+    }
+
+    async getGalleryAlbums(): Promise<GalleryAlbumsResponse> {
+        return this.fetchJson<GalleryAlbumsResponse>('/app/gallery/albums');
+    }
+
+    async getGalleryAlbum(slug: string): Promise<GalleryAlbum> {
+        return this.fetchJson<GalleryAlbum>(`/app/gallery/albums/${slug}`);
+    }
+
+    async getGalleryAlbumMedia(slug: string, limit = 50, continuationToken?: string | null): Promise<AlbumMediaPage> {
+        const params = new URLSearchParams({
+            limit: String(limit),
+        });
+
+        if (continuationToken) {
+            params.set('continuationToken', continuationToken);
+        }
+
+        return this.fetchJson<AlbumMediaPage>(`/app/gallery/albums/${slug}/media?${params.toString()}`);
     }
 }
 

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
-import Button from '../components/Button';
+import AdminPagination from '../components/AdminPagination';
 import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
@@ -88,39 +88,11 @@ export default function AdminGuestBookPage() {
                                 ))}
                             </div>
 
-                            {totalPages > 1 ? (
-                                <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                                        disabled={currentPage === 1}
-                                    >
-                                        Poprzednia
-                                    </Button>
-                                    {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
-                                        <Button
-                                            key={page}
-                                            type="button"
-                                            variant={page === currentPage ? 'primary' : 'secondary'}
-                                            size="sm"
-                                            onClick={() => setCurrentPage(page)}
-                                        >
-                                            {page}
-                                        </Button>
-                                    ))}
-                                    <Button
-                                        type="button"
-                                        variant="secondary"
-                                        size="sm"
-                                        onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
-                                        disabled={currentPage === totalPages}
-                                    >
-                                        Następna
-                                    </Button>
-                                </div>
-                            ) : null}
+                            <AdminPagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                            />
                         </div>
                     </PageState>
                 </Section>

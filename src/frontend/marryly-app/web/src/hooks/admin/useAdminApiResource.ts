@@ -1,6 +1,22 @@
-import { useCachedApiResource } from '../useCachedApiResource.ts';
+import {
+    invalidateCachedApiResource,
+    invalidateCachedApiResourcesByPrefix,
+    useCachedApiResource,
+} from '../useCachedApiResource.ts';
 
 const DEFAULT_ADMIN_CACHE_DURATION = 30 * 1000;
+
+export function getAdminCacheKey(cacheKey: string): string {
+    return `admin_${cacheKey}`;
+}
+
+export function invalidateAdminCache(cacheKey: string): void {
+    invalidateCachedApiResource(getAdminCacheKey(cacheKey));
+}
+
+export function invalidateAdminCacheByPrefix(prefix: string): void {
+    invalidateCachedApiResourcesByPrefix(getAdminCacheKey(prefix));
+}
 
 interface UseAdminApiResourceOptions<T> {
     cacheKey: string;
@@ -15,6 +31,7 @@ interface UseAdminApiResourceResult<T> {
     data: T;
     loading: boolean;
     error: string | null;
+    reload: () => void;
 }
 
 export function useAdminApiResource<T>({
@@ -26,7 +43,7 @@ export function useAdminApiResource<T>({
     cacheDuration = DEFAULT_ADMIN_CACHE_DURATION,
 }: UseAdminApiResourceOptions<T>): UseAdminApiResourceResult<T> {
     return useCachedApiResource<T>({
-        cacheKey: `admin_${cacheKey}`,
+        cacheKey: getAdminCacheKey(cacheKey),
         fetcher,
         fallbackErrorMessage,
         logContext,

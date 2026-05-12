@@ -21,6 +21,31 @@ interface UseCachedApiResourceResult<T> {
     data: T;
     loading: boolean;
     error: string | null;
+    reload: () => void;
+}
+
+export function invalidateCachedApiResource(cacheKey: string): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    window.sessionStorage.removeItem(cacheKey);
+}
+
+export function invalidateCachedApiResourcesByPrefix(prefix: string): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    const keysToRemove: string[] = [];
+    for (let index = 0; index < window.sessionStorage.length; index += 1) {
+        const key = window.sessionStorage.key(index);
+        if (key?.startsWith(prefix)) {
+            keysToRemove.push(key);
+        }
+    }
+
+    keysToRemove.forEach((key) => window.sessionStorage.removeItem(key));
 }
 
 function readCachedData<T>(cacheKey: string, cacheDuration: number): T | null {
@@ -65,6 +90,7 @@ export function useCachedApiResource<T>({
     const [data, setData] = useState<T>(initialData);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    const [reloadToken, setReloadToken] = useState(0);
     const fetcherRef = useRef(fetcher);
     const initialDataRef = useRef(initialData);
     const fallbackErrorMessageRef = useRef(fallbackErrorMessage);
@@ -120,7 +146,12 @@ export function useCachedApiResource<T>({
         return () => {
             isActive = false;
         };
-    }, [cacheDuration, cacheKey]);
+    }, [cacheDuration, cacheKey, reloadToken]);
 
-    return { data, loading, error };
+    return {
+        data,
+        loading,
+        error,
+        reload: () => setReloadToken((current) => current + 1),
+    };
 }

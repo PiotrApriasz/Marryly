@@ -32,6 +32,10 @@ export class AdminApiClient {
         return this.request<T>(path, { ...options, method: 'PUT', body });
     }
 
+    async patch<T>(path: string, body?: unknown, options?: Omit<AdminRequestOptions, 'method' | 'body'>): Promise<T> {
+        return this.request<T>(path, { ...options, method: 'PATCH', body });
+    }
+
     async delete<T>(path: string, options?: Omit<AdminRequestOptions, 'method' | 'body'>): Promise<T> {
         return this.request<T>(path, { ...options, method: 'DELETE' });
     }

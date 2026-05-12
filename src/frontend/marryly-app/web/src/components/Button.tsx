@@ -2,10 +2,10 @@ import type {ButtonHTMLAttributes, ReactNode} from 'react';
 import LoadingSpinner from './LoadingSpinner';
 import { cn } from '../utils/cn';
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost';
-type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+export type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     variant?: ButtonVariant;
     size?: ButtonSize;
     children: ReactNode;
@@ -16,6 +16,7 @@ const variantStyles: Record<ButtonVariant, string> = {
     primary: 'border border-gold bg-gold text-white hover:bg-gold/90 hover:shadow-md',
     secondary: 'border-2 border-ink bg-transparent text-ink hover:bg-ink hover:text-paper',
     ghost: 'border border-transparent bg-transparent text-ink hover:bg-accent',
+    danger: 'border border-rose-600 bg-rose-600 text-white hover:bg-rose-700 hover:shadow-md',
 };
 
 const sizeStyles: Record<ButtonSize, string> = {

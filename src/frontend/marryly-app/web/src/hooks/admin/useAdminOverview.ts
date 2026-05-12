@@ -16,10 +16,11 @@ interface UseAdminOverviewResult {
     overview: AdminOverview;
     loading: boolean;
     error: string | null;
+    reload: () => void;
 }
 
 export function useAdminOverview(): UseAdminOverviewResult {
-    const { data, loading, error } = useAdminApiResource<AdminOverview>({
+    const { data, loading, error, reload } = useAdminApiResource<AdminOverview>({
         cacheKey: 'overview',
         fetcher: async () => {
             try {
@@ -41,5 +42,6 @@ export function useAdminOverview(): UseAdminOverviewResult {
         overview: data,
         loading,
         error,
+        reload,
     };
 }

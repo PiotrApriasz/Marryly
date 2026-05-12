@@ -23,7 +23,7 @@ function DashboardSkeleton() {
 export default function AdminDashboardPage() {
     const { overview, loading, error } = useAdminOverview();
     const dashboardItems = [
-        { title: 'Zdjęcia', icon: '📸', count: String(overview.photosCount), path: null },
+        { title: 'Galeria', icon: '📸', count: String(overview.photosCount), path: '/admin/albums' },
         { title: 'Goście', icon: '👥', count: String(overview.guestsCount), path: null },
         { title: 'Wpisy', icon: '💬', count: String(overview.wishesCount), path: '/admin/guestbook' },
         { title: 'Menu', icon: '🍽️', count: overview.menuPublished ? '1' : '0', path: null },

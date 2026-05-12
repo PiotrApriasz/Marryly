@@ -12,9 +12,12 @@ const GuestbookPage = lazy(() => import('../pages/GuestbookPage'));
 const GuestUploadPage = lazy(() => import('../pages/GuestUploadPage'));
 const CurrentPhotosPage = lazy(() => import('../pages/CurrentPhotosPage'));
 const GalleryPage = lazy(() => import('../pages/GalleryPage'));
+const GalleryAlbumPage = lazy(() => import('../pages/GalleryAlbumPage'));
 const SlideshowPage = lazy(() => import('../pages/SlideshowPage'));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
 const AdminGuestBookPage = lazy(() => import('../pages/AdminGuestBookPage'));
+const AdminAlbumsPage = lazy(() => import('../pages/AdminAlbumsPage'));
+const AdminAlbumPage = lazy(() => import('../pages/AdminAlbumPage'));
 
 function pageElement(PageComponent: LazyExoticComponent<ComponentType>) {
     return (
@@ -38,6 +41,7 @@ export const router = createBrowserRouter([
             { path: '/guestupload', element: pageElement(GuestUploadPage) },
             { path: '/current', element: pageElement(CurrentPhotosPage) },
             { path: '/gallery', element: pageElement(GalleryPage) },
+            { path: '/gallery/:slug', element: pageElement(GalleryAlbumPage) },
             { path: '/slideshow', element: pageElement(SlideshowPage) },
         ],
     },
@@ -46,6 +50,9 @@ export const router = createBrowserRouter([
         children: [
             { path: '/admin/dashboard', element: pageElement(AdminDashboardPage) },
             { path: '/admin/guestbook', element: pageElement(AdminGuestBookPage) },
+            { path: '/admin/albums', element: pageElement(AdminAlbumsPage) },
+            { path: '/admin/albums/:albumId', element: pageElement(AdminAlbumPage) },
+            { path: '/admin/photos', element: <Navigate to="/admin/albums" replace /> },
         ],
     },
 ]);

@@ -13,9 +13,8 @@ const navLinks: NavLink[] = [
     { label: 'Menu wesela', path: '/menu' },
     { label: 'Atrakcje', path: '/attractions' },
     { label: 'Wydarzenia', path: '/events' },
-    { label: 'Aktualne zdjęcia', path: '/current' },
     { label: 'Dodaj zdjęcie/film', path: '/guestupload' },
-    { label: 'Album', path: '/gallery' },
+    { label: 'Galeria', path: '/gallery' },
     { label: 'Księga gości', path: '/guestbook' },
 ];
 

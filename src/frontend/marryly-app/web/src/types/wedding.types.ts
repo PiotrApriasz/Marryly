@@ -74,6 +74,25 @@ export interface PhotosPage {
     hasMore: boolean;
 }
 
+export interface GalleryAlbum {
+    id: string;
+    title: string;
+    slug: string;
+    description?: string | null;
+    coverUrl?: string | null;
+    itemCount: number;
+}
+
+export interface GalleryAlbumsResponse {
+    items: GalleryAlbum[];
+}
+
+export interface AlbumMediaPage {
+    items: Photo[];
+    continuationToken: string | null;
+    hasMore: boolean;
+}
+
 export interface Video {
     id: string;
     url: string;
