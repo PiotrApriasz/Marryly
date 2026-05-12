@@ -59,7 +59,10 @@ builder.Services.AddScoped(typeof(ICosmosDbService<>), typeof(CosmosDbService<>)
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEventDetailsService, EventDetailsService>();
 builder.Services.AddScoped<IGuestBookService, GuestBookService>();
+builder.Services.AddScoped<IAlbumService, AlbumService>();
+builder.Services.AddScoped<IMediaStorageService, MediaStorageService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
+builder.Services.AddScoped<IPhotoUploadService, PhotoUploadService>();
 builder.Services.AddScoped<IPhotoDerivativeService, PhotoDerivativeService>();
 builder.Services.AddScoped<IOverviewService, OverviewService>();
 

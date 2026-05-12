@@ -18,6 +18,7 @@ public class CosmosDbService<T> : ICosmosDbService<T>
     {
         { typeof(EventDetail), "EventData" },
         { typeof(GuestBookEntry), "GuestbookEntry" },
+        { typeof(Album), "Albums" },
         { typeof(MediaItem), "MediaItems" },
     };
 

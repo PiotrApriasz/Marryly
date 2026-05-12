@@ -12,43 +12,38 @@ using Microsoft.Extensions.Logging;
 
 namespace Marryly.Functions.Media;
 
-public class CompletePhotoUploadFunction(
-    ILogger<CompletePhotoUploadFunction> logger,
+public class CompleteAdminAlbumPhotoUploadFunction(
+    ILogger<CompleteAdminAlbumPhotoUploadFunction> logger,
     IAuthService authService,
     IAlbumService albumService,
     IPhotoUploadService photoUploadService)
 {
-    [Function("CompletePhotoUpload")]
+    [Function("CompleteAdminAlbumPhotoUpload")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "app/photos/uploads/{photoId}/complete")]
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "panel/albums/{albumId}/photos/uploads/{photoId}/complete")]
         HttpRequestData req,
+        string albumId,
         string photoId,
         CancellationToken ct)
     {
-        var token = authService.ReadAccessToken(req);
-        if (string.IsNullOrWhiteSpace(token))
+        var auth = await AuthHelpers.ValidateAdminAsync(req, authService);
+        if (auth.Response is not null)
+        {
+            return auth.Response;
+        }
+
+        var eventId = auth.Context!.EventId;
+        var album = await albumService.GetAlbumByIdAsync(eventId, albumId, ct);
+        if (album is null)
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
-                HttpStatusCode.Unauthorized,
-                "SESSION_NOT_FOUND",
-                "Unauthorized",
-                "Access token is missing."
-            );
+                HttpStatusCode.NotFound,
+                "ALBUM_NOT_FOUND",
+                "Album not found",
+                "The requested album does not exist.");
         }
 
-        if (!authService.TryValidateToken(token, out var context))
-        {
-            return await ApiResponse.ProduceErrorResponse(
-                req,
-                HttpStatusCode.Unauthorized,
-                "SESSION_INVALID",
-                "Unauthorized",
-                "Session is invalid or expired."
-            );
-        }
-
-        var eventId = context.EventId;
         CompletePhotoUploadRequest? request;
 
         try
@@ -60,40 +55,32 @@ public class CompletePhotoUploadFunction(
         }
         catch (JsonException ex)
         {
-            logger.LogWarning(ex, "Invalid photo upload completion payload for event: {EventId}, photo: {PhotoId}", eventId, photoId);
+            logger.LogWarning(ex, "Invalid admin photo completion payload for event: {EventId}, album: {AlbumId}, photo: {PhotoId}", eventId, albumId, photoId);
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.BadRequest,
                 "INVALID_PHOTO_UPLOAD_COMPLETION_PAYLOAD",
                 "Invalid photo upload completion payload",
-                "Request body must contain valid photo upload completion data."
-            );
+                "Request body must contain valid photo upload completion data.");
         }
 
-        if (request is null ||
-            string.IsNullOrWhiteSpace(photoId) ||
-            string.IsNullOrWhiteSpace(request.BlobName) ||
-            string.IsNullOrWhiteSpace(request.BlobUrl) ||
-            string.IsNullOrWhiteSpace(request.ContentType) ||
-            request.SizeBytes <= 0)
+        if (request is null)
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.BadRequest,
                 "INVALID_PHOTO_UPLOAD_COMPLETION_PAYLOAD",
                 "Invalid photo upload completion payload",
-                "Photo upload completion requires photo id, blob name, blob url, content type and size."
-            );
+                "Request body is required.");
         }
 
         try
         {
-            var guestAlbum = await albumService.EnsureGuestAlbumAsync(eventId, ct);
             var savedItem = await photoUploadService.CompletePhotoUploadAsync(
                 eventId,
                 photoId,
-                guestAlbum.Id,
-                AlbumConstants.GuestSourceType,
+                albumId,
+                AlbumConstants.AdminSourceType,
                 request,
                 ct);
 
@@ -103,19 +90,17 @@ public class CompletePhotoUploadFunction(
         }
         catch (ApiErrorException ex)
         {
-            logger.LogWarning("Guest photo upload completion failed for event {EventId}, photo {PhotoId}: {Code}", eventId, photoId, ex.Code);
             return await ApiResponse.ProduceErrorResponse(req, ex.StatusCode, ex.Code, ex.Title, ex.Detail);
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            logger.LogError(ex, "Media container is not available for event: {EventId}", eventId);
+            logger.LogError(ex, "Album or media container is not available for event: {EventId}", eventId);
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.InternalServerError,
-                "MEDIA_CONTAINER_NOT_FOUND",
+                "ALBUMS_CONTAINER_NOT_FOUND",
                 "Storage configuration error",
-                "Media storage container is not available."
-            );
+                "Albums storage container is not available.");
         }
     }
 }

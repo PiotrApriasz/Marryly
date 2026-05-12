@@ -10,6 +10,12 @@ public class MediaItem : BaseModel
     [JsonProperty("status")]
     public required string Status { get; set; }
 
+    [JsonProperty("albumId")]
+    public string? AlbumId { get; set; }
+
+    [JsonProperty("sourceType")]
+    public string? SourceType { get; set; }
+
     [JsonProperty("originalBlobName")]
     public required string OriginalBlobName { get; set; }
 

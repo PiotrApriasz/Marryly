@@ -16,6 +16,9 @@ public static class PartitionKeyResolver
         GuestBookEntry g => new PartitionKeyBuilder()
             .Add(g.EventId)
             .Build(),
+        Album g => new PartitionKeyBuilder()
+            .Add(g.EventId)
+            .Build(),
         MediaItem g => new PartitionKeyBuilder()
             .Add(g.EventId)
             .Build(),
