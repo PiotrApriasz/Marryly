@@ -3,6 +3,13 @@ import type {
     AdminAlbum,
     AdminAlbumMediaPage,
     AdminAlbumsResponse,
+    AdminGuestFamilyPayload,
+    AdminGuestFamilyResponse,
+    AdminGuestInvitationGroup,
+    AdminGuestInvitationGroupPayload,
+    AdminGuestListEntry,
+    AdminGuestListEntryPayload,
+    AdminGuestListResponse,
     AdminGuestBookEntriesPage,
     AdminOverview,
     AdminPhotosPage,
@@ -16,6 +23,30 @@ export class AdminClient {
 
     async getGuestBookEntries(page: number, pageSize: number): Promise<AdminGuestBookEntriesPage> {
         return adminApiClient.get<AdminGuestBookEntriesPage>(`/panel/guestbook?page=${page}&pageSize=${pageSize}`);
+    }
+
+    async getGuests(): Promise<AdminGuestListResponse> {
+        return adminApiClient.get<AdminGuestListResponse>('/panel/guests');
+    }
+
+    async createGuest(payload: AdminGuestListEntryPayload): Promise<AdminGuestListEntry> {
+        return adminApiClient.post<AdminGuestListEntry>('/panel/guests', payload);
+    }
+
+    async createGuestGroup(payload: AdminGuestInvitationGroupPayload): Promise<AdminGuestInvitationGroup> {
+        return adminApiClient.post<AdminGuestInvitationGroup>('/panel/guest-groups', payload);
+    }
+
+    async createGuestFamily(payload: AdminGuestFamilyPayload): Promise<AdminGuestFamilyResponse> {
+        return adminApiClient.post<AdminGuestFamilyResponse>('/panel/guest-families', payload);
+    }
+
+    async updateGuest(guestId: string, payload: AdminGuestListEntryPayload): Promise<AdminGuestListEntry> {
+        return adminApiClient.patch<AdminGuestListEntry>(`/panel/guests/${guestId}`, payload);
+    }
+
+    async deleteGuest(guestId: string): Promise<void> {
+        await adminApiClient.delete<void>(`/panel/guests/${guestId}`);
     }
 
     async getPhotos(page: number, pageSize: number): Promise<AdminPhotosPage> {

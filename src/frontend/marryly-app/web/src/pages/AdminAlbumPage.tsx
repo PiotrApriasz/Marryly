@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { adminClient } from '../api/adminClient';
 import ApiErrorAlert from '../components/ApiErrorAlert';
+import AdminBackLink from '../components/AdminBackLink';
 import AdminPagination from '../components/AdminPagination';
 import Card from '../components/Card';
 import ConfirmActionButton from '../components/ConfirmActionButton';
@@ -130,14 +131,10 @@ export default function AdminAlbumPage() {
         <Layout>
             <div className="page-offset">
                 <Section background="white">
+                    <AdminBackLink to="/admin/albums" label="Powrót do albumów" shortLabel="Albumy" />
                     <PageHeader
                         title={album?.title ?? 'Album'}
-                        description={album?.description ?? 'Zarządzaj zdjęciami przypisanymi do tego albumu.'}
-                        actions={(
-                            <Link to="/admin/albums" className="inline-link">
-                                Powrót do albumów
-                            </Link>
-                        )}
+                        helpText={album?.description ?? 'Zarządzaj zdjęciami przypisanymi do tego albumu.'}
                     />
 
                     {pageError ? (

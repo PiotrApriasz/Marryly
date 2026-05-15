@@ -1,9 +1,11 @@
 import type { ElementType, ReactNode } from 'react';
+import HelpTooltip from './HelpTooltip';
 import { cn } from '../utils/cn';
 
 interface PageHeaderProps {
     title: string;
     description?: ReactNode;
+    helpText?: ReactNode;
     actions?: ReactNode;
     align?: 'center' | 'left';
     titleAs?: ElementType;
@@ -15,6 +17,7 @@ interface PageHeaderProps {
 export default function PageHeader({
     title,
     description,
+    helpText,
     actions,
     align = 'center',
     titleAs: TitleTag = 'h1',
@@ -26,9 +29,12 @@ export default function PageHeader({
 
     return (
         <div className={cn('page-header', isLeftAligned && 'page-header-left', className)}>
-            <TitleTag className={cn('page-title', titleClassName)}>
-                {title}
-            </TitleTag>
+            <div className={cn('page-title-row', isLeftAligned && 'page-title-row-left')}>
+                <TitleTag className={cn('page-title', titleClassName)}>
+                    {title}
+                </TitleTag>
+                {helpText ? <HelpTooltip content={helpText} /> : null}
+            </div>
             <div className={cn('page-divider', isLeftAligned && 'page-divider-left')} />
             {description ? (
                 <p className={cn('page-description', isLeftAligned && 'mx-0', descriptionClassName)}>

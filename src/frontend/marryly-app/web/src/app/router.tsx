@@ -15,6 +15,7 @@ const GalleryPage = lazy(() => import('../pages/GalleryPage'));
 const GalleryAlbumPage = lazy(() => import('../pages/GalleryAlbumPage'));
 const SlideshowPage = lazy(() => import('../pages/SlideshowPage'));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
+const AdminGuestsPage = lazy(() => import('../pages/AdminGuestsPage'));
 const AdminGuestBookPage = lazy(() => import('../pages/AdminGuestBookPage'));
 const AdminAlbumsPage = lazy(() => import('../pages/AdminAlbumsPage'));
 const AdminAlbumPage = lazy(() => import('../pages/AdminAlbumPage'));
@@ -49,6 +50,7 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute requireAdmin />,
         children: [
             { path: '/admin/dashboard', element: pageElement(AdminDashboardPage) },
+            { path: '/admin/guests', element: pageElement(AdminGuestsPage) },
             { path: '/admin/guestbook', element: pageElement(AdminGuestBookPage) },
             { path: '/admin/albums', element: pageElement(AdminAlbumsPage) },
             { path: '/admin/albums/:albumId', element: pageElement(AdminAlbumPage) },

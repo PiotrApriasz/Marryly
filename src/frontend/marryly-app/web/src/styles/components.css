@@ -6,6 +6,14 @@
   @apply text-left;
 }
 
+.page-title-row {
+  @apply inline-flex items-center justify-center gap-3;
+}
+
+.page-title-row-left {
+  @apply justify-start;
+}
+
 .page-title {
   @apply font-script text-5xl text-ink md:text-6xl;
 }
@@ -58,6 +66,42 @@
   @apply bg-paper/60;
 }
 
+.field-select-shell {
+  @apply relative mt-2;
+}
+
+.field-select {
+  @apply mt-0 h-12 appearance-none pr-11 leading-none;
+}
+
+.field-select-indicator {
+  @apply pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink;
+}
+
+.field-select:disabled + .field-select-indicator {
+  @apply text-muted;
+}
+
+.checkbox-field {
+  @apply flex min-h-12 cursor-pointer items-center gap-3 font-sans text-sm text-ink;
+}
+
+.checkbox-field-compact {
+  @apply min-h-8 gap-2;
+}
+
+.checkbox-control {
+  @apply h-5 w-5 shrink-0 rounded border-2 border-sand accent-gold;
+}
+
+.checkbox-label {
+  @apply leading-none;
+}
+
+.icon-button {
+  @apply inline-flex h-10 w-10 items-center justify-center rounded-lg border bg-white transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
 .notice {
   @apply rounded-2xl border px-4 py-3 shadow-sm;
 }
@@ -72,6 +116,155 @@
 
 .status-badge {
   @apply rounded-full border px-2 py-1 text-xs font-medium;
+}
+
+.admin-back-link {
+  @apply fixed left-4 top-24 z-40 inline-flex h-10 items-center gap-2 rounded-full border border-sand bg-white/90 px-3 font-sans text-sm font-medium text-ink shadow-sm backdrop-blur transition-colors hover:border-gold hover:text-gold md:left-6;
+}
+
+.help-tooltip {
+  @apply relative inline-flex;
+}
+
+.help-tooltip-trigger {
+  @apply inline-flex h-8 w-8 items-center justify-center rounded-full border border-sand bg-white font-sans text-muted shadow-sm transition-colors hover:border-gold hover:text-gold focus:outline-none focus:ring-2 focus:ring-gold/30;
+}
+
+.help-tooltip-content {
+  @apply pointer-events-none absolute left-1/2 top-full z-[90] mt-2 w-64 -translate-x-1/2 rounded-xl border border-sand bg-white px-4 py-3 font-sans text-sm leading-6 text-muted opacity-0 shadow-lg transition-opacity duration-150;
+}
+
+.help-tooltip:hover .help-tooltip-content,
+.help-tooltip:focus-within .help-tooltip-content {
+  @apply opacity-100;
+}
+
+.admin-table-wrap {
+  @apply overflow-x-auto rounded-2xl border border-sand bg-white shadow-sm;
+}
+
+.admin-table {
+  @apply min-w-full border-collapse font-sans text-sm;
+}
+
+.admin-table th {
+  @apply border-b border-sand bg-paper/70 px-3 py-2 text-left font-medium text-muted;
+}
+
+.admin-table td {
+  @apply border-b border-sand/70 px-3 py-2 align-middle text-muted;
+}
+
+.admin-table tbody tr:last-child td {
+  @apply border-b-0;
+}
+
+.admin-table-group-row td {
+  @apply border-t-4 border-t-stone-400 bg-paper/80 py-2;
+}
+
+.admin-table-group-last-row td {
+  @apply border-b-4 border-b-stone-400;
+}
+
+.admin-toolbar-control {
+  @apply h-12;
+}
+
+.guest-list-actions-column {
+  @apply mb-4 flex flex-col gap-2 sm:flex-row xl:mb-0 xl:w-40 xl:flex-col;
+}
+
+.guest-list-table-shell {
+  @apply relative;
+}
+
+.guest-floating-action-button {
+  @apply shadow-sm xl:w-full;
+}
+
+.drawer-root {
+  @apply fixed inset-0 z-[70];
+}
+
+.drawer-backdrop {
+  @apply absolute inset-0 h-full w-full cursor-default bg-ink/25 backdrop-blur-[2px];
+}
+
+.drawer-panel {
+  @apply absolute right-0 top-0 flex h-full w-full max-w-xl flex-col bg-white shadow-2xl;
+}
+
+.drawer-header {
+  @apply flex items-start justify-between gap-5 border-b border-sand px-6 py-6;
+}
+
+.drawer-close {
+  @apply rounded-lg border border-sand px-3 py-2 font-sans text-sm font-medium text-ink transition-colors hover:border-gold hover:text-gold;
+}
+
+.drawer-body {
+  @apply flex-1 overflow-y-auto px-6 py-6;
+}
+
+.modal-root {
+  @apply fixed inset-0 z-[80] flex items-center justify-center p-4;
+}
+
+.modal-backdrop {
+  @apply absolute inset-0 h-full w-full cursor-default bg-ink/25 backdrop-blur-[2px];
+}
+
+.modal-panel {
+  @apply relative w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl;
+}
+
+.modal-header {
+  @apply border-b border-sand px-6 py-5;
+}
+
+.modal-body {
+  @apply px-6 py-6;
+}
+
+.guest-summary-panel {
+  @apply mt-10 rounded-2xl border border-sand bg-white px-5 py-5 shadow-sm;
+}
+
+.guest-summary-progress {
+  @apply h-2 overflow-hidden rounded-full bg-sand;
+}
+
+.guest-summary-progress-value {
+  @apply h-full rounded-full bg-gold transition-all duration-300;
+}
+
+.dashboard-guests-card {
+  @apply transition-all hover:shadow-md;
+}
+
+.dashboard-guests-card-main {
+  @apply grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] lg:items-center;
+}
+
+.guest-summary-metric {
+  @apply min-w-24 rounded-xl border border-sand bg-paper/50 px-3 py-2;
+}
+
+.guest-list-status-line {
+  @apply mb-3 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 font-sans text-sm;
+}
+
+.guest-list-inline-summary {
+  @apply flex flex-wrap items-center gap-x-3 gap-y-1;
+}
+
+.guest-list-inline-summary-item {
+  @apply inline-flex items-baseline gap-1;
+}
+
+.guest-list-inline-summary-item:not(:last-child)::after {
+  @apply ml-2 text-sand content-['|'];
 }
 
 .dialog-surface {

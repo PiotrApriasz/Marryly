@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { adminClient } from '../api/adminClient';
 import ApiErrorAlert from '../components/ApiErrorAlert';
+import AdminBackLink from '../components/AdminBackLink';
 import AdminPagination from '../components/AdminPagination';
 import Card from '../components/Card';
 import ConfirmActionButton from '../components/ConfirmActionButton';
@@ -117,14 +117,10 @@ export default function AdminPhotosPage() {
         <Layout>
             <div className="page-offset">
                 <Section background="white">
+                    <AdminBackLink />
                     <PageHeader
                         title="Zdjęcia Gości"
-                        description="Wszystkie zdjęcia zapisane dla wydarzenia, także te w trakcie przetwarzania lub z błędem."
-                        actions={(
-                            <Link to="/admin/dashboard" className="inline-link">
-                                Powrót do panelu
-                            </Link>
-                        )}
+                        helpText="Wszystkie zdjęcia zapisane dla wydarzenia, także te w trakcie przetwarzania lub z błędem."
                     />
 
                     {deleteError ? (

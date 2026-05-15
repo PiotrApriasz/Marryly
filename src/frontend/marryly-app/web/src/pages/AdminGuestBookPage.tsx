@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
+import AdminBackLink from '../components/AdminBackLink';
 import AdminPagination from '../components/AdminPagination';
 import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
@@ -48,14 +48,10 @@ export default function AdminGuestBookPage() {
         <Layout>
             <div className="page-offset">
                 <Section background="white">
+                    <AdminBackLink />
                     <PageHeader
                         title="Życzenia Gości"
-                        description="Wszystkie wiadomości dodane przez gości"
-                        actions={(
-                            <Link to="/admin/dashboard" className="inline-link">
-                                Powrót do panelu
-                            </Link>
-                        )}
+                        helpText="Wszystkie wiadomości dodane przez gości."
                     />
 
                     <PageState

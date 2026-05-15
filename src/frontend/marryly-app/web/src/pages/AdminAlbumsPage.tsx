@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { adminClient } from '../api/adminClient';
+import AdminBackLink from '../components/AdminBackLink';
 import ApiErrorAlert from '../components/ApiErrorAlert';
 import Button from '../components/Button';
 import Card from '../components/Card';
@@ -204,14 +205,10 @@ export default function AdminAlbumsPage() {
         <Layout>
             <div className="page-offset">
                 <Section background="white">
+                    <AdminBackLink />
                     <PageHeader
                         title="Galeria"
-                        description="Zarządzaj albumami widocznymi dla gości i dodawaj nowe kolekcje zdjęć."
-                        actions={(
-                            <Link to="/admin/dashboard" className="inline-link">
-                                Powrót do panelu
-                            </Link>
-                        )}
+                        helpText="Zarządzaj albumami widocznymi dla gości i dodawaj nowe kolekcje zdjęć."
                     />
 
                     {pageError ? (

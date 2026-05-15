@@ -47,6 +47,16 @@ dotnet run --project Marryly.Tools.PasswordHash
 ### Container: EventData
 Partition Key: `/eventId`
 
+### Container: GuestList
+Partition Key: `/eventId`
+
+Stores invited people for the admin guest list, including RSVP status, guest category, and accommodation details.
+
+### Container: GuestInvitationGroups
+Partition Key: `/eventId`
+
+Stores invitation groups/families, for example "Anna i Jan Kowalscy wraz z dziećmi".
+
 ### Menu weselne
 ```json
 {
@@ -90,6 +100,16 @@ GET /api/events/{eventId}/menu
 ### Pobierz wydarzenia
 ```
 GET /api/events/{eventId}/schedule
+```
+
+### Panel: lista gości
+```
+GET    /api/panel/guests
+POST   /api/panel/guests
+PATCH  /api/panel/guests/{guestId}
+DELETE /api/panel/guests/{guestId}
+POST   /api/panel/guest-groups
+POST   /api/panel/guest-families
 ```
 
 ## Budowanie i uruchamianie
