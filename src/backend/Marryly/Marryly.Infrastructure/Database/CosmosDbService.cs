@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.EventDetails;
 using Marryly.Application.Models.GuestBook;
+using Marryly.Application.Models.GuestList;
 using Marryly.Application.Models.Media;
 using Microsoft.Azure.Cosmos;
 
@@ -18,6 +19,8 @@ public class CosmosDbService<T> : ICosmosDbService<T>
     {
         { typeof(EventDetail), "EventData" },
         { typeof(GuestBookEntry), "GuestbookEntry" },
+        { typeof(GuestListEntry), "GuestList" },
+        { typeof(GuestInvitationGroup), "GuestInvitationGroups" },
         { typeof(Album), "Albums" },
         { typeof(MediaItem), "MediaItems" },
     };

@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using Marryly.Application.Models.EventDetails;
 using Marryly.Application.Models.GuestBook;
+using Marryly.Application.Models.GuestList;
 using Marryly.Application.Models.Media;
 using Microsoft.Azure.Cosmos;
 
@@ -14,6 +15,12 @@ public static class PartitionKeyResolver
             .Add(g.EventId)
             .Build(),
         GuestBookEntry g => new PartitionKeyBuilder()
+            .Add(g.EventId)
+            .Build(),
+        GuestListEntry g => new PartitionKeyBuilder()
+            .Add(g.EventId)
+            .Build(),
+        GuestInvitationGroup g => new PartitionKeyBuilder()
             .Add(g.EventId)
             .Build(),
         Album g => new PartitionKeyBuilder()
