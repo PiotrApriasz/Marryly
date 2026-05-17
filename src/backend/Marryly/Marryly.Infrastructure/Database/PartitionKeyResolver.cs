@@ -3,6 +3,7 @@ using Marryly.Application.Models.EventDetails;
 using Marryly.Application.Models.GuestBook;
 using Marryly.Application.Models.GuestList;
 using Marryly.Application.Models.Media;
+using Marryly.Application.Models.Slideshow;
 using Microsoft.Azure.Cosmos;
 
 namespace Marryly.Infrastructure.Database;
@@ -27,6 +28,9 @@ public static class PartitionKeyResolver
             .Add(g.EventId)
             .Build(),
         MediaItem g => new PartitionKeyBuilder()
+            .Add(g.EventId)
+            .Build(),
+        SlideshowSettings g => new PartitionKeyBuilder()
             .Add(g.EventId)
             .Build(),
         _ => throw new InvalidOperationException("No partition key definition for this entity type.")

@@ -1,6 +1,7 @@
 using Marryly.Application.Constants;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Media;
+using Marryly.Application.Models.Slideshow;
 using Marryly.Infrastructure.Database;
 using Microsoft.Azure.Cosmos;
 
@@ -252,6 +253,73 @@ public class MediaService(
         };
     }
 
+    public async Task<IReadOnlyList<AdminSlideshowPhotoResponse>> GetSlideshowPhotosAsync(
+        string eventId,
+        IReadOnlyList<string> albumIds,
+        DateTime? afterUploadedAt,
+        CancellationToken ct = default)
+    {
+        if (albumIds.Count == 0)
+        {
+            return [];
+        }
+
+        var normalizedAlbumIds = albumIds
+            .Select(albumId => albumId?.Trim() ?? string.Empty)
+            .Where(albumId => albumId.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (normalizedAlbumIds.Count == 0)
+        {
+            return [];
+        }
+
+        var albumFilterClause = BuildSlideshowAlbumFilterClause(normalizedAlbumIds);
+        var queryText =
+            $"SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND c.approved = true AND c.status = @status AND ({albumFilterClause})";
+
+        QueryDefinition query;
+
+        if (afterUploadedAt.HasValue)
+        {
+            queryText += " AND c.uploadedAt > @afterUploadedAt";
+        }
+
+        query = new QueryDefinition($"{queryText} ORDER BY c.uploadedAt ASC")
+            .WithParameter("@eventId", eventId)
+            .WithParameter("@kind", "photo")
+            .WithParameter("@status", "ready");
+
+        for (var index = 0; index < normalizedAlbumIds.Count; index += 1)
+        {
+            query = query.WithParameter($"@albumId{index}", normalizedAlbumIds[index]);
+        }
+
+        if (afterUploadedAt.HasValue)
+        {
+            query = query.WithParameter("@afterUploadedAt", afterUploadedAt.Value);
+        }
+
+        var items = new List<AdminSlideshowPhotoResponse>();
+        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
+                       {
+                           PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId)
+                       }, ct))
+        {
+            items.Add(new AdminSlideshowPhotoResponse
+            {
+                Id = item.Id,
+                UploadedAt = item.UploadedAt,
+                DisplayUrl = item.PreviewBlobUrl ?? item.OriginalBlobUrl,
+                Width = item.Width,
+                Height = item.Height
+            });
+        }
+
+        return items;
+    }
+
     public async Task<Dictionary<string, AlbumMediaInsight>> GetAlbumInsightsAsync(string eventId, bool publicOnly, CancellationToken ct = default)
     {
         var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
@@ -405,6 +473,20 @@ public class MediaService(
         return string.Equals(albumId, AlbumConstants.GuestAlbumId, StringComparison.Ordinal)
             ? "((IS_DEFINED(c.albumId) AND c.albumId = @albumId) OR NOT IS_DEFINED(c.albumId) OR IS_NULL(c.albumId) OR c.albumId = '')"
             : "(IS_DEFINED(c.albumId) AND c.albumId = @albumId)";
+    }
+
+    private static string BuildSlideshowAlbumFilterClause(IReadOnlyList<string> albumIds)
+    {
+        return string.Join(
+            " OR ",
+            albumIds.Select((albumId, index) => BuildAlbumFilterClauseForParameter(albumId, $"@albumId{index}")));
+    }
+
+    private static string BuildAlbumFilterClauseForParameter(string albumId, string parameterName)
+    {
+        return string.Equals(albumId, AlbumConstants.GuestAlbumId, StringComparison.Ordinal)
+            ? $"((IS_DEFINED(c.albumId) AND c.albumId = {parameterName}) OR NOT IS_DEFINED(c.albumId) OR IS_NULL(c.albumId) OR c.albumId = '')"
+            : $"(IS_DEFINED(c.albumId) AND c.albumId = {parameterName})";
     }
 
     private static string GetEffectiveAlbumId(MediaItem item)

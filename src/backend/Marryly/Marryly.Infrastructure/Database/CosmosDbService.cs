@@ -6,6 +6,7 @@ using Marryly.Application.Models.EventDetails;
 using Marryly.Application.Models.GuestBook;
 using Marryly.Application.Models.GuestList;
 using Marryly.Application.Models.Media;
+using Marryly.Application.Models.Slideshow;
 using Microsoft.Azure.Cosmos;
 
 namespace Marryly.Infrastructure.Database;
@@ -23,6 +24,7 @@ public class CosmosDbService<T> : ICosmosDbService<T>
         { typeof(GuestInvitationGroup), "GuestInvitationGroups" },
         { typeof(Album), "Albums" },
         { typeof(MediaItem), "MediaItems" },
+        { typeof(SlideshowSettings), "EventData" },
     };
 
     public CosmosDbService(ICosmosContainerProvider provider)

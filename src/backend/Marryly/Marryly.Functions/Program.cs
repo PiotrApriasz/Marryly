@@ -3,6 +3,7 @@ using Marryly.Application.Interfaces;
 using Marryly.Application.Models.EventDetails;
 using Marryly.Application.Models.GuestBook;
 using Marryly.Application.Models.GuestList;
+using Marryly.Application.Models.Slideshow;
 using Marryly.Functions.Result;
 using Marryly.Infrastructure.Database;
 using Marryly.Infrastructure.Serialization;
@@ -67,5 +68,6 @@ builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IPhotoUploadService, PhotoUploadService>();
 builder.Services.AddScoped<IPhotoDerivativeService, PhotoDerivativeService>();
 builder.Services.AddScoped<IOverviewService, OverviewService>();
+builder.Services.AddScoped<ISlideshowService, SlideshowService>();
 
 builder.Build().Run();
