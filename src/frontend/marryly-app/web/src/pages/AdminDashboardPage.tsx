@@ -88,7 +88,7 @@ export default function AdminDashboardPage() {
     const dashboardItems = [
         { title: 'Galeria', icon: '📸', count: String(overview.photosCount), path: '/admin/albums' },
         { title: 'Wpisy', icon: '💬', count: String(overview.wishesCount), path: '/admin/guestbook' },
-        { title: 'Menu', icon: '🍽️', count: overview.menuPublished ? '1' : '0', path: null },
+        { title: 'Menu', icon: '🍽️', count: overview.menuPublished ? '1' : '0', path: '/admin/menu' },
         { title: 'Atrakcje', icon: '🎉', count: String(overview.attractionsCount), path: null },
         { title: 'Ustawienia', icon: '⚙️', count: String(overview.settingsCount), path: null },
     ];

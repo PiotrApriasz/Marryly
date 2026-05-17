@@ -4,6 +4,7 @@ import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { useMenu } from '../hooks/useMenu';
+import { getMenuSectionTypeLabel } from '../utils/menu';
 
 function MenuSkeleton() {
     return (
@@ -24,6 +25,12 @@ function MenuSkeleton() {
 
 export default function MenuPage() {
     const { menu, loading, error } = useMenu();
+    const visibleBlocks = menu?.blocks
+        .map((block) => ({
+            ...block,
+            sections: block.sections.filter((section) => section.items.length > 0),
+        }))
+        .filter((block) => block.sections.length > 0) ?? [];
 
     return (
         <Layout>
@@ -34,45 +41,59 @@ export default function MenuPage() {
                     <PageState
                         loading={loading}
                         error={error}
-                        isEmpty={!menu}
+                        isEmpty={!menu || visibleBlocks.length === 0}
                         emptyMessage="Menu weselne wkrótce zostanie opublikowane"
                         loadingFallback={<MenuSkeleton />}
                     >
-                        <div className="mx-auto max-w-3xl">
-                            <h2 className="mb-8 text-center font-script text-3xl text-ink">
-                                {menu?.title}
-                            </h2>
+                        <div className="menu-public-shell">
+                            <div className="space-y-10">
+                                {visibleBlocks.map((block, blockIdx) => (
+                                    <div key={`${block.title}-${block.sortOrder}-${blockIdx}`} className="space-y-5">
+                                        <Card className="menu-public-block-header" padding="lg">
+                                            <h2 className="font-serif text-3xl text-ink md:text-4xl">
+                                                {block.title}
+                                            </h2>
+                                        </Card>
 
-                            <div className="space-y-8">
-                                {menu?.sections.map((section, idx) => (
-                                    <Card
-                                        key={idx}
-                                        className="rounded-lg p-8 transition-shadow hover:shadow-md"
-                                    >
-                                        <h3 className="mb-6 border-b border-gold pb-2 font-script text-2xl text-ink">
-                                            {section.name}
-                                        </h3>
-                                        <ul className="space-y-3">
-                                            {section.items.map((item, itemIdx) => (
-                                                <li
-                                                    key={itemIdx}
-                                                    className="flex items-start"
+                                        <div className="space-y-6">
+                                            {block.sections.map((section, sectionIdx) => (
+                                                <Card
+                                                    key={`${section.sectionType}-${section.sortOrder}-${sectionIdx}`}
+                                                    className="menu-public-section"
+                                                    padding="none"
                                                 >
-                                                    <span className="mr-3 mt-2.5 h-2 w-2 flex-shrink-0 rounded-full bg-gold" />
-                                                    <div className="flex-1">
-                                                        <span className="font-sans text-lg text-ink">
-                                                            {item.name}
-                                                        </span>
-                                                        {item.description && (
-                                                            <p className="mt-1 text-sm text-muted">
-                                                                {item.description}
-                                                            </p>
-                                                        )}
+                                                    <div className="border-b border-sand pb-5">
+                                                        <h3 className="font-serif text-2xl text-ink md:text-3xl">
+                                                            {getMenuSectionTypeLabel(section.sectionType)}
+                                                        </h3>
                                                     </div>
-                                                </li>
+
+                                                    <div className="mt-2">
+                                                        {section.items.map((item, itemIdx) => (
+                                                            <article
+                                                                key={`${item.name}-${item.sortOrder}-${itemIdx}`}
+                                                                className="menu-public-item"
+                                                            >
+                                                                <div className="menu-public-item-index">
+                                                                    {itemIdx + 1}
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="font-serif text-xl text-ink">
+                                                                        {item.name}
+                                                                    </h4>
+                                                                    {item.description && (
+                                                                        <p className="mt-2 font-sans text-sm leading-7 text-muted md:text-base">
+                                                                            {item.description}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            </article>
+                                                        ))}
+                                                    </div>
+                                                </Card>
                                             ))}
-                                        </ul>
-                                    </Card>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>

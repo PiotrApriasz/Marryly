@@ -1,3 +1,5 @@
+import type { Menu, MenuBlock, MenuItem, MenuSection, MenuSectionType } from './wedding.types';
+
 export interface AdminOverview {
     photosCount: number;
     guestsCount: number;
@@ -188,4 +190,35 @@ export interface AdminAlbumMediaPage {
     pageSize: number;
     totalCount: number;
     totalPages: number;
+}
+
+export type AdminMenuSectionType = MenuSectionType;
+export type AdminMenuItem = MenuItem;
+export type AdminMenuSection = MenuSection;
+export type AdminMenuBlock = MenuBlock;
+export type AdminMenu = Menu;
+
+export interface AdminMenuItemPayload {
+    name?: string;
+    description?: string | null;
+    sortOrder?: number;
+}
+
+export interface AdminMenuSectionPayload {
+    sectionType?: AdminMenuSectionType;
+    name?: string;
+    choicesCount?: number | null;
+    sortOrder?: number;
+    items: AdminMenuItemPayload[];
+}
+
+export interface AdminMenuBlockPayload {
+    title?: string;
+    sortOrder?: number;
+    sections: AdminMenuSectionPayload[];
+}
+
+export interface AdminMenuPayload {
+    title?: string;
+    blocks: AdminMenuBlockPayload[];
 }

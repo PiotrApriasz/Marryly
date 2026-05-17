@@ -1,6 +1,7 @@
 import { apiClient } from '../api/client';
+import { ApiError } from '../errors/apiError';
 import type { Menu } from '../types/wedding.types';
-import { useCachedApiResource } from './useCachedApiResource.ts';
+import { invalidateCachedApiResource, useCachedApiResource } from './useCachedApiResource.ts';
 
 interface UseMenuResult {
     menu: Menu | null;
@@ -8,11 +9,26 @@ interface UseMenuResult {
     error: string | null;
 }
 
-const CACHE_KEY = 'wedding_menu_cache';
+export const MENU_CACHE_KEY = 'wedding_menu_cache';
+
+export function invalidateMenuCache(): void {
+    invalidateCachedApiResource(MENU_CACHE_KEY);
+}
+
 export function useMenu(): UseMenuResult {
     const { data, loading, error } = useCachedApiResource<Menu | null>({
-        cacheKey: CACHE_KEY,
-        fetcher: () => apiClient.getMenu(),
+        cacheKey: MENU_CACHE_KEY,
+        fetcher: async () => {
+            try {
+                return await apiClient.getMenu();
+            } catch (error) {
+                if (error instanceof ApiError && error.status === 404) {
+                    return null;
+                }
+
+                throw error;
+            }
+        },
         fallbackErrorMessage: 'Nie udało się pobrać menu.',
         logContext: 'Failed to load menu',
         initialData: null,

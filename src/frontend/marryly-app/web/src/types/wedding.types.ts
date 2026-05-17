@@ -13,14 +13,37 @@ export interface WeddingInfo {
     };
 }
 
+export type MenuSectionType =
+    | 'przystawka'
+    | 'zupa'
+    | 'danie_glowne'
+    | 'deser'
+    | 'kolacja'
+    | 'zimna_plyta'
+    | 'bufet'
+    | 'napoje'
+    | 'alkohol'
+    | 'slodki_stol'
+    | 'inne';
+
 export interface MenuItem {
     name: string;
-    description?: string;
+    description?: string | null;
+    sortOrder: number;
 }
 
 export interface MenuSection {
+    sectionType: MenuSectionType;
     name: string;
+    choicesCount?: number | null;
+    sortOrder: number;
     items: MenuItem[];
+}
+
+export interface MenuBlock {
+    title: string;
+    sortOrder: number;
+    sections: MenuSection[];
 }
 
 export interface Menu {
@@ -28,7 +51,7 @@ export interface Menu {
     eventId: string;
     type: 'menu';
     title: string;
-    sections: MenuSection[];
+    blocks: MenuBlock[];
 }
 
 export interface Event {

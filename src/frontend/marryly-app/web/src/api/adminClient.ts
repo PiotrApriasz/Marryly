@@ -12,6 +12,8 @@ import type {
     AdminGuestListResponse,
     AdminGuestBookEntriesPage,
     AdminOverview,
+    AdminMenu,
+    AdminMenuPayload,
     AdminPhotosPage,
 } from '../types/admin.types';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
@@ -19,6 +21,14 @@ import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadT
 export class AdminClient {
     async getOverview(): Promise<AdminOverview> {
         return adminApiClient.get<AdminOverview>('/panel/overview');
+    }
+
+    async getMenu(): Promise<AdminMenu> {
+        return adminApiClient.get<AdminMenu>('/panel/menu');
+    }
+
+    async saveMenu(payload: AdminMenuPayload): Promise<AdminMenu> {
+        return adminApiClient.put<AdminMenu>('/panel/menu', payload);
     }
 
     async getGuestBookEntries(page: number, pageSize: number): Promise<AdminGuestBookEntriesPage> {

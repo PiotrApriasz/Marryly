@@ -16,6 +16,7 @@ const GalleryAlbumPage = lazy(() => import('../pages/GalleryAlbumPage'));
 const SlideshowPage = lazy(() => import('../pages/SlideshowPage'));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
 const AdminGuestsPage = lazy(() => import('../pages/AdminGuestsPage'));
+const AdminMenuPage = lazy(() => import('../pages/AdminMenuPage'));
 const AdminGuestBookPage = lazy(() => import('../pages/AdminGuestBookPage'));
 const AdminAlbumsPage = lazy(() => import('../pages/AdminAlbumsPage'));
 const AdminAlbumPage = lazy(() => import('../pages/AdminAlbumPage'));
@@ -51,6 +52,7 @@ export const router = createBrowserRouter([
         children: [
             { path: '/admin/dashboard', element: pageElement(AdminDashboardPage) },
             { path: '/admin/guests', element: pageElement(AdminGuestsPage) },
+            { path: '/admin/menu', element: pageElement(AdminMenuPage) },
             { path: '/admin/guestbook', element: pageElement(AdminGuestBookPage) },
             { path: '/admin/albums', element: pageElement(AdminAlbumsPage) },
             { path: '/admin/albums/:albumId', element: pageElement(AdminAlbumPage) },

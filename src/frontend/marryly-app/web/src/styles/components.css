@@ -267,6 +267,70 @@
   @apply ml-2 text-sand content-['|'];
 }
 
+.menu-editor-shell {
+  @apply mx-auto max-w-5xl;
+}
+
+.menu-editor-toolbar {
+  @apply mb-6 flex flex-col gap-3 rounded-2xl border border-sand bg-white px-5 py-4 shadow-sm lg:flex-row lg:items-center lg:justify-between;
+}
+
+.menu-editor-summary {
+  @apply flex flex-wrap items-center gap-x-3 gap-y-1 font-sans text-sm text-muted;
+}
+
+.menu-editor-summary-item {
+  @apply inline-flex items-baseline gap-1;
+}
+
+.menu-editor-summary-item:not(:last-child)::after {
+  @apply ml-2 text-sand content-['|'];
+}
+
+.menu-section-card {
+  @apply rounded-3xl border border-sand bg-white p-5 shadow-sm md:p-6;
+}
+
+.menu-section-card-header {
+  @apply mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between;
+}
+
+.menu-section-card-actions {
+  @apply flex flex-wrap items-center gap-2;
+}
+
+.menu-item-card {
+  @apply rounded-2xl border border-sand bg-paper/45 p-4;
+}
+
+.menu-block-card {
+  @apply rounded-[2rem] border border-sand bg-white p-5 shadow-sm md:p-6;
+}
+
+.menu-public-shell {
+  @apply mx-auto max-w-4xl;
+}
+
+.menu-public-block-header {
+  @apply rounded-[2rem] border border-sand bg-[linear-gradient(135deg,rgba(245,239,230,0.7),rgba(255,255,255,1))] px-6 py-8 text-center shadow-sm md:px-10;
+}
+
+.menu-public-section {
+  @apply rounded-[2rem] border border-sand bg-white p-6 shadow-sm md:p-8;
+}
+
+.menu-public-choice-badge {
+  @apply rounded-full border border-gold/30 bg-gold/10 px-3 py-1 font-sans text-xs font-medium text-gold;
+}
+
+.menu-public-item {
+  @apply grid gap-3 border-t border-sand/80 py-5 first:border-t-0 first:pt-0 last:pb-0 md:grid-cols-[auto_minmax(0,1fr)];
+}
+
+.menu-public-item-index {
+  @apply flex h-10 w-10 items-center justify-center rounded-full bg-paper font-serif text-base text-ink;
+}
+
 .dialog-surface {
   @apply relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl;
 }
