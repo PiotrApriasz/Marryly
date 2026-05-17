@@ -87,6 +87,7 @@ export default function AdminDashboardPage() {
     const { guestList, loading: guestsLoading } = useAdminGuests();
     const dashboardItems = [
         { title: 'Galeria', icon: '📸', count: String(overview.photosCount), path: '/admin/albums' },
+        { title: 'Pokaz slajdów', icon: '🖥️', count: 'LIVE', path: '/admin/slideshow' },
         { title: 'Wpisy', icon: '💬', count: String(overview.wishesCount), path: '/admin/guestbook' },
         { title: 'Menu', icon: '🍽️', count: overview.menuPublished ? '1' : '0', path: '/admin/menu' },
         { title: 'Atrakcje', icon: '🎉', count: String(overview.attractionsCount), path: null },

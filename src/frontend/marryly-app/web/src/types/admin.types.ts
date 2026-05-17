@@ -192,6 +192,31 @@ export interface AdminAlbumMediaPage {
     totalPages: number;
 }
 
+export interface AdminSlideshowSettings {
+    albumIds: string[];
+    slideDurationSeconds: number;
+    refreshIntervalSeconds: number;
+    updatedAt: string;
+}
+
+export interface AdminSlideshowSettingsPayload {
+    albumIds: string[];
+    slideDurationSeconds: number;
+    refreshIntervalSeconds: number;
+}
+
+export interface AdminSlideshowPhoto {
+    id: string;
+    uploadedAt: string;
+    displayUrl: string;
+    width: number;
+    height: number;
+}
+
+export interface AdminSlideshowPhotosResponse {
+    items: AdminSlideshowPhoto[];
+}
+
 export type AdminMenuSectionType = MenuSectionType;
 export type AdminMenuItem = MenuItem;
 export type AdminMenuSection = MenuSection;

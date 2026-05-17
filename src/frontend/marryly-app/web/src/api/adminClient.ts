@@ -15,6 +15,9 @@ import type {
     AdminMenu,
     AdminMenuPayload,
     AdminPhotosPage,
+    AdminSlideshowPhotosResponse,
+    AdminSlideshowSettings,
+    AdminSlideshowSettingsPayload,
 } from '../types/admin.types';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
 
@@ -106,6 +109,21 @@ export class AdminClient {
 
     async deleteMedia(mediaId: string): Promise<void> {
         await adminApiClient.delete<void>(`/panel/media/${mediaId}`);
+    }
+
+    async getSlideshowSettings(): Promise<AdminSlideshowSettings> {
+        return adminApiClient.get<AdminSlideshowSettings>('/panel/slideshow');
+    }
+
+    async saveSlideshowSettings(payload: AdminSlideshowSettingsPayload): Promise<AdminSlideshowSettings> {
+        return adminApiClient.put<AdminSlideshowSettings>('/panel/slideshow', payload);
+    }
+
+    async getSlideshowPhotos(afterUploadedAt?: string): Promise<AdminSlideshowPhotosResponse> {
+        const query = afterUploadedAt
+            ? `?afterUploadedAt=${encodeURIComponent(afterUploadedAt)}`
+            : '';
+        return adminApiClient.get<AdminSlideshowPhotosResponse>(`/panel/slideshow/photos${query}`);
     }
 }
 
