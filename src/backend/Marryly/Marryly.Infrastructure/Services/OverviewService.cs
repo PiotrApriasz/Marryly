@@ -26,7 +26,7 @@ public class OverviewService(
         }
 
         var photosCount = await mediaService.GetPhotosCountAsync(eventId, ct);
-        var isMenuPublished = menu is not null && menu.Sections.Count > 0;
+        var isMenuPublished = eventDetailsService.HasPublishedMenu(menu);
 
         return new OverviewResponse
         {

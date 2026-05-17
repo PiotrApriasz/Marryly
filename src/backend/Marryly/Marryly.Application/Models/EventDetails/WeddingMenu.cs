@@ -5,8 +5,11 @@ namespace Marryly.Application.Models.EventDetails;
 public class WeddingMenu : EventDetail
 {
     [JsonProperty("title")]
-    public required string Title { get; set; }
-    
+    public string Title { get; set; } = "Menu weselne";
+
+    [JsonProperty("blocks")]
+    public List<MenuBlock> Blocks { get; set; } = [];
+
     [JsonProperty("sections")]
-    public required List<MenuSection> Sections { get; set; }
+    public List<MenuSection>? Sections { get; set; }
 }

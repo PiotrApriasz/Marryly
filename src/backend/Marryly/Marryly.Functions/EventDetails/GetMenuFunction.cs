@@ -45,7 +45,7 @@ public class GetMenuFunction(
 
         var menu = await eventDetailsService.GetMenuAsync(eventId);
 
-        if (menu == null)
+        if (!eventDetailsService.HasPublishedMenu(menu))
         {
             logger.LogWarning("Menu not found for event: {EventId}", eventId);
             return await ApiResponse.ProduceErrorResponse(req, HttpStatusCode.NotFound, "MENU_NOT_FOUND", "Menu not found", "Menu for this event does not exist.");
