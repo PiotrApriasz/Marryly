@@ -781,6 +781,60 @@ export default function AdminGuestsPage() {
         };
     }, [items]);
 
+    const confirmedBreakdown = useMemo(() => {
+        const confirmedItems = items.filter(isGuestConfirmed);
+
+        return [
+            {
+                label: 'Usługodawcy',
+                value: confirmedItems.filter((guest) => guest.category === 'vendor').length,
+            },
+            {
+                label: 'Dorośli + dzieci 10+',
+                value: confirmedItems.filter((guest) => guest.category === 'adult' || guest.category === 'child_over_10').length,
+            },
+            {
+                label: 'Dzieci 3-10',
+                value: confirmedItems.filter((guest) => guest.category === 'child_3_10').length,
+            },
+            {
+                label: 'Dzieci do 3 lat',
+                value: confirmedItems.filter((guest) => guest.category === 'child_under_3').length,
+            },
+        ];
+    }, [items]);
+
+    const accommodationByPlace = useMemo(() => {
+        const counts = new Map<string, number>();
+
+        items.forEach((guest) => {
+            if (!guest.needsAccommodation) {
+                return;
+            }
+
+            const placeLabel = guest.hotelName?.trim() || 'Do ustalenia';
+            counts.set(placeLabel, (counts.get(placeLabel) ?? 0) + 1);
+        });
+
+        return [...counts.entries()]
+            .map(([label, count]) => ({ label, count }))
+            .sort((left, right) => {
+                if (right.count !== left.count) {
+                    return right.count - left.count;
+                }
+
+                if (left.label === 'Do ustalenia') {
+                    return 1;
+                }
+
+                if (right.label === 'Do ustalenia') {
+                    return -1;
+                }
+
+                return left.label.localeCompare(right.label, 'pl');
+            });
+    }, [items]);
+
     const filteredGuests = useMemo(() => {
         const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -1261,6 +1315,46 @@ export default function AdminGuestsPage() {
                                         </span>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div className="mb-4 grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+                                <Card className="p-4">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <p className="font-serif text-lg text-ink">Potwierdzeni</p>
+                                        <p className="font-sans text-xs uppercase tracking-[0.18em] text-muted">
+                                            według typów gości
+                                        </p>
+                                    </div>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {confirmedBreakdown.map((item) => (
+                                            <span key={item.label} className="guest-summary-metric">
+                                                <span className="block font-sans text-xs text-muted">{item.label}</span>
+                                                <strong className="mt-1 block text-lg text-ink">{item.value}</strong>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </Card>
+
+                                <Card className="p-4">
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <p className="font-serif text-lg text-ink">Noclegi</p>
+                                        <p className="font-sans text-xs uppercase tracking-[0.18em] text-muted">
+                                            pogrupowane miejscami
+                                        </p>
+                                    </div>
+                                    {accommodationByPlace.length === 0 ? (
+                                        <p className="mt-3 text-sm text-muted">Nikt obecnie nie ma zaznaczonego noclegu.</p>
+                                    ) : (
+                                        <div className="mt-3 flex flex-wrap gap-2">
+                                            {accommodationByPlace.map((item) => (
+                                                <span key={item.label} className="guest-summary-metric">
+                                                    <span className="block font-sans text-xs text-muted">{item.label}</span>
+                                                    <strong className="mt-1 block text-lg text-ink">{item.count}</strong>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </Card>
                             </div>
 
                             <div ref={tableShellRef} className="guest-list-table-shell">
