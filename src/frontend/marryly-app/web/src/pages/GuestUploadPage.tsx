@@ -10,13 +10,16 @@ export default function GuestUploadPage() {
             <div className="page-offset">
                 <Section background="white">
                     <PageHeader
-                        title="Dodaj zdjęcia"
-                        description="Zrób lub wybierz zdjęcia, a wysyłanie rozpocznie się automatycznie."
+                        title="Dodaj zdjęcia i filmy"
+                        description="Zrób lub wybierz zdjęcia albo filmy, a wysyłanie rozpocznie się automatycznie."
                     />
                     <div className="mt-12">
                         <PhotoUploadPanel
-                            onCreateUpload={(payload) => apiClient.createPhotoUpload(payload)}
-                            onCompleteUpload={(payload) => apiClient.completePhotoUpload(payload)}
+                            addButtonLabel="Dodaj zdjęcia lub filmy"
+                            addButtonDescription="Otworzy aparat, kamerę lub galerię w telefonie."
+                            successTitle="Pliki zapisane"
+                            onCreateUpload={(payload) => apiClient.createMediaUpload(payload)}
+                            onCompleteUpload={(payload) => apiClient.completeMediaUpload(payload)}
                         />
                     </div>
                 </Section>

@@ -1,4 +1,7 @@
+export type UploadMediaKind = 'photo' | 'video';
+
 export interface CreatePhotoUploadRequest {
+    kind?: UploadMediaKind;
     fileName: string;
     fileSizeBytes: number;
     contentType: string;
@@ -6,7 +9,9 @@ export interface CreatePhotoUploadRequest {
 }
 
 export interface PhotoUploadTarget {
+    mediaId?: string;
     photoId: string;
+    kind?: UploadMediaKind;
     blobName: string;
     blobUrl: string;
     uploadUrl: string;
@@ -15,7 +20,9 @@ export interface PhotoUploadTarget {
 }
 
 export interface CompletePhotoUploadRequest {
+    mediaId?: string;
     photoId: string;
+    kind?: UploadMediaKind;
     blobName: string;
     blobUrl: string;
     contentType: string;

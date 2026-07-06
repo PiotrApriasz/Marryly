@@ -7,12 +7,14 @@ namespace Marryly.Infrastructure.Services;
 
 public class GuestBookService(
     ICosmosDbService<GuestBookEntry> cosmosDbService,
-    ICosmosContainerProvider cosmosContainerProvider) : IGuestBookService
+    ICosmosContainerProvider cosmosContainerProvider,
+    IMediaStorageService mediaStorageService) : IGuestBookService
 {
     public async Task<GuestBookEntry> AddGuestBookEntryAsync(string eventId, GuestBookEntry guestBookEntry, CancellationToken ct = default)
     {
         guestBookEntry.EventId = eventId;
-        return await cosmosDbService.AddAsync(guestBookEntry, ct);
+        var createdEntry = await cosmosDbService.AddAsync(guestBookEntry, ct);
+        return DecorateMediaUrl(createdEntry);
     }
 
     public async Task<List<GuestBookEntry>> GetAllGuestBookEntriesAsync(string eventId, CancellationToken ct = default)
@@ -28,7 +30,7 @@ public class GuestBookService(
         var entries = new List<GuestBookEntry>();
         await foreach (var entry in cosmosDbService.QueryAsync(query, options, ct))
         {
-            entries.Add(entry);
+            entries.Add(DecorateMediaUrl(entry));
         }
 
         return entries;
@@ -76,7 +78,7 @@ public class GuestBookService(
                            PartitionKey = partitionKey
                        }, ct))
         {
-            entries.Add(entry);
+            entries.Add(DecorateMediaUrl(entry));
         }
 
         var totalPages = totalCount == 0
@@ -91,5 +93,21 @@ public class GuestBookService(
             TotalCount = totalCount,
             TotalPages = totalPages
         };
+    }
+
+    private GuestBookEntry DecorateMediaUrl(GuestBookEntry entry)
+    {
+        if (string.Equals(entry.MediaKind, "video", StringComparison.Ordinal) &&
+            !string.IsNullOrWhiteSpace(entry.MediaBlobName))
+        {
+            entry.MediaUrl = mediaStorageService.GetOriginalReadUrl(entry.MediaBlobName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(entry.VideoBlobName))
+        {
+            entry.VideoUrl = mediaStorageService.GetOriginalReadUrl(entry.VideoBlobName);
+        }
+
+        return entry;
     }
 }

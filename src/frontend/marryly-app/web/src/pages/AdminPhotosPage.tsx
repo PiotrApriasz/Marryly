@@ -14,6 +14,7 @@ import StatusBadge from '../components/StatusBadge';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { useAdminPhotos } from '../hooks/admin/useAdminPhotos';
 import { invalidateAdminCache, invalidateAdminCacheByPrefix } from '../hooks/admin/useAdminApiResource';
+import { invalidateCachedApiResourcesByPrefix } from '../hooks/useCachedApiResource';
 
 const PAGE_SIZE = 12;
 
@@ -88,7 +89,7 @@ export default function AdminPhotosPage() {
     }, [currentPage, page]);
 
     const summaryLabel = useMemo(() => {
-        return `Strona ${page} z ${totalPages} • ${totalCount} zdjęć łącznie`;
+        return `Strona ${page} z ${totalPages} • ${totalCount} mediów łącznie`;
     }, [page, totalCount, totalPages]);
 
     const handleDelete = async (photoId: string) => {
@@ -98,7 +99,10 @@ export default function AdminPhotosPage() {
         try {
             await adminClient.deletePhoto(photoId);
             invalidateAdminCacheByPrefix('photos_');
+            invalidateAdminCache('albums');
+            invalidateAdminCacheByPrefix('album_media_');
             invalidateAdminCache('overview');
+            invalidateCachedApiResourcesByPrefix('gallery_');
 
             if (items.length === 1 && currentPage > 1) {
                 setCurrentPage((value) => value - 1);
@@ -106,8 +110,8 @@ export default function AdminPhotosPage() {
                 reload();
             }
         } catch (err: unknown) {
-            setDeleteError(getErrorMessageForDisplay(err, 'Nie udało się usunąć zdjęcia.'));
-            logErrorDetails(err, 'Failed to delete photo');
+            setDeleteError(getErrorMessageForDisplay(err, 'Nie udało się usunąć medium.'));
+            logErrorDetails(err, 'Failed to delete media');
         } finally {
             setDeletingPhotoId(null);
         }
@@ -119,8 +123,8 @@ export default function AdminPhotosPage() {
                 <Section background="white">
                     <AdminBackLink />
                     <PageHeader
-                        title="Zdjęcia Gości"
-                        helpText="Wszystkie zdjęcia zapisane dla wydarzenia, także te w trakcie przetwarzania lub z błędem."
+                        title="Media Gości"
+                        helpText="Wszystkie zdjęcia i filmy zapisane dla wydarzenia, także te w trakcie przetwarzania lub z błędem."
                     />
 
                     {deleteError ? (
@@ -133,7 +137,7 @@ export default function AdminPhotosPage() {
                         loading={loading}
                         error={error}
                         isEmpty={items.length === 0}
-                        emptyMessage="Brak zdjęć do wyświetlenia."
+                        emptyMessage="Brak mediów do wyświetlenia."
                         loadingFallback={<PhotosSkeleton />}
                     >
                         <div className="mt-12">
@@ -147,17 +151,28 @@ export default function AdminPhotosPage() {
                                 {items.map((photo) => {
                                     const previewUrl = photo.thumbnailBlobUrl ?? photo.previewBlobUrl ?? photo.originalBlobUrl;
                                     const status = getStatusMetadata(photo.status);
+                                    const isVideo = photo.kind === 'video';
 
                                     return (
                                         <article key={photo.id}>
                                             <Card padding="none" className="overflow-hidden">
                                                 <div className="aspect-[4/3] overflow-hidden bg-sand/40">
-                                                    <img
-                                                        src={previewUrl}
-                                                        alt="Miniatura zdjęcia gościa"
-                                                        loading="lazy"
-                                                        className="h-full w-full object-cover"
-                                                    />
+                                                    {isVideo ? (
+                                                        <video
+                                                            src={previewUrl}
+                                                            preload="metadata"
+                                                            muted
+                                                            playsInline
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <img
+                                                            src={previewUrl}
+                                                            alt="Miniatura zdjęcia gościa"
+                                                            loading="lazy"
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    )}
                                                 </div>
                                                 <div className="space-y-4 p-5">
                                                     <div className="flex flex-wrap items-center justify-between gap-2">
@@ -170,6 +185,7 @@ export default function AdminPhotosPage() {
                                                     <div className="space-y-2 text-sm text-muted">
                                                         <p>Dodano: {formatDate(photo.uploadedAt)}</p>
                                                         <p>Rozmiar: {formatBytes(photo.sizeBytes)}</p>
+                                                        <p>Rodzaj: {isVideo ? 'Film' : 'Zdjęcie'}</p>
                                                         <p>Typ: {photo.contentType}</p>
                                                         {photo.width > 0 && photo.height > 0 ? (
                                                             <p>Wymiary: {photo.width} × {photo.height}</p>
@@ -184,7 +200,7 @@ export default function AdminPhotosPage() {
 
                                                     <div className="flex items-center justify-end">
                                                         <ConfirmActionButton
-                                                            confirmMessage="Czy na pewno chcesz usunąć to zdjęcie? Ta operacja usunie oryginał, preview, thumbnail i wpis w bazie."
+                                                            confirmMessage="Czy na pewno chcesz usunąć to medium? Ta operacja usunie pliki i wpis w bazie."
                                                             onConfirm={() => handleDelete(photo.id)}
                                                             loading={deletingPhotoId === photo.id}
                                                             disabled={deletingPhotoId !== null && deletingPhotoId !== photo.id}

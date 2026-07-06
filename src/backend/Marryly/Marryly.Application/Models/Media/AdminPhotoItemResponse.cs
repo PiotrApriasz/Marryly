@@ -10,6 +10,9 @@ public class AdminPhotoItemResponse
     [JsonProperty("eventId")]
     public required string EventId { get; set; }
 
+    [JsonProperty("kind")]
+    public required string Kind { get; set; }
+
     [JsonProperty("status")]
     public required string Status { get; set; }
 

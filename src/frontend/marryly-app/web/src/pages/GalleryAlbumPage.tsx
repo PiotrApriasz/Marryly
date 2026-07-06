@@ -82,7 +82,7 @@ export default function GalleryAlbumPage() {
                                             onClick={() => void loadMore()}
                                             loading={loadingMore}
                                         >
-                                            Pokaż więcej zdjęć
+                                            Pokaż więcej mediów
                                         </Button>
                                     </div>
                                 ) : null}

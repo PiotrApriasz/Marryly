@@ -39,6 +39,63 @@ function formatDate(isoDate: string): string {
     });
 }
 
+function GuestBookEntryMedia({ entry }: { entry: { mediaKind?: string | null; mediaUrl?: string | null; mediaThumbnailUrl?: string | null; videoUrl?: string | null } }) {
+    const mediaUrl = entry.mediaUrl ?? entry.videoUrl;
+    const mediaKind = entry.mediaKind ?? (entry.videoUrl ? 'video' : null);
+
+    if (!mediaUrl) {
+        return null;
+    }
+
+    if (mediaKind === 'photo') {
+        return (
+            <a
+                href={mediaUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-5 block overflow-hidden rounded-xl bg-sand"
+            >
+                <img
+                    src={entry.mediaThumbnailUrl ?? mediaUrl}
+                    alt="Załączone zdjęcie"
+                    className="max-h-[32rem] w-full object-contain"
+                    loading="lazy"
+                />
+            </a>
+        );
+    }
+
+    return (
+        <div className="mt-5 overflow-hidden rounded-xl bg-ink">
+            <video
+                src={mediaUrl}
+                controls
+                playsInline
+                className="max-h-[32rem] w-full object-contain"
+            >
+                <a
+                    href={mediaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-white underline"
+                >
+                    Otwórz/pobierz film
+                </a>
+            </video>
+            <div className="bg-ink px-4 pb-4">
+                <a
+                    href={mediaUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm font-medium text-white underline"
+                >
+                    Otwórz/pobierz film
+                </a>
+            </div>
+        </div>
+    );
+}
+
 export default function AdminGuestBookPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const { entriesPage, loading, error } = useAdminGuestBookEntries(currentPage, PAGE_SIZE);
@@ -79,6 +136,7 @@ export default function AdminGuestBookPage() {
                                             <p className="mt-4 whitespace-pre-wrap break-words font-sans text-base leading-relaxed text-ink">
                                                 {entry.message}
                                             </p>
+                                            <GuestBookEntryMedia entry={entry} />
                                         </Card>
                                     </article>
                                 ))}

@@ -4,6 +4,9 @@ namespace Marryly.Application.Models.Media;
 
 public class CompletePhotoUploadRequest
 {
+    [JsonProperty("kind")]
+    public string? Kind { get; set; }
+
     [JsonProperty("blobName")]
     public required string BlobName { get; set; }
 

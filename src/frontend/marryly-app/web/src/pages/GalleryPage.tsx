@@ -66,7 +66,7 @@ export default function GalleryPage() {
                                                 <div className="flex items-center justify-between gap-3">
                                                     <h2 className="font-serif text-2xl text-ink">{album.title}</h2>
                                                     <span className="font-sans text-xs text-muted">
-                                                        {album.itemCount} zdjęć
+                                                        {album.itemCount} mediów
                                                     </span>
                                                 </div>
                                                 <p className="text-sm leading-6 text-muted">

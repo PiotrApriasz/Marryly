@@ -208,7 +208,7 @@ export default function AdminAlbumsPage() {
                     <AdminBackLink />
                     <PageHeader
                         title="Galeria"
-                        helpText="Zarządzaj albumami widocznymi dla gości i dodawaj nowe kolekcje zdjęć."
+                        helpText="Zarządzaj albumami widocznymi dla gości i dodawaj nowe kolekcje mediów."
                     />
 
                     {pageError ? (
@@ -295,7 +295,7 @@ export default function AdminAlbumsPage() {
                                                     {album.description || 'Brak opisu albumu.'}
                                                 </p>
                                                 <p className="mt-3 text-sm text-muted">
-                                                    {album.itemCount} zdjęć
+                                                    {album.itemCount} mediów
                                                 </p>
                                             </div>
 

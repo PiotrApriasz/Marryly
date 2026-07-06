@@ -95,7 +95,7 @@ export default function AdminAlbumPage() {
     }, [currentPage, page]);
 
     const summaryLabel = useMemo(() => {
-        return `Strona ${page} z ${totalPages} • ${totalCount} zdjęć w albumie`;
+        return `Strona ${page} z ${totalPages} • ${totalCount} mediów w albumie`;
     }, [page, totalCount, totalPages]);
 
     const invalidateAfterChange = () => {
@@ -120,7 +120,7 @@ export default function AdminAlbumPage() {
                 reload();
             }
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się usunąć zdjęcia.'));
+            setPageError(getErrorMessageForDisplay(err, 'Nie udało się usunąć medium.'));
             logErrorDetails(err, 'Failed to delete album media');
         } finally {
             setDeletingMediaId(null);
@@ -134,7 +134,7 @@ export default function AdminAlbumPage() {
                     <AdminBackLink to="/admin/albums" label="Powrót do albumów" shortLabel="Albumy" />
                     <PageHeader
                         title={album?.title ?? 'Album'}
-                        helpText={album?.description ?? 'Zarządzaj zdjęciami przypisanymi do tego albumu.'}
+                        helpText={album?.description ?? 'Zarządzaj mediami przypisanymi do tego albumu.'}
                     />
 
                     {pageError ? (
@@ -161,6 +161,7 @@ export default function AdminAlbumPage() {
                                 addButtonLabel="Dodaj zdjęcia do albumu"
                                 addButtonDescription="Wybierz zdjęcia, a po przetworzeniu trafią bezpośrednio do tego albumu."
                                 successTitle="Zdjęcia dodane do albumu"
+                                acceptedKinds={['photo']}
                                 onCreateUpload={(payload) => adminClient.createAlbumPhotoUpload(album.id, payload)}
                                 onCompleteUpload={(payload) => adminClient.completeAlbumPhotoUpload(album.id, payload)}
                                 onAfterUpload={() => {
@@ -176,7 +177,7 @@ export default function AdminAlbumPage() {
                         loading={albumsLoading || (album !== null && loading)}
                         error={album ? error : null}
                         isEmpty={album !== null && items.length === 0}
-                        emptyMessage="Ten album nie ma jeszcze żadnych zdjęć."
+                        emptyMessage="Ten album nie ma jeszcze żadnych mediów."
                         loadingFallback={<AlbumMediaSkeleton />}
                     >
                         {album ? (
@@ -191,17 +192,28 @@ export default function AdminAlbumPage() {
                                     {items.map((mediaItem) => {
                                         const previewUrl = mediaItem.thumbnailBlobUrl ?? mediaItem.previewBlobUrl ?? mediaItem.originalBlobUrl;
                                         const status = getStatusMetadata(mediaItem.status);
+                                        const isVideo = mediaItem.kind === 'video';
 
                                         return (
                                             <article key={mediaItem.id}>
                                                 <Card padding="none" className="overflow-hidden">
                                                     <div className="aspect-[4/3] overflow-hidden bg-sand/40">
-                                                        <img
-                                                            src={previewUrl}
-                                                            alt="Miniatura zdjęcia z albumu"
-                                                            loading="lazy"
-                                                            className="h-full w-full object-cover"
-                                                        />
+                                                        {isVideo ? (
+                                                            <video
+                                                                src={previewUrl}
+                                                                preload="metadata"
+                                                                muted
+                                                                playsInline
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <img
+                                                                src={previewUrl}
+                                                                alt="Miniatura zdjęcia z albumu"
+                                                                loading="lazy"
+                                                                className="h-full w-full object-cover"
+                                                            />
+                                                        )}
                                                     </div>
                                                     <div className="space-y-4 p-5">
                                                         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -214,6 +226,7 @@ export default function AdminAlbumPage() {
                                                         <div className="space-y-2 text-sm text-muted">
                                                             <p>Dodano: {formatDate(mediaItem.uploadedAt)}</p>
                                                             <p>Rozmiar: {formatBytes(mediaItem.sizeBytes)}</p>
+                                                            <p>Rodzaj: {isVideo ? 'Film' : 'Zdjęcie'}</p>
                                                             <p>Typ: {mediaItem.contentType}</p>
                                                             {mediaItem.width > 0 && mediaItem.height > 0 ? (
                                                                 <p>Wymiary: {mediaItem.width} × {mediaItem.height}</p>
@@ -228,7 +241,7 @@ export default function AdminAlbumPage() {
 
                                                         <div className="flex items-center justify-end">
                                                             <ConfirmActionButton
-                                                                confirmMessage="Czy na pewno chcesz usunąć to zdjęcie? Ta operacja usunie oryginał, preview, thumbnail i wpis w bazie."
+                                                                confirmMessage="Czy na pewno chcesz usunąć to medium? Ta operacja usunie pliki i wpis w bazie."
                                                                 onConfirm={() => handleDeleteMedia(mediaItem.id)}
                                                                 loading={deletingMediaId === mediaItem.id}
                                                                 disabled={deletingMediaId !== null && deletingMediaId !== mediaItem.id}

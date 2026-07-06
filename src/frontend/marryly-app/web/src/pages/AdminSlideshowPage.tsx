@@ -199,7 +199,7 @@ export default function AdminSlideshowPage() {
                                                         label={(
                                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                                 <span className="font-medium text-ink">{album.title}</span>
-                                                                <span className="text-xs text-muted">{album.itemCount} zdjęć</span>
+                                                                <span className="text-xs text-muted">{album.itemCount} mediów</span>
                                                             </div>
                                                         )}
                                                     />
@@ -264,7 +264,7 @@ export default function AdminSlideshowPage() {
                                                 {selectedAlbumsCount > 0 ? `${selectedAlbumsCount} wybrane` : 'Nie wybrano albumów'}
                                             </p>
                                             <p className="mt-1">
-                                                {selectedAlbumsCount > 0 ? `${selectedPhotosCount} zdjęć łącznie w źródłach` : 'Wybierz albumy do pokazu'}
+                                                {selectedAlbumsCount > 0 ? `${selectedPhotosCount} mediów łącznie w źródłach` : 'Wybierz albumy do pokazu'}
                                             </p>
                                             {selectedAlbumsCount > 0 ? (
                                                 <p className="mt-2 text-xs leading-5">

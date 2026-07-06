@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { cn } from '../utils/cn';
-import type { Photo } from '../types/wedding.types';
+import type { GalleryMediaItem } from '../types/wedding.types';
 
 interface PhotoGalleryGridProps {
-    photos: Photo[];
+    photos: GalleryMediaItem[];
     showUploadedAt?: boolean;
 }
 
@@ -27,7 +27,7 @@ export default function PhotoGalleryGrid({
     showUploadedAt = false,
 }: PhotoGalleryGridProps) {
     const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
-    const selectedPhoto = selectedPhotoIndex === null ? null : photos[selectedPhotoIndex] ?? null;
+    const selectedMedia = selectedPhotoIndex === null ? null : photos[selectedPhotoIndex] ?? null;
     const hasPreviousPhoto = selectedPhotoIndex !== null && selectedPhotoIndex > 0;
     const hasNextPhoto = selectedPhotoIndex !== null && selectedPhotoIndex < photos.length - 1;
     const galleryNavigationButtonClassName = cn(
@@ -84,12 +84,29 @@ export default function PhotoGalleryGrid({
                         onClick={() => setSelectedPhotoIndex(index)}
                     >
                         <div className="aspect-square overflow-hidden bg-sand/40">
-                            <img
-                                src={photo.thumbnailUrl}
-                                alt="Zdjęcie z wesela"
-                                loading="lazy"
-                                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
+                            {photo.kind === 'video' ? (
+                                <div className="relative h-full w-full">
+                                    <video
+                                        src={photo.url}
+                                        preload="metadata"
+                                        muted
+                                        playsInline
+                                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-ink/20 text-white">
+                                        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-ink/70 shadow">
+                                            <span className="ml-1 h-0 w-0 border-y-[10px] border-l-[16px] border-y-transparent border-l-white" />
+                                        </span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <img
+                                    src={photo.thumbnailUrl ?? photo.url}
+                                    alt="Zdjęcie z wesela"
+                                    loading="lazy"
+                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                            )}
                         </div>
                         {showUploadedAt ? (
                             <div className="px-4 py-3">
@@ -102,7 +119,7 @@ export default function PhotoGalleryGrid({
                 ))}
             </div>
 
-            {selectedPhoto ? (
+            {selectedMedia ? (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-ink/85 px-4 py-6"
                     role="dialog"
@@ -119,7 +136,7 @@ export default function PhotoGalleryGrid({
                                 className={galleryNavigationButtonClassName}
                                 onClick={() => setSelectedPhotoIndex((currentIndex) => currentIndex === null ? null : Math.max(currentIndex - 1, 0))}
                                 disabled={!hasPreviousPhoto}
-                                aria-label="Poprzednie zdjęcie"
+                                aria-label="Poprzednie medium"
                             >
                                 ‹
                             </button>
@@ -128,7 +145,7 @@ export default function PhotoGalleryGrid({
                                 className={galleryNavigationButtonClassName}
                                 onClick={() => setSelectedPhotoIndex((currentIndex) => currentIndex === null ? null : Math.min(currentIndex + 1, photos.length - 1))}
                                 disabled={!hasNextPhoto}
-                                aria-label="Następne zdjęcie"
+                                aria-label="Następne medium"
                             >
                                 ›
                             </button>
@@ -143,11 +160,39 @@ export default function PhotoGalleryGrid({
                         </button>
 
                         <div className="bg-paper">
-                            <img
-                                src={selectedPhoto.url}
-                                alt="Podgląd zdjęcia"
-                                className="max-h-[90vh] w-full object-contain"
-                            />
+                            {selectedMedia.kind === 'video' ? (
+                                <div className="flex max-h-[90vh] min-h-[240px] w-full flex-col items-center justify-center bg-ink">
+                                    <video
+                                        src={selectedMedia.url}
+                                        controls
+                                        playsInline
+                                        className="max-h-[86vh] w-full object-contain"
+                                    >
+                                        <a
+                                            href={selectedMedia.url}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-white underline"
+                                        >
+                                            Otwórz/pobierz film
+                                        </a>
+                                    </video>
+                                    <a
+                                        href={selectedMedia.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="px-4 py-3 text-sm font-medium text-white underline"
+                                    >
+                                        Otwórz/pobierz film
+                                    </a>
+                                </div>
+                            ) : (
+                                <img
+                                    src={selectedMedia.url}
+                                    alt="Podgląd zdjęcia"
+                                    className="max-h-[90vh] w-full object-contain"
+                                />
+                            )}
                         </div>
                     </div>
                 </div>

@@ -6,6 +6,8 @@ namespace Marryly.Application.Interfaces;
 public interface IMediaService
 {
     Task<MediaItem> UpsertPhotoAsync(string eventId, MediaItem mediaItem, CancellationToken ct = default);
+    Task<MediaItem> UpsertMediaAsync(string eventId, MediaItem mediaItem, CancellationToken ct = default);
+    Task<MediaItem?> GetMediaByIdAsync(string eventId, string mediaId, CancellationToken ct = default);
     Task<List<MediaItem>> GetApprovedPhotosAsync(string eventId, CancellationToken ct = default);
     Task<PagedPhotosResponse> GetApprovedPhotosPageAsync(string eventId, int limit, string? continuationToken, CancellationToken ct = default);
     Task<PagedAdminPhotosResponse> GetAdminPhotosPageAsync(string eventId, int page, int pageSize, CancellationToken ct = default);

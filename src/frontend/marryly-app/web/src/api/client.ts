@@ -61,7 +61,7 @@ export class ApiClient {
         return this.fetchJson<Event[]>('/app/schedule');
     }
 
-    async addGuestBookEntry(payload: { authorName: string; message: string }): Promise<GuestbookEntry> {
+    async addGuestBookEntry(payload: { authorName: string; message?: string; mediaId?: string; videoMediaId?: string }): Promise<GuestbookEntry> {
         return this.fetchJson<GuestbookEntry>('/app/guestbook', {
             method: 'POST',
             headers: {
@@ -88,6 +88,67 @@ export class ApiClient {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                blobName: payload.blobName,
+                blobUrl: payload.blobUrl,
+                contentType: payload.contentType,
+                sizeBytes: payload.sizeBytes,
+            }),
+        });
+    }
+
+    async createMediaUpload(payload: CreatePhotoUploadRequest): Promise<PhotoUploadTarget> {
+        return this.fetchJson<PhotoUploadTarget>('/app/media/uploads', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+    }
+
+    async completeMediaUpload(payload: CompletePhotoUploadRequest): Promise<void> {
+        const mediaId = payload.mediaId ?? payload.photoId;
+        await this.fetchJson<Record<string, unknown>>(`/app/media/uploads/${mediaId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                kind: payload.kind,
+                blobName: payload.blobName,
+                blobUrl: payload.blobUrl,
+                contentType: payload.contentType,
+                sizeBytes: payload.sizeBytes,
+            }),
+        });
+    }
+
+    async completeGuestBookVideoUpload(payload: CompletePhotoUploadRequest): Promise<void> {
+        const mediaId = payload.mediaId ?? payload.photoId;
+        await this.fetchJson<Record<string, unknown>>(`/app/guestbook/videos/uploads/${mediaId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                kind: 'video',
+                blobName: payload.blobName,
+                blobUrl: payload.blobUrl,
+                contentType: payload.contentType,
+                sizeBytes: payload.sizeBytes,
+            }),
+        });
+    }
+
+    async completeGuestBookMediaUpload(payload: CompletePhotoUploadRequest): Promise<void> {
+        const mediaId = payload.mediaId ?? payload.photoId;
+        await this.fetchJson<Record<string, unknown>>(`/app/guestbook/media/uploads/${mediaId}/complete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                kind: payload.kind,
                 blobName: payload.blobName,
                 blobUrl: payload.blobUrl,
                 contentType: payload.contentType,

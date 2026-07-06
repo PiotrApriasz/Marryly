@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from '../api/client';
 import { config } from '../app/config';
-import type { Photo } from '../types/wedding.types';
+import type { GalleryMediaItem } from '../types/wedding.types';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { getMockPhotosPage } from '../mocks/photos';
 
@@ -11,7 +11,7 @@ interface UseInfiniteAlbumMediaOptions {
 }
 
 interface UseInfiniteAlbumMediaResult {
-    photos: Photo[];
+    photos: GalleryMediaItem[];
     loading: boolean;
     loadingMore: boolean;
     error: string | null;
@@ -23,7 +23,7 @@ export function useInfiniteAlbumMedia({
     albumSlug,
     pageSize = 50,
 }: UseInfiniteAlbumMediaOptions = {}): UseInfiniteAlbumMediaResult {
-    const [photos, setPhotos] = useState<Photo[]>([]);
+    const [photos, setPhotos] = useState<GalleryMediaItem[]>([]);
     const [continuationToken, setContinuationToken] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(true);
@@ -50,7 +50,9 @@ export function useInfiniteAlbumMedia({
             const page = config.useMockPhotos
                 ? await getMockPhotosPage(pageSize, nextToken)
                 : await apiClient.getGalleryAlbumMedia(albumSlug, pageSize, nextToken);
-            const nextItems = page.items.filter((item) => !loadedIdsRef.current.has(item.id));
+            const nextItems = page.items
+                .map((item) => ({ ...item, kind: item.kind ?? 'photo' }) as GalleryMediaItem)
+                .filter((item) => !loadedIdsRef.current.has(item.id));
 
             nextItems.forEach((item) => loadedIdsRef.current.add(item.id));
 
@@ -58,7 +60,7 @@ export function useInfiniteAlbumMedia({
             setContinuationToken(page.continuationToken);
             setHasMore(page.hasMore);
         } catch (err) {
-            setError(getErrorMessageForDisplay(err, 'Nie udało się pobrać zdjęć albumu.'));
+            setError(getErrorMessageForDisplay(err, 'Nie udało się pobrać mediów albumu.'));
             logErrorDetails(err, 'Failed to load album media');
         } finally {
             requestInFlightRef.current = false;

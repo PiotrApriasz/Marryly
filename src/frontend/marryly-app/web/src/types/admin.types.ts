@@ -109,6 +109,16 @@ export interface AdminGuestBookEntry {
     eventId: string;
     authorName: string;
     message: string;
+    mediaId?: string | null;
+    mediaKind?: 'photo' | 'video' | string | null;
+    mediaUrl?: string | null;
+    mediaThumbnailUrl?: string | null;
+    mediaContentType?: string | null;
+    mediaSizeBytes?: number | null;
+    videoMediaId?: string | null;
+    videoUrl?: string | null;
+    videoContentType?: string | null;
+    videoSizeBytes?: number | null;
     createdAt: string;
 }
 
@@ -123,6 +133,7 @@ export interface AdminGuestBookEntriesPage {
 export interface AdminPhoto {
     id: string;
     eventId: string;
+    kind: 'photo' | 'video' | string;
     status: 'ready' | 'processing' | 'failed' | string;
     approved: boolean;
     uploadedAt: string;
@@ -166,6 +177,7 @@ export interface AdminAlbumsResponse {
 export interface AdminAlbumMediaItem {
     id: string;
     eventId: string;
+    kind: 'photo' | 'video' | string;
     albumId?: string | null;
     sourceType?: string | null;
     status: string;

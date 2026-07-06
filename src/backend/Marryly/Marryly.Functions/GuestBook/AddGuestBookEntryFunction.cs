@@ -13,8 +13,11 @@ namespace Marryly.Functions.GuestBook;
 public class AddGuestBookEntryFunction(
     ILogger<AddGuestBookEntryFunction> logger,
     IAuthService authService,
-    IGuestBookService guestBookService)
+    IGuestBookService guestBookService,
+    IMediaService mediaService)
 {
+    private const string GuestBookSourceType = "guestbook";
+
     [Function("AddGuestBookEntry")]
     public async Task<HttpResponseData> Run(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "app/guestbook")]
@@ -68,15 +71,69 @@ public class AddGuestBookEntryFunction(
 
         if (request is null ||
             string.IsNullOrWhiteSpace(request.AuthorName) ||
-            string.IsNullOrWhiteSpace(request.Message))
+            (string.IsNullOrWhiteSpace(request.Message) &&
+             string.IsNullOrWhiteSpace(request.MediaId) &&
+             string.IsNullOrWhiteSpace(request.VideoMediaId)))
         {
             return await ApiResponse.ProduceErrorResponse(
                 req,
                 HttpStatusCode.BadRequest,
                 "INVALID_GUESTBOOK_PAYLOAD",
                 "Invalid guestbook payload",
-                "Author name and message are required."
+                "Author name and message or media are required."
             );
+        }
+
+        var attachedMediaId = !string.IsNullOrWhiteSpace(request.MediaId)
+            ? request.MediaId.Trim()
+            : request.VideoMediaId?.Trim();
+        var mediaKind = default(string);
+        var mediaBlobName = default(string);
+        var mediaUrl = default(string);
+        var mediaThumbnailUrl = default(string);
+        var mediaContentType = default(string);
+        long? mediaSizeBytes = null;
+        var videoMediaId = string.IsNullOrWhiteSpace(request.MediaId) ? request.VideoMediaId?.Trim() : null;
+        var videoBlobName = default(string);
+        var videoContentType = default(string);
+        long? videoSizeBytes = null;
+
+        if (!string.IsNullOrWhiteSpace(attachedMediaId))
+        {
+            var attachedMedia = await mediaService.GetMediaByIdAsync(eventId, attachedMediaId, ct);
+            if (attachedMedia is null ||
+                !(string.Equals(attachedMedia.Kind, "photo", StringComparison.Ordinal) ||
+                  string.Equals(attachedMedia.Kind, "video", StringComparison.Ordinal)) ||
+                !string.Equals(attachedMedia.SourceType, GuestBookSourceType, StringComparison.Ordinal))
+            {
+                return await ApiResponse.ProduceErrorResponse(
+                    req,
+                    HttpStatusCode.BadRequest,
+                    "INVALID_GUESTBOOK_MEDIA",
+                    "Invalid guestbook media",
+                    "The selected media could not be attached to this guestbook entry."
+                );
+            }
+
+            attachedMediaId = attachedMedia.Id;
+            mediaKind = attachedMedia.Kind;
+            mediaBlobName = attachedMedia.OriginalBlobName;
+            mediaUrl = string.Equals(attachedMedia.Kind, "photo", StringComparison.Ordinal)
+                ? attachedMedia.PreviewBlobUrl ?? attachedMedia.OriginalBlobUrl
+                : null;
+            mediaThumbnailUrl = string.Equals(attachedMedia.Kind, "photo", StringComparison.Ordinal)
+                ? attachedMedia.ThumbnailBlobUrl ?? attachedMedia.PreviewBlobUrl
+                : null;
+            mediaContentType = attachedMedia.ContentType;
+            mediaSizeBytes = attachedMedia.SizeBytes;
+
+            if (string.Equals(attachedMedia.Kind, "video", StringComparison.Ordinal))
+            {
+                videoMediaId = attachedMedia.Id;
+                videoBlobName = attachedMedia.OriginalBlobName;
+                videoContentType = attachedMedia.ContentType;
+                videoSizeBytes = attachedMedia.SizeBytes;
+            }
         }
 
         var guestBookEntry = new GuestBookEntry
@@ -84,7 +141,18 @@ public class AddGuestBookEntryFunction(
             Id = Guid.NewGuid().ToString("N"),
             EventId = eventId,
             AuthorName = request.AuthorName.Trim(),
-            Message = request.Message.Trim(),
+            Message = request.Message?.Trim() ?? string.Empty,
+            MediaId = attachedMediaId,
+            MediaKind = mediaKind,
+            MediaBlobName = mediaBlobName,
+            MediaUrl = mediaUrl,
+            MediaThumbnailUrl = mediaThumbnailUrl,
+            MediaContentType = mediaContentType,
+            MediaSizeBytes = mediaSizeBytes,
+            VideoMediaId = videoMediaId,
+            VideoBlobName = videoBlobName,
+            VideoContentType = videoContentType,
+            VideoSizeBytes = videoSizeBytes,
             CreatedAt = DateTime.UtcNow
         };
 

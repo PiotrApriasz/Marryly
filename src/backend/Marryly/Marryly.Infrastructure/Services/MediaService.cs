@@ -16,7 +16,23 @@ public class MediaService(
     {
         mediaItem.EventId = eventId;
         mediaItem.Kind = "photo";
+        return await UpsertMediaAsync(eventId, mediaItem, ct);
+    }
+
+    public async Task<MediaItem> UpsertMediaAsync(string eventId, MediaItem mediaItem, CancellationToken ct = default)
+    {
+        mediaItem.EventId = eventId;
         return await cosmosDbService.UpsertAsync(mediaItem, ct);
+    }
+
+    public async Task<MediaItem?> GetMediaByIdAsync(string eventId, string mediaId, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(mediaId))
+        {
+            return null;
+        }
+
+        return await cosmosDbService.GetAsync(mediaId, PartitionKeyResolver.ForEventIdBasedData(eventId), ct);
     }
 
     public async Task<List<MediaItem>> GetApprovedPhotosAsync(string eventId, CancellationToken ct = default)
@@ -96,9 +112,8 @@ public class MediaService(
         var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
         var container = cosmosContainerProvider.GetContainer("MediaItems");
 
-        var countQuery = new QueryDefinition("SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId AND c.kind = @kind")
-            .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "photo");
+        var countQuery = new QueryDefinition("SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId")
+            .WithParameter("@eventId", eventId);
 
         using var countIterator = container.GetItemQueryIterator<int>(
             countQuery,
@@ -115,9 +130,8 @@ public class MediaService(
         }
 
         var query = new QueryDefinition(
-                "SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind ORDER BY c.uploadedAt DESC OFFSET @offset LIMIT @pageSize")
+                "SELECT * FROM c WHERE c.eventId = @eventId ORDER BY c.uploadedAt DESC OFFSET @offset LIMIT @pageSize")
             .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "photo")
             .WithParameter("@offset", offset)
             .WithParameter("@pageSize", normalizedPageSize);
 
@@ -153,9 +167,8 @@ public class MediaService(
     {
         var normalizedLimit = Math.Clamp(limit, 1, 100);
         var query = new QueryDefinition(
-                $"SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND c.approved = true AND c.status = @status AND {BuildAlbumFilterClause(albumId)} ORDER BY c.uploadedAt DESC")
+                $"SELECT * FROM c WHERE c.eventId = @eventId AND c.approved = true AND c.status = @status AND {BuildAlbumFilterClause(albumId)} ORDER BY c.uploadedAt DESC")
             .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "photo")
             .WithParameter("@status", "ready")
             .WithParameter("@albumId", albumId);
 
@@ -203,9 +216,8 @@ public class MediaService(
         var container = cosmosContainerProvider.GetContainer("MediaItems");
 
         var countQuery = new QueryDefinition(
-                $"SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND {BuildAlbumFilterClause(albumId)}")
+                $"SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)}")
             .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "photo")
             .WithParameter("@albumId", albumId);
 
         using var countIterator = container.GetItemQueryIterator<int>(
@@ -223,9 +235,8 @@ public class MediaService(
         }
 
         var query = new QueryDefinition(
-                $"SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND {BuildAlbumFilterClause(albumId)} ORDER BY c.uploadedAt DESC OFFSET @offset LIMIT @pageSize")
+                $"SELECT * FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)} ORDER BY c.uploadedAt DESC OFFSET @offset LIMIT @pageSize")
             .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "photo")
             .WithParameter("@albumId", albumId)
             .WithParameter("@offset", offset)
             .WithParameter("@pageSize", normalizedPageSize);
@@ -328,13 +339,12 @@ public class MediaService(
             : string.Empty;
 
         var query = new QueryDefinition(
-                $"SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind{publicCondition} ORDER BY c.uploadedAt DESC")
-            .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "photo");
+                $"SELECT * FROM c WHERE c.eventId = @eventId{publicCondition} ORDER BY c.uploadedAt DESC")
+            .WithParameter("@eventId", eventId);
 
         if (publicOnly)
         {
-            query.WithParameter("@status", "ready");
+            query = query.WithParameter("@status", "ready");
         }
 
         var items = new List<MediaItem>();
@@ -361,9 +371,8 @@ public class MediaService(
     public async Task<bool> HasAnyMediaInAlbumAsync(string eventId, string albumId, CancellationToken ct = default)
     {
         var query = new QueryDefinition(
-                $"SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND {BuildAlbumFilterClause(albumId)}")
+                $"SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)}")
             .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "photo")
             .WithParameter("@albumId", albumId);
 
         var container = cosmosContainerProvider.GetContainer("MediaItems");
@@ -415,7 +424,7 @@ public class MediaService(
     {
         var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
         var mediaItem = await cosmosDbService.GetAsync(photoId, partitionKey, ct);
-        if (mediaItem is null || !string.Equals(mediaItem.Kind, "photo", StringComparison.Ordinal))
+        if (mediaItem is null || !IsSupportedMediaKind(mediaItem.Kind))
         {
             return false;
         }
@@ -428,12 +437,13 @@ public class MediaService(
         return true;
     }
 
-    private static AdminPhotoItemResponse MapAdminPhoto(MediaItem item)
+    private AdminPhotoItemResponse MapAdminPhoto(MediaItem item)
     {
         return new AdminPhotoItemResponse
         {
             Id = item.Id,
             EventId = item.EventId,
+            Kind = item.Kind,
             Status = item.Status,
             Approved = item.Approved,
             AlbumId = item.AlbumId,
@@ -444,7 +454,7 @@ public class MediaService(
             Width = item.Width,
             Height = item.Height,
             OriginalBlobName = item.OriginalBlobName,
-            OriginalBlobUrl = item.OriginalBlobUrl,
+            OriginalBlobUrl = GetOriginalUrlForResponse(item),
             PreviewBlobName = item.PreviewBlobName,
             PreviewBlobUrl = item.PreviewBlobUrl,
             ThumbnailBlobName = item.ThumbnailBlobName,
@@ -453,14 +463,18 @@ public class MediaService(
         };
     }
 
-    private static GalleryMediaItemResponse MapGalleryMedia(MediaItem item)
+    private GalleryMediaItemResponse MapGalleryMedia(MediaItem item)
     {
         return new GalleryMediaItemResponse
         {
             Id = item.Id,
             EventId = item.EventId,
-            Url = item.PreviewBlobUrl ?? item.OriginalBlobUrl,
-            ThumbnailUrl = item.ThumbnailBlobUrl ?? item.PreviewBlobUrl ?? item.OriginalBlobUrl,
+            Kind = item.Kind,
+            Url = item.PreviewBlobUrl ?? GetOriginalUrlForResponse(item),
+            ThumbnailUrl = string.Equals(item.Kind, "photo", StringComparison.Ordinal)
+                ? item.ThumbnailBlobUrl ?? item.PreviewBlobUrl ?? item.OriginalBlobUrl
+                : null,
+            ContentType = item.ContentType,
             UploadedAt = item.UploadedAt,
             Approved = item.Approved,
             Width = item.Width,
@@ -498,6 +512,24 @@ public class MediaService(
 
     private static string? GetBestCoverUrl(MediaItem item)
     {
+        if (!string.Equals(item.Kind, "photo", StringComparison.Ordinal))
+        {
+            return null;
+        }
+
         return item.ThumbnailBlobUrl ?? item.PreviewBlobUrl ?? item.OriginalBlobUrl;
+    }
+
+    private string GetOriginalUrlForResponse(MediaItem item)
+    {
+        return string.Equals(item.Kind, "video", StringComparison.Ordinal)
+            ? mediaStorageService.GetOriginalReadUrl(item.OriginalBlobName)
+            : item.OriginalBlobUrl;
+    }
+
+    private static bool IsSupportedMediaKind(string kind)
+    {
+        return string.Equals(kind, "photo", StringComparison.Ordinal) ||
+               string.Equals(kind, "video", StringComparison.Ordinal);
     }
 }

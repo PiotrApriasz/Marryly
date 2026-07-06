@@ -13,7 +13,7 @@ export function useAdminPhotos(page: number, pageSize: number): UseAdminPhotosRe
     const { data, loading, error, reload } = useAdminApiResource<AdminPhotosPage>({
         cacheKey: `photos_${page}_${pageSize}`,
         fetcher: () => adminClient.getPhotos(page, pageSize),
-        fallbackErrorMessage: 'Nie udało się pobrać zdjęć.',
+        fallbackErrorMessage: 'Nie udało się pobrać mediów.',
         logContext: 'Failed to load admin photos',
         initialData: {
             items: [],

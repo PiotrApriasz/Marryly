@@ -77,10 +77,21 @@ export interface GuestbookEntry {
     eventId: string;
     authorName: string;
     message: string;
+    mediaId?: string | null;
+    mediaKind?: 'photo' | 'video' | string | null;
+    mediaUrl?: string | null;
+    mediaThumbnailUrl?: string | null;
+    mediaContentType?: string | null;
+    mediaSizeBytes?: number | null;
+    videoMediaId?: string | null;
+    videoUrl?: string | null;
+    videoContentType?: string | null;
+    videoSizeBytes?: number | null;
     createdAt: string;
 }
 
 export interface Photo {
+    kind?: 'photo';
     id: string;
     url: string;
     thumbnailUrl: string;
@@ -89,6 +100,20 @@ export interface Photo {
     approved: boolean;
     width: number;
     height: number;
+}
+
+export interface GalleryMediaItem {
+    id: string;
+    kind: 'photo' | 'video';
+    url: string;
+    thumbnailUrl?: string | null;
+    contentType?: string | null;
+    uploadedBy?: string;
+    uploadedAt: string;
+    approved: boolean;
+    width: number;
+    height: number;
+    durationSeconds?: number | null;
 }
 
 export interface PhotosPage {
@@ -111,7 +136,7 @@ export interface GalleryAlbumsResponse {
 }
 
 export interface AlbumMediaPage {
-    items: Photo[];
+    items: GalleryMediaItem[];
     continuationToken: string | null;
     hasMore: boolean;
 }

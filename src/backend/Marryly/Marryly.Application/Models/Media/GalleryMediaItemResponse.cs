@@ -10,11 +10,17 @@ public class GalleryMediaItemResponse
     [JsonProperty("eventId")]
     public required string EventId { get; set; }
 
+    [JsonProperty("kind")]
+    public required string Kind { get; set; }
+
     [JsonProperty("url")]
     public string? Url { get; set; }
 
     [JsonProperty("thumbnailUrl")]
     public string? ThumbnailUrl { get; set; }
+
+    [JsonProperty("contentType")]
+    public string? ContentType { get; set; }
 
     [JsonProperty("uploadedAt")]
     public DateTime UploadedAt { get; set; }
