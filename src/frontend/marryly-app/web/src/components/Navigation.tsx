@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { appText } from '../content/appText';
 import Button from './Button';
 import { cn } from '../utils/cn';
 
@@ -10,12 +11,12 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-    { label: 'Menu wesela', path: '/menu' },
-    { label: 'Atrakcje', path: '/attractions' },
-    { label: 'Wydarzenia', path: '/events' },
-    { label: 'Dodaj zdjęcie/film', path: '/guestupload' },
-    { label: 'Galeria', path: '/gallery' },
-    { label: 'Księga gości', path: '/guestbook' },
+    { label: appText.navigation.items.menu, path: '/menu' },
+    { label: appText.navigation.items.attractions, path: '/attractions' },
+    { label: appText.navigation.items.events, path: '/events' },
+    { label: appText.navigation.items.upload, path: '/guestupload' },
+    { label: appText.navigation.items.gallery, path: '/gallery' },
+    { label: appText.navigation.items.guestbook, path: '/guestbook' },
 ];
 
 export default function Navigation() {
@@ -27,7 +28,7 @@ export default function Navigation() {
     const isMainPage = location.pathname === '/';
     const isAdminArea = location.pathname.startsWith('/admin');
     const showAdminSessionControls = isAdminArea && isAuthenticated && isAdmin;
-    const adminDisplayName = user?.displayName?.trim() || 'Państwo Młodzi';
+    const adminDisplayName = user?.displayName?.trim() || appText.navigation.adminDisplayNameFallback;
 
     useEffect(() => {
         const handleScroll = () => {
@@ -98,8 +99,8 @@ export default function Navigation() {
                             <Link
                                 to="/access?mode=admin"
                                 onClick={handleLinkClick}
-                                aria-label="Panel Młodej Pary"
-                                title="Panel Młodej Pary"
+                                aria-label={appText.navigation.adminPanel}
+                                title={appText.navigation.adminPanel}
                                 className={`${adminLinkClassName} ml-4`}
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -117,7 +118,7 @@ export default function Navigation() {
                                     {adminDisplayName}
                                 </span>
                                 <Button type="button" variant="secondary" size="sm" onClick={handleAdminLogout}>
-                                    Wyloguj się
+                                    {appText.navigation.logout}
                                 </Button>
                             </div>
                         )}
@@ -129,7 +130,7 @@ export default function Navigation() {
                             <button
                                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                                 className="group p-2 text-ink transition-colors duration-300 hover:text-gold"
-                                aria-label="Toggle menu"
+                                aria-label={appText.navigation.mobileMenuToggle}
                             >
                                 <div className="flex h-6 w-6 flex-col justify-center gap-1.5">
                                     <span
@@ -157,8 +158,8 @@ export default function Navigation() {
                                 <Link
                                     to="/access?mode=admin"
                                     onClick={handleLinkClick}
-                                    aria-label="Panel Młodej Pary"
-                                    title="Panel Młodej Pary"
+                                    aria-label={appText.navigation.adminPanel}
+                                    title={appText.navigation.adminPanel}
                                     className={`${adminLinkClassName} ml-1`}
                                 >
                                     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">

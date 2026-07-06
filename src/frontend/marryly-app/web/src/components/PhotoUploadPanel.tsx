@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { uploadFileToSignedUrl } from '../api/photoUploadTransport';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { preparePhotoFileForUpload } from '../media/preparePhotoFileForUpload';
 import ApiErrorAlert from './ApiErrorAlert';
@@ -181,23 +182,23 @@ function getGenericMediaNoun(count: number): string {
 
     return remainderTen >= 2 && remainderTen <= 4 && (remainderHundred < 12 || remainderHundred > 14)
         ? 'pliki'
-        : 'plików';
+        : appText.components.mediaUpload.nouns.filePlural;
 }
 
 function getKindLabel(kind: UploadMediaKind): string {
-    return kind === 'video' ? 'film' : 'zdjęcie';
+    return kind === 'video' ? appText.common.media.videoLower : appText.common.media.photoLower;
 }
 
 function getAllowedDescription(acceptedKinds: UploadMediaKind[]): string {
     if (acceptedKinds.length === 1 && acceptedKinds[0] === 'photo') {
-        return 'zdjęć';
+        return appText.components.mediaUpload.nouns.photoGenitivePlural;
     }
 
     if (acceptedKinds.length === 1 && acceptedKinds[0] === 'video') {
-        return 'filmów';
+        return appText.components.mediaUpload.nouns.videoGenitivePlural;
     }
 
-    return 'zdjęć i filmów';
+    return appText.components.mediaUpload.nouns.photoAndVideoGenitivePlural;
 }
 
 function shouldAcceptFile(file: File, acceptedKinds: UploadMediaKind[]): UploadMediaKind | null {
@@ -217,28 +218,28 @@ function getSuccessMessage(successfulItemsCount: number, failedItemsCount: numbe
     if (isPhotoOnly(acceptedKinds)) {
         if (failedItemsCount === 0) {
             return successfulItemsCount === 1
-                ? 'Zdjęcie zostało wysłane. Możesz dodać kolejne.'
-                : `Pomyślnie wysłano ${successfulItemsCount} ${getPluralForm(successfulItemsCount, 'zdjęcie', 'zdjęcia', 'zdjęć')}. Możesz dodać kolejne.`;
+                ? appText.components.mediaUpload.success.onePhoto
+                : `${appText.components.mediaUpload.success.uploadedPrefix} ${successfulItemsCount} ${getPluralForm(successfulItemsCount, appText.components.mediaUpload.nouns.photoSingular, appText.components.mediaUpload.nouns.photoPaucal, appText.components.mediaUpload.nouns.photoPlural)}. ${appText.components.mediaUpload.success.more}`;
         }
 
-        return `Pomyślnie wysłano ${successfulItemsCount} ${getPluralForm(successfulItemsCount, 'zdjęcie', 'zdjęcia', 'zdjęć')}. Sprawdź pozostałe.`;
+        return `${appText.components.mediaUpload.success.uploadedPrefix} ${successfulItemsCount} ${getPluralForm(successfulItemsCount, appText.components.mediaUpload.nouns.photoSingular, appText.components.mediaUpload.nouns.photoPaucal, appText.components.mediaUpload.nouns.photoPlural)}. ${appText.components.mediaUpload.success.checkRemaining}`;
     }
 
     if (failedItemsCount === 0) {
         return successfulItemsCount === 1
-            ? 'Plik został wysłany. Możesz dodać kolejne zdjęcia lub filmy.'
-            : `Pomyślnie wysłano ${successfulItemsCount} ${getGenericMediaNoun(successfulItemsCount)}. Możesz dodać kolejne.`;
+            ? appText.components.mediaUpload.success.oneFile
+            : `${appText.components.mediaUpload.success.uploadedPrefix} ${successfulItemsCount} ${getGenericMediaNoun(successfulItemsCount)}. ${appText.components.mediaUpload.success.more}`;
     }
 
-    return `Pomyślnie wysłano ${successfulItemsCount} ${getGenericMediaNoun(successfulItemsCount)}. Sprawdź pozostałe.`;
+    return `${appText.components.mediaUpload.success.uploadedPrefix} ${successfulItemsCount} ${getGenericMediaNoun(successfulItemsCount)}. ${appText.components.mediaUpload.success.checkRemaining}`;
 }
 
 function getFailureMessage(failedItemsCount: number, acceptedKinds: UploadMediaKind[]): string {
     if (isPhotoOnly(acceptedKinds)) {
-        return `Nie udało się wysłać ${failedItemsCount} ${getPluralForm(failedItemsCount, 'zdjęcia', 'zdjęć', 'zdjęć')}. Spróbuj ponownie.`;
+        return `${appText.components.mediaUpload.errors.uploadOne} ${failedItemsCount} ${getPluralForm(failedItemsCount, appText.components.mediaUpload.nouns.photoAccusativeSingular, appText.components.mediaUpload.nouns.photoGenitivePlural, appText.components.mediaUpload.nouns.photoGenitivePlural)}. ${appText.components.mediaUpload.errors.tryAgain}`;
     }
 
-    return `Nie udało się wysłać ${failedItemsCount} ${getGenericMediaNoun(failedItemsCount)}. Spróbuj ponownie.`;
+    return `${appText.components.mediaUpload.errors.uploadOne} ${failedItemsCount} ${getGenericMediaNoun(failedItemsCount)}. ${appText.components.mediaUpload.errors.tryAgain}`;
 }
 
 function getPluralForm(count: number, singular: string, paucal: string, plural: string): string {
@@ -259,15 +260,15 @@ function getPluralForm(count: number, singular: string, paucal: string, plural: 
 function getStatusLabel(status: UploadStatus): string {
     switch (status) {
         case 'queued':
-            return 'Gotowe do wysłania';
+            return appText.components.mediaUpload.status.queued;
         case 'preparing':
-            return 'Przygotowywanie uploadu';
+            return appText.components.mediaUpload.status.preparing;
         case 'uploading':
-            return 'Wysyłanie';
+            return appText.components.mediaUpload.status.uploading;
         case 'success':
-            return 'Wysłane';
+            return appText.components.mediaUpload.status.success;
         case 'error':
-            return 'Błąd';
+            return appText.components.mediaUpload.status.error;
         default:
             return '';
     }
@@ -334,14 +335,14 @@ function getUploadProgressSummary(items: UploadQueueItem[]): UploadProgressSumma
 
 function getOverlayTitle(summary: UploadProgressSummary): string {
     if (summary.currentItem?.status === 'preparing') {
-        return 'Przygotowujemy pliki do wysłania';
+        return appText.components.mediaUpload.overlay.preparing;
     }
 
     if (summary.currentItem?.status === 'uploading') {
-        return 'Przesyłamy media';
+        return appText.components.mediaUpload.overlay.uploading;
     }
 
-    return 'Kończymy zapis';
+    return appText.components.mediaUpload.overlay.completing;
 }
 
 function UploadProgressOverlay({ items }: { items: UploadQueueItem[] }) {
@@ -364,7 +365,7 @@ function UploadProgressOverlay({ items }: { items: UploadQueueItem[] }) {
                             {getOverlayTitle(summary)}
                         </p>
                         <p className="mt-2 text-sm leading-6 text-muted">
-                            Nie odświeżaj strony ani nie zamykaj karty. Po zakończeniu dostaniesz potwierdzenie.
+                            {appText.components.mediaUpload.overlay.description}
                         </p>
                     </div>
                     <div className="shrink-0 rounded-full bg-gold/10 px-3 py-2 font-sans text-sm font-semibold text-gold">
@@ -381,7 +382,7 @@ function UploadProgressOverlay({ items }: { items: UploadQueueItem[] }) {
                     </div>
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                         <span>
-                            {summary.completedCount} z {summary.totalCount} zakończone
+                            {summary.completedCount} z {summary.totalCount} {appText.components.mediaUpload.overlay.completedSummarySuffix}
                         </span>
                         {summary.currentItem ? (
                             <span className="max-w-full truncate">
@@ -435,9 +436,9 @@ export default function PhotoUploadPanel({
     onCreateUpload,
     onCompleteUpload,
     onAfterUpload,
-    addButtonLabel = 'Dodaj zdjęcia',
-    addButtonDescription = 'Otworzy aparat lub galerię w telefonie.',
-    successTitle = 'Zdjęcia zapisane',
+    addButtonLabel = appText.components.mediaUpload.defaults.addButtonLabel,
+    addButtonDescription = appText.components.mediaUpload.defaults.addButtonDescription,
+    successTitle = appText.components.mediaUpload.defaults.successTitle,
     acceptedKinds = ['photo', 'video'],
 }: PhotoUploadPanelProps) {
     const inputRef = useRef<HTMLInputElement | null>(null);
@@ -630,7 +631,7 @@ export default function PhotoUploadPanel({
                 ...currentItem,
                 status: 'error',
                 progress: 0,
-                errorMessage: getErrorMessageForDisplay(error, `Nie udało się wysłać ${getKindLabel(item.kind)}. Spróbuj ponownie.`),
+                errorMessage: getErrorMessageForDisplay(error, `${appText.components.mediaUpload.errors.uploadOne} ${getKindLabel(item.kind)}. ${appText.components.mediaUpload.errors.tryAgain}`),
             }));
 
             return 'error';
@@ -676,18 +677,18 @@ export default function PhotoUploadPanel({
             const kind = shouldAcceptFile(file, acceptedKinds);
 
             if (!kind) {
-                errors.push(`${file.name}: nieobsługiwany format pliku.`);
+                errors.push(`${file.name}: ${appText.components.mediaUpload.errors.unsupportedFormat}`);
                 return;
             }
 
             const maxFileSizeBytes = getMaxFileSizeBytes(kind);
             if (file.size > maxFileSizeBytes) {
-                errors.push(`${file.name}: plik jest większy niż ${formatBytes(maxFileSizeBytes)}.`);
+                errors.push(`${file.name}: ${appText.components.mediaUpload.errors.tooLarge} ${formatBytes(maxFileSizeBytes)}.`);
                 return;
             }
 
             if (currentIds.has(itemId) || nextItems.some((item) => item.id === itemId)) {
-                errors.push(`${file.name}: ten plik jest już na liście.`);
+                errors.push(`${file.name}: ${appText.components.mediaUpload.errors.duplicate}`);
                 return;
             }
 
@@ -705,7 +706,7 @@ export default function PhotoUploadPanel({
         const acceptedItems = nextItems.slice(0, availableSlots);
 
         if (nextItems.length > acceptedItems.length) {
-            errors.push(`Możesz dodać maksymalnie ${MAX_FILES_PER_BATCH} ${getAllowedDescription(acceptedKinds)} jednocześnie.`);
+            errors.push(`${appText.components.mediaUpload.errors.maxBatchPrefix} ${MAX_FILES_PER_BATCH} ${getAllowedDescription(acceptedKinds)} ${appText.components.mediaUpload.errors.maxBatchSuffix}`);
         }
 
         if (acceptedItems.length > 0) {
@@ -831,10 +832,10 @@ export default function PhotoUploadPanel({
                         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <p className="font-sans text-base font-medium text-ink">
-                                    Nie udało się wysłać części plików
+                                    {appText.components.mediaUpload.errors.partialFailureTitle}
                                 </p>
                                 <p className="mt-1 text-sm text-muted">
-                                    Możesz ponowić tylko te pozycje, które mają błąd.
+                                    {appText.components.mediaUpload.errors.partialFailureDescription}
                                 </p>
                             </div>
                         </div>
@@ -863,7 +864,7 @@ export default function PhotoUploadPanel({
                                                 </p>
                                                 <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                                                     <span className="text-muted">
-                                                        Spróbuj wysłać ponownie ten plik.
+                                                        {appText.components.mediaUpload.errors.retryFile}
                                                     </span>
                                                     {item.errorMessage ? (
                                                         <span className="text-rose-700">
@@ -882,7 +883,7 @@ export default function PhotoUploadPanel({
                                                         onClick={() => void handleRetry(item.id)}
                                                         disabled={hasActiveUpload}
                                                     >
-                                                        Ponów
+                                                        {appText.common.actions.retry}
                                                     </Button>
                                                 ) : null}
                                             </div>

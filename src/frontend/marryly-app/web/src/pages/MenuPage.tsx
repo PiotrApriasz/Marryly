@@ -3,6 +3,7 @@ import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
+import { appText } from '../content/appText';
 import { useMenu } from '../hooks/useMenu';
 import { getMenuSectionTypeLabel } from '../utils/menu';
 
@@ -36,13 +37,13 @@ export default function MenuPage() {
         <Layout>
             <div className="page-offset">
                 <Section background="white">
-                    <PageHeader title="Menu wesela" className="mb-12" />
+                    <PageHeader title={appText.public.menu.title} className="mb-12" />
 
                     <PageState
                         loading={loading}
                         error={error}
                         isEmpty={!menu || visibleBlocks.length === 0}
-                        emptyMessage="Menu weselne wkrótce zostanie opublikowane"
+                        emptyMessage={appText.public.menu.empty}
                         loadingFallback={<MenuSkeleton />}
                     >
                         <div className="menu-public-shell">

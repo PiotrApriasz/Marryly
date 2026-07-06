@@ -3,6 +3,7 @@ import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
+import { appText } from '../content/appText';
 import { useAdminOverview } from '../hooks/admin/useAdminOverview';
 import { useAdminGuests } from '../hooks/admin/useAdminGuests';
 import { Link } from 'react-router-dom';
@@ -30,13 +31,13 @@ function GuestDashboardCard({
     loading: boolean;
 }) {
     const metrics = [
-        { label: 'Razem z Parą Młodą', value: summary.attendingTotalWithCouple },
-        { label: 'Dorośli', value: summary.adultsCount },
-        { label: 'Usługodawcy', value: summary.vendorsCount },
-        { label: 'Dzieci 3-10', value: summary.children3To10Count },
-        { label: 'Dzieci do 3 lat', value: summary.childrenUnder3Count },
-        { label: 'Noclegi', value: summary.accommodationNeededCount },
-        { label: 'Transport', value: summary.transportNeededCount },
+        { label: appText.admin.dashboard.metrics.totalWithCouple, value: summary.attendingTotalWithCouple },
+        { label: appText.admin.dashboard.metrics.adults, value: summary.adultsCount },
+        { label: appText.admin.dashboard.metrics.vendors, value: summary.vendorsCount },
+        { label: appText.admin.dashboard.metrics.children3To10, value: summary.children3To10Count },
+        { label: appText.admin.dashboard.metrics.childrenUnder3, value: summary.childrenUnder3Count },
+        { label: appText.admin.dashboard.metrics.accommodation, value: summary.accommodationNeededCount },
+        { label: appText.admin.dashboard.metrics.transport, value: summary.transportNeededCount },
     ];
 
     return (
@@ -44,10 +45,10 @@ function GuestDashboardCard({
             <Card className="dashboard-guests-card">
                 <div className="dashboard-guests-card-main">
                     <div>
-                        <h3 className="font-serif text-2xl text-ink">Lista gości</h3>
+                        <h3 className="font-serif text-2xl text-ink">{appText.admin.dashboard.guestList}</h3>
                     </div>
                     <div className="text-left lg:text-right">
-                        <p className="font-sans text-sm text-muted">Potwierdziło</p>
+                        <p className="font-sans text-sm text-muted">{appText.admin.dashboard.confirmed}</p>
                         {loading ? (
                             <div className="mt-2 h-9 w-28 rounded bg-sand/70" />
                         ) : (
@@ -86,12 +87,12 @@ export default function AdminDashboardPage() {
     const { overview, loading, error } = useAdminOverview();
     const { guestList, loading: guestsLoading } = useAdminGuests();
     const dashboardItems = [
-        { title: 'Galeria', icon: '📸', count: String(overview.photosCount), path: '/admin/albums' },
-        { title: 'Pokaz slajdów', icon: '🖥️', count: 'LIVE', path: '/admin/slideshow' },
-        { title: 'Wpisy', icon: '💬', count: String(overview.wishesCount), path: '/admin/guestbook' },
-        { title: 'Menu', icon: '🍽️', count: overview.menuPublished ? '1' : '0', path: '/admin/menu' },
-        { title: 'Atrakcje', icon: '🎉', count: String(overview.attractionsCount), path: null },
-        { title: 'Ustawienia', icon: '⚙️', count: String(overview.settingsCount), path: null },
+        { title: appText.admin.dashboard.cards.gallery, icon: '📸', count: String(overview.photosCount), path: '/admin/albums' },
+        { title: appText.admin.dashboard.cards.slideshow, icon: '🖥️', count: appText.admin.dashboard.cards.live, path: '/admin/slideshow' },
+        { title: appText.admin.dashboard.cards.wishes, icon: '💬', count: String(overview.wishesCount), path: '/admin/guestbook' },
+        { title: appText.admin.dashboard.cards.menu, icon: '🍽️', count: overview.menuPublished ? '1' : '0', path: '/admin/menu' },
+        { title: appText.admin.dashboard.cards.attractions, icon: '🎉', count: String(overview.attractionsCount), path: null },
+        { title: appText.admin.dashboard.cards.settings, icon: '⚙️', count: String(overview.settingsCount), path: null },
     ];
 
     return (
@@ -99,8 +100,8 @@ export default function AdminDashboardPage() {
             <div className="page-offset">
                 <Section background="white">
                     <PageHeader
-                        title="Panel Młodej Pary"
-                        helpText="Zarządzanie treścią, gośćmi i ustawieniami wesela."
+                        title={appText.admin.common.dashboardTitle}
+                        helpText={appText.admin.dashboard.helpText}
                     />
 
                     <PageState

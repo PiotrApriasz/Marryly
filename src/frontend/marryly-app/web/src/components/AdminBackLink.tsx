@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { appText } from '../content/appText';
 import { cn } from '../utils/cn';
 
 interface AdminBackLinkProps {
@@ -10,8 +11,8 @@ interface AdminBackLinkProps {
 
 export default function AdminBackLink({
     to = '/admin/dashboard',
-    label = 'Powrót do panelu',
-    shortLabel = 'Panel',
+    label = appText.components.adminBackLink.label,
+    shortLabel = appText.components.adminBackLink.shortLabel,
     className,
 }: AdminBackLinkProps) {
     return (

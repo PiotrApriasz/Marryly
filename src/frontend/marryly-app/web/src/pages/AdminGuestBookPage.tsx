@@ -6,6 +6,7 @@ import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
+import { appText } from '../content/appText';
 import { useAdminGuestBookEntries } from '../hooks/admin/useAdminGuestBookEntries';
 
 const PAGE_SIZE = 10;
@@ -30,7 +31,7 @@ function formatDate(isoDate: string): string {
         return '';
     }
 
-    return date.toLocaleString('pl-PL', {
+    return date.toLocaleString(appText.common.locale, {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -57,7 +58,7 @@ function GuestBookEntryMedia({ entry }: { entry: { mediaKind?: string | null; me
             >
                 <img
                     src={entry.mediaThumbnailUrl ?? mediaUrl}
-                    alt="Załączone zdjęcie"
+                    alt={appText.admin.guestbook.photoAlt}
                     className="max-h-[32rem] w-full object-contain"
                     loading="lazy"
                 />
@@ -79,7 +80,7 @@ function GuestBookEntryMedia({ entry }: { entry: { mediaKind?: string | null; me
                     rel="noreferrer"
                     className="text-white underline"
                 >
-                    Otwórz/pobierz film
+                    {appText.common.media.openOrDownloadVideo}
                 </a>
             </video>
             <div className="bg-ink px-4 pb-4">
@@ -89,7 +90,7 @@ function GuestBookEntryMedia({ entry }: { entry: { mediaKind?: string | null; me
                     rel="noreferrer"
                     className="text-sm font-medium text-white underline"
                 >
-                    Otwórz/pobierz film
+                    {appText.common.media.openOrDownloadVideo}
                 </a>
             </div>
         </div>
@@ -107,21 +108,21 @@ export default function AdminGuestBookPage() {
                 <Section background="white">
                     <AdminBackLink />
                     <PageHeader
-                        title="Życzenia Gości"
-                        helpText="Wszystkie wiadomości dodane przez gości."
+                        title={appText.admin.guestbook.title}
+                        helpText={appText.admin.guestbook.helpText}
                     />
 
                     <PageState
                         loading={loading}
                         error={error}
                         isEmpty={entries.length === 0}
-                        emptyMessage="Brak życzeń od gości."
+                        emptyMessage={appText.admin.guestbook.empty}
                         loadingFallback={<GuestBookEntriesSkeleton />}
                     >
                         <div className="mx-auto mt-12 max-w-4xl">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <p className="font-sans text-sm text-muted">
-                                    Strona {currentPage} z {totalPages} • {totalCount} wpisów łącznie
+                                    {appText.admin.common.pageSummary} {currentPage} z {totalPages} • {totalCount} {appText.admin.guestbook.totalSuffix}
                                 </p>
                             </div>
 

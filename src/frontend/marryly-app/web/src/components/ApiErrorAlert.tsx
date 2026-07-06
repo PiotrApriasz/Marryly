@@ -1,3 +1,4 @@
+import { appText } from '../content/appText';
 import Notice from './Notice';
 
 interface ApiErrorAlertProps {
@@ -12,7 +13,7 @@ export default function ApiErrorAlert({ message }: ApiErrorAlertProps) {
                     {message}
                 </p>
                 <p className="mt-4 text-sm text-rose-600">
-                    Spróbuj odświeżyć stronę
+                    {appText.components.apiErrorAlert.refresh}
                 </p>
             </Notice>
         </div>

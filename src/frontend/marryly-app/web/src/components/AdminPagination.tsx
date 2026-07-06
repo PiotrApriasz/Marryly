@@ -1,3 +1,4 @@
+import { appText } from '../content/appText';
 import Button from './Button';
 
 interface AdminPaginationProps {
@@ -24,7 +25,7 @@ export default function AdminPagination({
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
             >
-                Poprzednia
+                {appText.common.pagination.previous}
             </Button>
             {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                 <Button
@@ -44,7 +45,7 @@ export default function AdminPagination({
                 onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
             >
-                Następna
+                {appText.common.pagination.next}
             </Button>
         </div>
     );

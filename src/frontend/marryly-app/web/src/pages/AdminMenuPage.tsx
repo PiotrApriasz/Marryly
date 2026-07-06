@@ -12,6 +12,7 @@ import PageState from '../components/PageState';
 import Section from '../components/Section';
 import Select from '../components/Select';
 import Textarea from '../components/Textarea';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { invalidateAdminCache } from '../hooks/admin/useAdminApiResource';
 import { useAdminMenu } from '../hooks/admin/useAdminMenu';
@@ -237,14 +238,14 @@ export default function AdminMenuPage() {
             const savedMenu = await adminClient.saveMenu(payload);
             setDraft(createDraftFromMenu(savedMenu));
             setIsDirty(false);
-            setSaveMessage('Menu zapisane. Zmiany są już widoczne na stronie dla gości.');
+            setSaveMessage(appText.admin.menu.saved);
             lastHydratedSignatureRef.current = JSON.stringify(savedMenu);
             invalidateAdminCache('menu');
             invalidateAdminCache('overview');
             invalidateMenuCache();
             reload();
         } catch (saveErr) {
-            setSaveError(getErrorMessageForDisplay(saveErr, 'Nie udało się zapisać menu.'));
+            setSaveError(getErrorMessageForDisplay(saveErr, appText.admin.menu.saveFailed));
             logErrorDetails(saveErr, 'Failed to save wedding menu');
         } finally {
             setIsSaving(false);
@@ -257,8 +258,8 @@ export default function AdminMenuPage() {
             <div className="page-offset">
                 <Section background="white">
                     <PageHeader
-                        title="Menu wesela"
-                        helpText="Każdy blok menu może mieć własne rodzaje posiłku, np. główne menu, słodki stół albo napoje."
+                        title={appText.public.menu.title}
+                        helpText={appText.admin.menu.helpText}
                         className="mb-10"
                     />
 
@@ -274,18 +275,18 @@ export default function AdminMenuPage() {
                                     <div className="menu-editor-summary">
                                         <span className="menu-editor-summary-item">
                                             <strong>{blockCount}</strong>
-                                            bloków
+                                            {appText.admin.menu.summaryBlocks}
                                         </span>
                                         <span className="menu-editor-summary-item">
                                             <strong>{sectionCount}</strong>
-                                            rodzajów
+                                            {appText.admin.menu.summarySections}
                                         </span>
                                         <span className="menu-editor-summary-item">
                                             <strong>{itemCount}</strong>
-                                            dań
+                                            {appText.admin.menu.summaryItems}
                                         </span>
                                         <span className="menu-editor-summary-item">
-                                            <strong>{isDirty ? 'Robocze zmiany' : 'Zapisane'}</strong>
+                                            <strong>{isDirty ? appText.admin.menu.dirty : appText.admin.menu.clean}</strong>
                                         </span>
                                     </div>
                                 </div>
@@ -298,10 +299,10 @@ export default function AdminMenuPage() {
                                             blocks: [...current.blocks, createEmptyBlock()],
                                         }))}
                                     >
-                                        Dodaj blok menu
+                                        {appText.admin.menu.addBlock}
                                     </Button>
                                     <Button size="sm" onClick={handleSave} loading={isSaving}>
-                                        Zapisz menu
+                                        {appText.admin.menu.save}
                                     </Button>
                                 </div>
                             </div>
@@ -309,7 +310,7 @@ export default function AdminMenuPage() {
                             {saveError && <ApiErrorAlert message={saveError} />}
                             {saveMessage && (
                                 <div className="notice border-emerald-200 bg-emerald-50 text-emerald-700">
-                                    <p className="notice-title">Zapisano</p>
+                                    <p className="notice-title">{appText.admin.menu.savedTitle}</p>
                                     <p className="notice-body">{saveMessage}</p>
                                 </div>
                             )}
@@ -320,20 +321,20 @@ export default function AdminMenuPage() {
                                         <div className="menu-section-card-header">
                                             <div>
                                                 <h3 className="font-serif text-3xl text-ink">
-                                                    {block.title.trim() || 'Nowy blok menu'}
+                                                    {block.title.trim() || appText.admin.menu.newBlock}
                                                 </h3>
                                             </div>
                                             <div className="menu-section-card-actions">
                                                 <IconButton
                                                     type="button"
-                                                    label="Przesuń blok wyżej"
+                                                    label={appText.admin.menu.moveBlockUp}
                                                     icon="↑"
                                                     onClick={() => moveBlock(block.id, -1)}
                                                     disabled={blockIndex === 0}
                                                 />
                                                 <IconButton
                                                     type="button"
-                                                    label="Przesuń blok niżej"
+                                                    label={appText.admin.menu.moveBlockDown}
                                                     icon="↓"
                                                     onClick={() => moveBlock(block.id, 1)}
                                                     disabled={blockIndex === draft.blocks.length - 1}
@@ -347,13 +348,13 @@ export default function AdminMenuPage() {
                                                         blocks: current.blocks.filter((item) => item.id !== block.id),
                                                     }))}
                                                 >
-                                                    Usuń blok
+                                                    {appText.admin.menu.deleteBlock}
                                                 </Button>
                                             </div>
                                         </div>
 
                                         <div className="grid gap-4 md:max-w-xl">
-                                            <Field label="Nazwa bloku menu" htmlFor={`block-title-${block.id}`} labelTone="strong">
+                                            <Field label={appText.admin.menu.blockName} htmlFor={`block-title-${block.id}`} labelTone="strong">
                                                 <Input
                                                     id={`block-title-${block.id}`}
                                                     value={block.title}
@@ -382,14 +383,14 @@ export default function AdminMenuPage() {
                                                         <div className="menu-section-card-actions">
                                                             <IconButton
                                                                 type="button"
-                                                                label="Przesuń rodzaj wyżej"
+                                                                label={appText.admin.menu.moveSectionUp}
                                                                 icon="↑"
                                                                 onClick={() => moveSection(block.id, section.id, -1)}
                                                                 disabled={sectionIndex === 0}
                                                             />
                                                             <IconButton
                                                                 type="button"
-                                                                label="Przesuń rodzaj niżej"
+                                                                label={appText.admin.menu.moveSectionDown}
                                                                 icon="↓"
                                                                 onClick={() => moveSection(block.id, section.id, 1)}
                                                                 disabled={sectionIndex === block.sections.length - 1}
@@ -410,13 +411,13 @@ export default function AdminMenuPage() {
                                                                     )),
                                                                 }))}
                                                             >
-                                                                Usuń rodzaj
+                                                                {appText.admin.menu.deleteSection}
                                                             </Button>
                                                         </div>
                                                     </div>
 
                                                     <div className="grid gap-4 md:max-w-sm">
-                                                        <Field label="Rodzaj posiłku" htmlFor={`section-type-${section.id}`} labelTone="strong">
+                                                        <Field label={appText.admin.menu.mealType} htmlFor={`section-type-${section.id}`} labelTone="strong">
                                                             <Select
                                                                 id={`section-type-${section.id}`}
                                                                 value={section.sectionType}
@@ -453,19 +454,19 @@ export default function AdminMenuPage() {
                                                             <div key={item.id} className="rounded-2xl border border-sand bg-white p-4">
                                                                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                                                                     <div className="font-sans text-sm font-medium text-muted">
-                                                                        Danie {itemIndex + 1}
+                                                                        {appText.admin.menu.itemLabel} {itemIndex + 1}
                                                                     </div>
                                                                     <div className="flex flex-wrap items-center gap-2">
                                                                         <IconButton
                                                                             type="button"
-                                                                            label="Przesuń danie wyżej"
+                                                                            label={appText.admin.menu.moveItemUp}
                                                                             icon="↑"
                                                                             onClick={() => moveItem(block.id, section.id, item.id, -1)}
                                                                             disabled={itemIndex === 0}
                                                                         />
                                                                         <IconButton
                                                                             type="button"
-                                                                            label="Przesuń danie niżej"
+                                                                            label={appText.admin.menu.moveItemDown}
                                                                             icon="↓"
                                                                             onClick={() => moveItem(block.id, section.id, item.id, 1)}
                                                                             disabled={itemIndex === section.items.length - 1}
@@ -493,13 +494,13 @@ export default function AdminMenuPage() {
                                                                                 )),
                                                                             }))}
                                                                         >
-                                                                            Usuń
+                                                                            {appText.common.actions.delete}
                                                                         </Button>
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="grid gap-4">
-                                                                    <Field label="Nazwa dania" htmlFor={`item-name-${item.id}`} labelTone="strong">
+                                                                    <Field label={appText.admin.menu.itemName} htmlFor={`item-name-${item.id}`} labelTone="strong">
                                                                         <Input
                                                                             id={`item-name-${item.id}`}
                                                                             value={item.name}
@@ -525,11 +526,11 @@ export default function AdminMenuPage() {
                                                                                         : currentBlock
                                                                                 )),
                                                                             }))}
-                                                                            placeholder="Np. Rosół królewski"
+                                                                            placeholder={appText.admin.menu.itemPlaceholder}
                                                                         />
                                                                     </Field>
 
-                                                                    <Field label="Opis" htmlFor={`item-description-${item.id}`}>
+                                                                    <Field label={appText.admin.menu.itemDescription} htmlFor={`item-description-${item.id}`}>
                                                                         <Textarea
                                                                             id={`item-description-${item.id}`}
                                                                             rows={3}
@@ -556,7 +557,7 @@ export default function AdminMenuPage() {
                                                                                         : currentBlock
                                                                                 )),
                                                                             }))}
-                                                                            placeholder="Opcjonalny opis z karty menu lub sali."
+                                                                            placeholder={appText.admin.menu.itemDescriptionPlaceholder}
                                                                         />
                                                                     </Field>
                                                                 </div>
@@ -585,7 +586,7 @@ export default function AdminMenuPage() {
                                                                 )),
                                                             }))}
                                                         >
-                                                            Dodaj danie
+                                                            {appText.admin.menu.addItem}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -606,7 +607,7 @@ export default function AdminMenuPage() {
                                                     )),
                                                 }))}
                                             >
-                                                Dodaj rodzaj posiłku
+                                                {appText.admin.menu.addSection}
                                             </Button>
                                         </div>
                                     </div>
@@ -615,9 +616,9 @@ export default function AdminMenuPage() {
 
                             {draft.blocks.length === 0 && (
                                 <div className="menu-block-card mt-6 text-center">
-                                    <h3 className="font-serif text-2xl text-ink">Brak bloków menu</h3>
+                                    <h3 className="font-serif text-2xl text-ink">{appText.admin.menu.emptyBlocksTitle}</h3>
                                     <p className="mt-3 font-sans text-sm leading-7 text-muted">
-                                        Zacznij od dodania pierwszego bloku, np. głównego menu, słodkiego stołu albo napojów.
+                                        {appText.admin.menu.emptyBlocksDescription}
                                     </p>
                                     <Button
                                         className="mt-6"
@@ -627,7 +628,7 @@ export default function AdminMenuPage() {
                                             blocks: [createEmptyBlock()],
                                         }))}
                                     >
-                                        Dodaj pierwszy blok
+                                        {appText.admin.menu.addFirstBlock}
                                     </Button>
                                 </div>
                             )}
@@ -635,7 +636,7 @@ export default function AdminMenuPage() {
                             {draft.blocks.length > 0 && (
                                 <div className="mt-6 flex justify-end">
                                     <Button onClick={handleSave} loading={isSaving}>
-                                        Zapisz menu
+                                        {appText.admin.menu.save}
                                     </Button>
                                 </div>
                             )}

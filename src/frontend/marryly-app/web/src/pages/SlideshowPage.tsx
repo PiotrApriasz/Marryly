@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react';
 import { adminClient } from '../api/adminClient';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import type { AdminSlideshowPhoto, AdminSlideshowSettings } from '../types/admin.types';
 
@@ -192,7 +193,7 @@ export default function SlideshowPage() {
             setBackgroundError(null);
         } catch (error: unknown) {
             if (!currentPhotoIdRef.current) {
-                setBackgroundError(getErrorMessageForDisplay(error, 'Nie udało się odświeżyć kolejki zdjęć.'));
+                setBackgroundError(getErrorMessageForDisplay(error, appText.public.slideshow.refreshFailed));
             }
             logErrorDetails(error, 'Failed to refresh slideshow photos');
         }
@@ -247,7 +248,7 @@ export default function SlideshowPage() {
                 setBackgroundError(null);
             } catch (error: unknown) {
                 if (!cancelled) {
-                    setInitialError(getErrorMessageForDisplay(error, 'Nie udało się uruchomić pokazu slajdów.'));
+                    setInitialError(getErrorMessageForDisplay(error, appText.public.slideshow.startFailed));
                     logErrorDetails(error, 'Failed to load slideshow');
                 }
             } finally {
@@ -290,8 +291,8 @@ export default function SlideshowPage() {
         return (
             <div className="fixed inset-0 flex cursor-none items-center justify-center bg-neutral-950">
                 <PlayerMessage
-                    title="Uruchamianie pokazu"
-                    description="Przygotowuję zdjęcia i konfigurację pełnoekranowego odtwarzania."
+                    title={appText.public.slideshow.loadingTitle}
+                    description={appText.public.slideshow.loadingDescription}
                 />
             </div>
         );
@@ -301,7 +302,7 @@ export default function SlideshowPage() {
         return (
             <div className="fixed inset-0 flex cursor-none items-center justify-center bg-neutral-950">
                 <PlayerMessage
-                    title="Pokaz chwilowo niedostępny"
+                    title={appText.public.slideshow.unavailableTitle}
                     description={initialError}
                 />
             </div>
@@ -312,8 +313,8 @@ export default function SlideshowPage() {
         return (
             <div className="fixed inset-0 flex cursor-none items-center justify-center bg-neutral-950">
                 <PlayerMessage
-                    title="Czekam na zdjęcia"
-                    description={backgroundError ?? 'Gdy w wybranym albumie pojawią się gotowe zdjęcia, pokaz wystartuje automatycznie.'}
+                    title={appText.public.slideshow.waitingTitle}
+                    description={backgroundError ?? appText.public.slideshow.waitingDescription}
                 />
             </div>
         );

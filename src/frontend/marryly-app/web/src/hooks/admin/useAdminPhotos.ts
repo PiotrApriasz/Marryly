@@ -1,5 +1,6 @@
 import type { AdminPhotosPage } from '../../types/admin.types';
 import { adminClient } from '../../api/adminClient';
+import { appText } from '../../content/appText';
 import { useAdminApiResource } from './useAdminApiResource';
 
 interface UseAdminPhotosResult {
@@ -13,7 +14,7 @@ export function useAdminPhotos(page: number, pageSize: number): UseAdminPhotosRe
     const { data, loading, error, reload } = useAdminApiResource<AdminPhotosPage>({
         cacheKey: `photos_${page}_${pageSize}`,
         fetcher: () => adminClient.getPhotos(page, pageSize),
-        fallbackErrorMessage: 'Nie udało się pobrać mediów.',
+        fallbackErrorMessage: appText.errors.fallback.adminMedia,
         logContext: 'Failed to load admin photos',
         initialData: {
             items: [],

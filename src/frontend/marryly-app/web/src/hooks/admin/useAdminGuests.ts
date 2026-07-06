@@ -1,4 +1,5 @@
 import { adminClient } from '../../api/adminClient';
+import { appText } from '../../content/appText';
 import type { AdminGuestListResponse } from '../../types/admin.types';
 import { useAdminApiResource } from './useAdminApiResource';
 
@@ -30,7 +31,7 @@ export function useAdminGuests(): UseAdminGuestsResult {
     const { data, loading, error, reload } = useAdminApiResource<AdminGuestListResponse>({
         cacheKey: 'guests',
         fetcher: () => adminClient.getGuests(),
-        fallbackErrorMessage: 'Nie udało się pobrać listy gości.',
+        fallbackErrorMessage: appText.errors.fallback.adminGuests,
         logContext: 'Failed to load admin guests',
         initialData: EMPTY_GUEST_LIST,
     });

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from '../api/client';
 import { config } from '../app/config';
+import { appText } from '../content/appText';
 import type { Photo } from '../types/wedding.types';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { getMockPhotosPage } from '../mocks/photos';
@@ -56,7 +57,7 @@ export function useInfinitePhotos({
             setContinuationToken(page.continuationToken);
             setHasMore(page.hasMore);
         } catch (err) {
-            setError(getErrorMessageForDisplay(err, 'Nie udało się pobrać zdjęć.'));
+            setError(getErrorMessageForDisplay(err, appText.errors.fallback.photos));
             logErrorDetails(err, 'Failed to load photos');
         } finally {
             requestInFlightRef.current = false;

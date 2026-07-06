@@ -1,4 +1,5 @@
 import { adminClient } from '../../api/adminClient';
+import { appText } from '../../content/appText';
 import type { AdminMenu } from '../../types/admin.types';
 import { useAdminApiResource } from './useAdminApiResource';
 
@@ -6,7 +7,7 @@ const EMPTY_MENU: AdminMenu = {
     id: 'draft-menu',
     eventId: '',
     type: 'menu',
-    title: 'Menu weselne',
+    title: appText.public.menu.title,
     blocks: [],
 };
 
@@ -21,7 +22,7 @@ export function useAdminMenu(): UseAdminMenuResult {
     const { data, loading, error, reload } = useAdminApiResource<AdminMenu>({
         cacheKey: 'menu',
         fetcher: () => adminClient.getMenu(),
-        fallbackErrorMessage: 'Nie udało się pobrać menu.',
+        fallbackErrorMessage: appText.errors.fallback.menu,
         logContext: 'Failed to load admin menu',
         initialData: EMPTY_MENU,
     });

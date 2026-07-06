@@ -9,6 +9,7 @@ import Layout from '../components/Layout';
 import LoadingState from '../components/LoadingState';
 import Notice from '../components/Notice';
 import PageHeader from '../components/PageHeader';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay } from '../errors/apiError';
 import type { AccessRole } from '../types/auth.types';
 
@@ -98,7 +99,7 @@ export default function AccessPage() {
 
     const bannerMessage = useMemo(() => {
         if (locationState?.reason === 'admin-required') {
-            return 'Ta sekcja wymaga dostępu administratora. Zaloguj się poniżej jako admin.';
+            return appText.public.access.adminRequired;
         }
 
         return authErrorMessage;
@@ -134,7 +135,7 @@ export default function AccessPage() {
                 navigate(getRedirectPath('guest', requestedPath), { replace: true });
             })
             .catch((error: unknown) => {
-                setGuestError(getErrorMessageForDisplay(error, 'Nie udało się użyć kodu dostępu.'));
+                setGuestError(getErrorMessageForDisplay(error, appText.public.access.errors.useCode));
             })
             .finally(() => {
                 setGuestLoading(false);
@@ -150,7 +151,7 @@ export default function AccessPage() {
             await loginWithAccessCode(accessCode.trim());
             navigate(getRedirectPath('guest', requestedPath), { replace: true });
         } catch (error: unknown) {
-            setGuestError(getErrorMessageForDisplay(error, 'Nie udało się zalogować kodem dostępu.'));
+            setGuestError(getErrorMessageForDisplay(error, appText.public.access.errors.guestLogin));
         } finally {
             setGuestLoading(false);
         }
@@ -165,7 +166,7 @@ export default function AccessPage() {
             await loginAsAdmin(adminEmail.trim(), adminPassword);
             navigate(getRedirectPath('admin', requestedPath), { replace: true });
         } catch (error: unknown) {
-            setAdminError(getErrorMessageForDisplay(error, 'Nie udało się zalogować do panelu.'));
+            setAdminError(getErrorMessageForDisplay(error, appText.public.access.errors.adminLogin));
         } finally {
             setAdminLoading(false);
         }
@@ -188,9 +189,9 @@ export default function AccessPage() {
     };
 
     const accessDescription = queryAccessCode
-        ? 'Trwa sprawdzanie kodu dostępu z kodu QR.'
-        : 'Aby uzyskać dostęp do aplikacji, wpisz kod dostępu lub zeskanuj kod QR dostępny na sali.';
-    const adminDescription = 'Zaloguj się jako admin.';
+        ? appText.public.access.qrChecking
+        : appText.public.access.guestDescription;
+    const adminDescription = appText.public.access.adminDescription;
     const isQrAutoAccess = Boolean(queryAccessCode && queryRedirectTo);
 
     if (isQrAutoAccess && !guestError) {
@@ -212,20 +213,20 @@ export default function AccessPage() {
                     {adminModeRequested && isAuthenticated && !isAdmin ? (
                         <Notice tone="info" className="mb-5 px-5 py-4 text-left shadow-[0_12px_30px_rgba(160,120,86,0.12)]">
                             <p className="font-sans text-sm leading-6">
-                                Jesteś zalogowany jako gość. Aby wejść do panelu, użyj danych administratora.
+                                {appText.public.access.guestLoggedInForAdmin}
                             </p>
                         </Notice>
                     ) : null}
 
                     {isAdminFormVisible ? (
                         <AccessShell
-                            title="Młoda Para"
+                            title={appText.public.access.adminTitle}
                             description={adminDescription}
                         >
                             <form className="space-y-5" onSubmit={handleAdminSubmit}>
                                 {adminError ? <ApiErrorAlert message={adminError} /> : null}
 
-                                <Field label="Email" htmlFor="adminEmail">
+                                <Field label={appText.public.access.fields.email} htmlFor="adminEmail">
                                     <Input
                                         type="email"
                                         id="adminEmail"
@@ -234,11 +235,11 @@ export default function AccessPage() {
                                         surface="muted"
                                         autoComplete="username"
                                         required
-                                        placeholder="admin@marryly.pl"
+                                        placeholder={appText.public.access.placeholders.adminEmail}
                                     />
                                 </Field>
 
-                                <Field label="Hasło" htmlFor="adminPassword">
+                                <Field label={appText.public.access.fields.password} htmlFor="adminPassword">
                                     <Input
                                         type="password"
                                         id="adminPassword"
@@ -260,7 +261,7 @@ export default function AccessPage() {
                                         loading={adminLoading}
                                         disabled={isChecking}
                                     >
-                                        Przejdź do panelu admina
+                                        {appText.public.access.actions.goToAdmin}
                                     </Button>
                                     <Button
                                         type="button"
@@ -269,20 +270,20 @@ export default function AccessPage() {
                                         className="flex-1"
                                         onClick={handleToggleAdminForm}
                                     >
-                                        Wróć do logowania jako gość
+                                        {appText.public.access.actions.backToGuestLogin}
                                     </Button>
                                 </div>
                             </form>
                         </AccessShell>
                     ) : (
                         <AccessShell
-                            title="Wymagany dostęp"
+                            title={appText.public.access.guestTitle}
                             description={accessDescription}
                         >
                             <form className="space-y-5" onSubmit={handleGuestSubmit}>
                                 {guestError ? <ApiErrorAlert message={guestError} /> : null}
 
-                                <Field label="Kod dostępu" htmlFor="accessCode">
+                                <Field label={appText.public.access.fields.accessCode} htmlFor="accessCode">
                                     <Input
                                         type="text"
                                         id="accessCode"
@@ -291,7 +292,7 @@ export default function AccessPage() {
                                         surface="muted"
                                         autoComplete="one-time-code"
                                         required
-                                        placeholder="Wpisz kod dostępu"
+                                        placeholder={appText.public.access.placeholders.accessCode}
                                     />
                                 </Field>
 
@@ -304,10 +305,10 @@ export default function AccessPage() {
                                         loading={guestLoading}
                                         disabled={isChecking}
                                     >
-                                        Wejdź do aplikacji
+                                        {appText.public.access.actions.enterApp}
                                     </Button>
                                     <span className="text-center font-sans text-sm uppercase tracking-[0.28em] text-muted">
-                                        lub
+                                        {appText.public.access.actions.or}
                                     </span>
                                     <Button
                                         type="button"
@@ -317,7 +318,7 @@ export default function AccessPage() {
                                         onClick={handleToggleAdminForm}
                                         disabled={isChecking}
                                     >
-                                        Zaloguj się jako admin
+                                        {appText.public.access.actions.loginAsAdmin}
                                     </Button>
                                 </div>
                             </form>

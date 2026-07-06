@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { authApiClient } from '../api/authApiClient';
 import { subscribeToAuthFailures } from '../api/authEvents';
 import { clearAccessSession, clearAppSessionCache, hasValidAccessToken, readAccessUser, writeAccessUser } from '../api/accessTokenStorage';
+import { appText } from '../content/appText';
 import { ApiError } from '../errors/apiError';
 import type { AccessRole, AccessUser } from '../types/auth.types';
 
@@ -108,12 +109,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     useEffect(() => {
         return subscribeToAuthFailures((detail) => {
             if (detail.reason === 'unauthorized') {
-                setAuthErrorMessage(detail.detail || detail.message || 'Sesja wygasła. Zaloguj się ponownie.');
+                setAuthErrorMessage(detail.detail || detail.message || appText.errors.auth.sessionExpired);
                 clearSessionState();
                 return;
             }
 
-            setAuthErrorMessage(detail.detail || detail.message || 'Brak dostępu do tej sekcji.');
+            setAuthErrorMessage(detail.detail || detail.message || appText.errors.auth.accessDenied);
         });
     }, [clearSessionState]);
 
@@ -126,7 +127,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             return;
         }
 
-        throw new Error('Logowanie kodem zwróciło niepełną odpowiedź.');
+        throw new Error(appText.errors.auth.incompleteGuestLogin);
     }, [applyAuthenticatedUser]);
 
     const loginAsAdmin = useCallback(async (email: string, password: string) => {
@@ -138,7 +139,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             return;
         }
 
-        throw new Error('Logowanie admina zwróciło niepełną odpowiedź.');
+        throw new Error(appText.errors.auth.incompleteAdminLogin);
     }, [applyAuthenticatedUser]);
 
     const logout = useCallback(async () => {

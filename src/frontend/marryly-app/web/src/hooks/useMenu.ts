@@ -1,4 +1,5 @@
 import { apiClient } from '../api/client';
+import { appText } from '../content/appText';
 import { ApiError } from '../errors/apiError';
 import type { Menu } from '../types/wedding.types';
 import { invalidateCachedApiResource, useCachedApiResource } from './useCachedApiResource.ts';
@@ -29,7 +30,7 @@ export function useMenu(): UseMenuResult {
                 throw error;
             }
         },
-        fallbackErrorMessage: 'Nie udało się pobrać menu.',
+        fallbackErrorMessage: appText.errors.fallback.menu,
         logContext: 'Failed to load menu',
         initialData: null,
     });

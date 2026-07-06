@@ -1,5 +1,6 @@
 import { ApiError } from '../../errors/apiError';
 import { adminClient } from '../../api/adminClient';
+import { appText } from '../../content/appText';
 import type { AdminOverview } from '../../types/admin.types';
 import { useAdminApiResource } from './useAdminApiResource';
 
@@ -33,7 +34,7 @@ export function useAdminOverview(): UseAdminOverviewResult {
                 throw err;
             }
         },
-        fallbackErrorMessage: 'Nie udało się pobrać danych panelu.',
+        fallbackErrorMessage: appText.errors.fallback.adminOverview,
         logContext: 'Failed to load admin overview',
         initialData: FALLBACK_OVERVIEW,
     });

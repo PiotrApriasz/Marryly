@@ -11,6 +11,7 @@ import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import StatusBadge from '../components/StatusBadge';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { useAdminPhotos } from '../hooks/admin/useAdminPhotos';
 import { invalidateAdminCache, invalidateAdminCacheByPrefix } from '../hooks/admin/useAdminApiResource';
@@ -41,7 +42,7 @@ function formatDate(isoDate: string): string {
         return '';
     }
 
-    return date.toLocaleString('pl-PL', {
+    return date.toLocaleString(appText.common.locale, {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -65,11 +66,11 @@ function formatBytes(size: number): string {
 function getStatusMetadata(status: string): { label: string; tone: 'success' | 'warning' | 'danger' | 'neutral' } {
     switch (status) {
         case 'ready':
-            return { label: 'Gotowe', tone: 'success' };
+            return { label: appText.common.status.ready, tone: 'success' };
         case 'processing':
-            return { label: 'Przetwarzanie', tone: 'warning' };
+            return { label: appText.common.status.processing, tone: 'warning' };
         case 'failed':
-            return { label: 'Błąd', tone: 'danger' };
+            return { label: appText.common.status.failed, tone: 'danger' };
         default:
             return { label: status, tone: 'neutral' };
     }
@@ -89,7 +90,7 @@ export default function AdminPhotosPage() {
     }, [currentPage, page]);
 
     const summaryLabel = useMemo(() => {
-        return `Strona ${page} z ${totalPages} • ${totalCount} mediów łącznie`;
+        return `${appText.admin.common.pageSummary} ${page} z ${totalPages} • ${totalCount} ${appText.admin.media.totalSuffix}`;
     }, [page, totalCount, totalPages]);
 
     const handleDelete = async (photoId: string) => {
@@ -110,7 +111,7 @@ export default function AdminPhotosPage() {
                 reload();
             }
         } catch (err: unknown) {
-            setDeleteError(getErrorMessageForDisplay(err, 'Nie udało się usunąć medium.'));
+            setDeleteError(getErrorMessageForDisplay(err, appText.admin.media.deleteFailed));
             logErrorDetails(err, 'Failed to delete media');
         } finally {
             setDeletingPhotoId(null);
@@ -123,8 +124,8 @@ export default function AdminPhotosPage() {
                 <Section background="white">
                     <AdminBackLink />
                     <PageHeader
-                        title="Media Gości"
-                        helpText="Wszystkie zdjęcia i filmy zapisane dla wydarzenia, także te w trakcie przetwarzania lub z błędem."
+                        title={appText.admin.media.title}
+                        helpText={appText.admin.media.helpText}
                     />
 
                     {deleteError ? (
@@ -137,7 +138,7 @@ export default function AdminPhotosPage() {
                         loading={loading}
                         error={error}
                         isEmpty={items.length === 0}
-                        emptyMessage="Brak mediów do wyświetlenia."
+                        emptyMessage={appText.admin.media.empty}
                         loadingFallback={<PhotosSkeleton />}
                     >
                         <div className="mt-12">
@@ -168,7 +169,7 @@ export default function AdminPhotosPage() {
                                                     ) : (
                                                         <img
                                                             src={previewUrl}
-                                                            alt="Miniatura zdjęcia gościa"
+                                                            alt={appText.admin.common.photoThumbnailAlt}
                                                             loading="lazy"
                                                             className="h-full w-full object-cover"
                                                         />
@@ -178,17 +179,17 @@ export default function AdminPhotosPage() {
                                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                                         <StatusBadge label={status.label} tone={status.tone} />
                                                         <span className="font-sans text-xs text-muted">
-                                                            {photo.approved ? 'Widoczne dla gości' : 'Ukryte'}
+                                                            {photo.approved ? appText.common.status.visibleForGuests : appText.common.status.hidden}
                                                         </span>
                                                     </div>
 
                                                     <div className="space-y-2 text-sm text-muted">
-                                                        <p>Dodano: {formatDate(photo.uploadedAt)}</p>
-                                                        <p>Rozmiar: {formatBytes(photo.sizeBytes)}</p>
-                                                        <p>Rodzaj: {isVideo ? 'Film' : 'Zdjęcie'}</p>
-                                                        <p>Typ: {photo.contentType}</p>
+                                                        <p>{appText.admin.common.addedAt}: {formatDate(photo.uploadedAt)}</p>
+                                                        <p>{appText.admin.common.size}: {formatBytes(photo.sizeBytes)}</p>
+                                                        <p>{appText.admin.common.kind}: {isVideo ? appText.common.media.video : appText.common.media.photo}</p>
+                                                        <p>{appText.admin.common.type}: {photo.contentType}</p>
                                                         {photo.width > 0 && photo.height > 0 ? (
-                                                            <p>Wymiary: {photo.width} × {photo.height}</p>
+                                                            <p>{appText.admin.common.dimensions}: {photo.width} × {photo.height}</p>
                                                         ) : null}
                                                     </div>
 
@@ -200,12 +201,12 @@ export default function AdminPhotosPage() {
 
                                                     <div className="flex items-center justify-end">
                                                         <ConfirmActionButton
-                                                            confirmMessage="Czy na pewno chcesz usunąć to medium? Ta operacja usunie pliki i wpis w bazie."
+                                                            confirmMessage={appText.admin.common.deleteMediaConfirm}
                                                             onConfirm={() => handleDelete(photo.id)}
                                                             loading={deletingPhotoId === photo.id}
                                                             disabled={deletingPhotoId !== null && deletingPhotoId !== photo.id}
                                                         >
-                                                            Usuń
+                                                            {appText.common.actions.delete}
                                                         </ConfirmActionButton>
                                                     </div>
                                                 </div>

@@ -1,3 +1,5 @@
+import { appText } from '../content/appText';
+
 export default function Footer() {
     return (
         <footer className="border-t border-sand bg-paper py-8">
@@ -10,7 +12,7 @@ export default function Footer() {
                 </p>
                 <div className="mx-auto mt-4 h-[1px] w-16 bg-sand" />
                 <p className="mt-4 font-sans text-xs text-muted/70">
-                    Stworzone dla naszego wyjątkowego dnia
+                    {appText.footer.text}
                 </p>
             </div>
         </footer>

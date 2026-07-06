@@ -10,6 +10,7 @@ import Notice from '../components/Notice';
 import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
 import Textarea from '../components/Textarea';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { preparePhotoFileForUpload } from '../media/preparePhotoFileForUpload';
 
@@ -110,7 +111,7 @@ function getMaxFileSizeBytes(kind: AttachmentKind): number {
 }
 
 function getKindLabel(kind: AttachmentKind | null): string {
-    return kind === 'video' ? 'film' : 'zdjęcie';
+    return kind === 'video' ? appText.common.media.videoLower : appText.common.media.photoLower;
 }
 
 function getStatusLabel(status: AttachmentUploadStatus, kind: AttachmentKind | null): string {
@@ -118,18 +119,20 @@ function getStatusLabel(status: AttachmentUploadStatus, kind: AttachmentKind | n
 
     switch (status) {
         case 'preparing':
-            return `Przygotowujemy ${label}`;
+            return `${appText.public.guestbook.attachment.preparingPrefix} ${label}`;
         case 'uploading':
-            return `Przesyłamy ${label}`;
+            return `${appText.public.guestbook.attachment.uploadingPrefix} ${label}`;
         case 'completing':
-            return `Zapisujemy ${label}`;
+            return `${appText.public.guestbook.attachment.completingPrefix} ${label}`;
         case 'success':
-            return `${label === 'film' ? 'Film' : 'Zdjęcie'} załączone`;
+            return label === appText.common.media.videoLower
+                ? appText.public.guestbook.attachment.videoSuccess
+                : appText.public.guestbook.attachment.photoSuccess;
         case 'error':
-            return `Nie udało się załączyć ${label}`;
+            return `${appText.public.guestbook.attachment.errorPrefix} ${label}`;
         case 'idle':
         default:
-            return 'Załącznik opcjonalny';
+            return appText.public.guestbook.attachment.idle;
     }
 }
 
@@ -151,7 +154,7 @@ function AttachmentOverlay({ state }: { state: AttachmentUploadState }) {
                             {getStatusLabel(state.status, state.kind)}
                         </p>
                         <p className="mt-2 text-sm leading-6 text-muted">
-                            Nie odświeżaj strony ani nie zamykaj karty. Po zakończeniu załącznik będzie gotowy do wysłania z życzeniami.
+                            {appText.public.guestbook.attachment.overlayDescription}
                         </p>
                     </div>
                     <div className="shrink-0 rounded-full bg-gold/10 px-3 py-2 font-sans text-sm font-semibold text-gold">
@@ -232,7 +235,7 @@ export default function GuestbookPage() {
                 kind: null,
                 progress: 0,
                 mediaId: null,
-                errorMessage: 'Wybierz zdjęcie albo film w obsługiwanym formacie.',
+                errorMessage: appText.public.guestbook.attachment.unsupportedFormat,
             });
             return;
         }
@@ -245,7 +248,7 @@ export default function GuestbookPage() {
                 kind,
                 progress: 0,
                 mediaId: null,
-                errorMessage: `Plik jest większy niż ${formatBytes(maxFileSizeBytes)}.`,
+                errorMessage: `${appText.public.guestbook.attachment.tooLarge} ${formatBytes(maxFileSizeBytes)}.`,
             });
             return;
         }
@@ -266,7 +269,7 @@ export default function GuestbookPage() {
             const contentType = getContentType(preparedFile, kind);
 
             if (preparedFile.size > maxFileSizeBytes) {
-                throw new Error(`Plik po przygotowaniu jest większy niż ${formatBytes(maxFileSizeBytes)}.`);
+                throw new Error(`${appText.public.guestbook.attachment.tooLargeAfterPreparing} ${formatBytes(maxFileSizeBytes)}.`);
             }
 
             const target = await apiClient.createMediaUpload({
@@ -333,7 +336,7 @@ export default function GuestbookPage() {
                 kind,
                 progress: 0,
                 mediaId: null,
-                errorMessage: getErrorMessageForDisplay(err, 'Nie udało się załączyć pliku. Spróbuj ponownie.'),
+                errorMessage: getErrorMessageForDisplay(err, appText.public.guestbook.attachment.uploadFailed),
             });
         }
     };
@@ -370,7 +373,7 @@ export default function GuestbookPage() {
             setMessage('');
             setAttachmentUpload(emptyAttachmentUploadState);
         } catch (err: unknown) {
-            setError(getErrorMessageForDisplay(err, 'Nie udało się wysłać życzeń. Spróbuj ponownie.'));
+            setError(getErrorMessageForDisplay(err, appText.public.guestbook.submitFailed));
         } finally {
             setLoading(false);
         }
@@ -381,8 +384,8 @@ export default function GuestbookPage() {
             <div className="page-offset">
                 <Section background="white">
                     <PageHeader
-                        title="Księga gości"
-                        description="Zostaw nam swoje życzenia i wspomnienia z tego wyjątkowego dnia"
+                        title={appText.public.guestbook.title}
+                        description={appText.public.guestbook.description}
                     />
 
                     <div className="mx-auto mt-12 max-w-2xl">
@@ -390,31 +393,31 @@ export default function GuestbookPage() {
                             {isSubmitted && !error && (
                                 <Notice tone="success" className="rounded-lg p-4 text-left">
                                     <p className="font-sans text-sm">
-                                        Dziękujemy! Twoje życzenia zostały zapisane.
+                                        {appText.public.guestbook.success}
                                     </p>
                                 </Notice>
                             )}
                             {error && <ApiErrorAlert message={error} />}
 
-                            <Field label="Twoje imię" htmlFor="name" labelTone="strong">
+                            <Field label={appText.public.guestbook.fields.name} htmlFor="name" labelTone="strong">
                                 <Input
                                     type="text"
                                     id="name"
                                     value={authorName}
                                     onChange={(event) => setAuthorName(event.target.value)}
                                     required
-                                    placeholder="Jan Kowalski"
+                                    placeholder={appText.public.guestbook.placeholders.name}
                                 />
                             </Field>
 
-                            <Field label="Twoja wiadomość" htmlFor="message" labelTone="strong">
+                            <Field label={appText.public.guestbook.fields.message} htmlFor="message" labelTone="strong">
                                 <Textarea
                                     id="message"
                                     rows={6}
                                     value={message}
                                     onChange={(event) => setMessage(event.target.value)}
                                     required={!attachedMediaId}
-                                    placeholder="Podziel się z nami czymkolwiek chcesz..."
+                                    placeholder={appText.public.guestbook.placeholders.message}
                                 />
                             </Field>
 
@@ -429,10 +432,10 @@ export default function GuestbookPage() {
                                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="min-w-0">
                                         <p className="font-sans text-sm font-semibold text-ink">
-                                            Zdjęcie lub film
+                                            {appText.public.guestbook.attachment.title}
                                         </p>
                                         <p className="mt-1 text-sm text-muted">
-                                            Możesz dołączyć zdjęcie albo krótki film z telefonu.
+                                            {appText.public.guestbook.attachment.description}
                                         </p>
                                     </div>
                                     <Button
@@ -442,7 +445,7 @@ export default function GuestbookPage() {
                                         onClick={() => attachmentInputRef.current?.click()}
                                         disabled={loading || isAttachmentUploadActive}
                                     >
-                                        {attachedMediaId ? 'Zmień załącznik' : 'Dodaj załącznik'}
+                                        {attachedMediaId ? appText.public.guestbook.attachment.change : appText.public.guestbook.attachment.add}
                                     </Button>
                                 </div>
 
@@ -488,7 +491,7 @@ export default function GuestbookPage() {
                                 loading={loading}
                                 disabled={!canSubmit}
                             >
-                                Wyślij życzenia
+                                {appText.public.guestbook.submit}
                             </Button>
                         </form>
                     </div>

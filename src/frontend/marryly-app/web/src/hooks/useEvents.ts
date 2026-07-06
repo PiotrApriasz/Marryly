@@ -1,4 +1,5 @@
 import { apiClient } from '../api/client';
+import { appText } from '../content/appText';
 import type { Event } from '../types/wedding.types';
 import { useCachedApiResource } from './useCachedApiResource.ts';
 
@@ -13,7 +14,7 @@ export function useEvents(): UseEventsResult {
     const { data, loading, error } = useCachedApiResource<Event[]>({
         cacheKey: CACHE_KEY,
         fetcher: () => apiClient.getEvents(),
-        fallbackErrorMessage: 'Nie udało się pobrać harmonogramu dnia.',
+        fallbackErrorMessage: appText.errors.fallback.events,
         logContext: 'Failed to load events',
         initialData: [],
     });

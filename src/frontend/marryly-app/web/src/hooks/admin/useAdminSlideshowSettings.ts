@@ -1,5 +1,6 @@
 import type { AdminSlideshowSettings } from '../../types/admin.types';
 import { adminClient } from '../../api/adminClient';
+import { appText } from '../../content/appText';
 import { useAdminApiResource } from './useAdminApiResource';
 
 interface UseAdminSlideshowSettingsResult {
@@ -20,7 +21,7 @@ export function useAdminSlideshowSettings(): UseAdminSlideshowSettingsResult {
     const { data, loading, error, reload } = useAdminApiResource<AdminSlideshowSettings>({
         cacheKey: 'slideshow_settings',
         fetcher: () => adminClient.getSlideshowSettings(),
-        fallbackErrorMessage: 'Nie udało się pobrać ustawień pokazu slajdów.',
+        fallbackErrorMessage: appText.errors.fallback.adminSlideshow,
         logContext: 'Failed to load admin slideshow settings',
         initialData: initialSettings,
     });

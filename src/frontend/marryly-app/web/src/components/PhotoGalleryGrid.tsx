@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { appText } from '../content/appText';
 import { cn } from '../utils/cn';
 import type { GalleryMediaItem } from '../types/wedding.types';
 
@@ -13,7 +14,7 @@ function formatUploadedAt(value: string): string {
         return '';
     }
 
-    return date.toLocaleString('pl-PL', {
+    return date.toLocaleString(appText.common.locale, {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
@@ -102,7 +103,7 @@ export default function PhotoGalleryGrid({
                             ) : (
                                 <img
                                     src={photo.thumbnailUrl ?? photo.url}
-                                    alt="Zdjęcie z wesela"
+                                    alt={appText.common.media.weddingPhotoAlt}
                                     loading="lazy"
                                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
@@ -145,7 +146,7 @@ export default function PhotoGalleryGrid({
                                 className={galleryNavigationButtonClassName}
                                 onClick={() => setSelectedPhotoIndex((currentIndex) => currentIndex === null ? null : Math.min(currentIndex + 1, photos.length - 1))}
                                 disabled={!hasNextPhoto}
-                                aria-label="Następne medium"
+                                aria-label={appText.components.galleryGrid.nextAriaLabel}
                             >
                                 ›
                             </button>
@@ -174,7 +175,7 @@ export default function PhotoGalleryGrid({
                                             rel="noreferrer"
                                             className="text-white underline"
                                         >
-                                            Otwórz/pobierz film
+                                            {appText.common.media.openOrDownloadVideo}
                                         </a>
                                     </video>
                                     <a
@@ -183,13 +184,13 @@ export default function PhotoGalleryGrid({
                                         rel="noreferrer"
                                         className="px-4 py-3 text-sm font-medium text-white underline"
                                     >
-                                        Otwórz/pobierz film
+                                        {appText.common.media.openOrDownloadVideo}
                                     </a>
                                 </div>
                             ) : (
                                 <img
                                     src={selectedMedia.url}
-                                    alt="Podgląd zdjęcia"
+                                    alt={appText.common.media.photoPreviewAlt}
                                     className="max-h-[90vh] w-full object-contain"
                                 />
                             )}

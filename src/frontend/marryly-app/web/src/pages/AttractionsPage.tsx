@@ -1,6 +1,7 @@
 import Layout from '../components/Layout';
 import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
+import { appText } from '../content/appText';
 
 export default function AttractionsPage() {
     return (
@@ -8,8 +9,8 @@ export default function AttractionsPage() {
             <div className="page-offset">
                 <Section background="white">
                     <PageHeader
-                        title="Atrakcje"
-                        description="Wkrótce pojawi się tutaj lista atrakcji przygotowanych na wesele"
+                        title={appText.public.attractions.title}
+                        description={appText.public.attractions.description}
                     />
                 </Section>
             </div>

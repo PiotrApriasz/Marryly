@@ -1,20 +1,21 @@
+import { appText } from '../content/appText';
 import type { MenuSectionType } from '../types/wedding.types';
 
-export const MENU_DEFAULT_TITLE = 'Menu weselne';
-export const MENU_DEFAULT_BLOCK_TITLE = 'Główne menu weselne';
+export const MENU_DEFAULT_TITLE = appText.public.menu.title;
+export const MENU_DEFAULT_BLOCK_TITLE = appText.menu.defaultBlockTitle;
 
 export const MENU_SECTION_TYPE_OPTIONS: Array<{ value: MenuSectionType; label: string }> = [
-    { value: 'przystawka', label: 'Przystawka' },
+    { value: 'przystawka', label: appText.menu.sectionTypes.przystawka },
     { value: 'zupa', label: 'Zupy' },
-    { value: 'danie_glowne', label: 'Danie główne' },
+    { value: 'danie_glowne', label: appText.menu.sectionTypes.danie_glowne },
     { value: 'deser', label: 'Desery' },
     { value: 'kolacja', label: 'Kolacja' },
-    { value: 'zimna_plyta', label: 'Zimna płyta' },
+    { value: 'zimna_plyta', label: appText.menu.sectionTypes.zimna_plyta },
     { value: 'bufet', label: 'Bufet' },
-    { value: 'napoje', label: 'Napoje' },
+    { value: 'napoje', label: appText.menu.sectionTypes.napoje },
     { value: 'alkohol', label: 'Alkohol' },
-    { value: 'slodki_stol', label: 'Słodki stół' },
-    { value: 'inne', label: 'Inne' },
+    { value: 'slodki_stol', label: appText.menu.sectionTypes.slodki_stol },
+    { value: 'inne', label: appText.menu.sectionTypes.inne },
 ];
 
 const SECTION_TYPE_LABELS: Record<MenuSectionType, string> = Object.fromEntries(

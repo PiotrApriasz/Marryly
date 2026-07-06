@@ -6,6 +6,7 @@ import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
 import PageState from '../components/PageState';
 import PhotoGalleryGrid from '../components/PhotoGalleryGrid';
+import { appText } from '../content/appText';
 import { useGalleryAlbum } from '../hooks/useGalleryAlbum';
 import { useInfiniteAlbumMedia } from '../hooks/useInfiniteAlbumMedia';
 
@@ -58,8 +59,8 @@ export default function GalleryAlbumPage() {
             <div className="page-offset">
                 <Section background="white">
                     <PageHeader
-                        title={album?.title ?? 'Galeria'}
-                        description={album?.description ?? 'Album z naszymi wspomnieniami.'}
+                        title={album?.title ?? appText.public.gallery.albumFallbackTitle}
+                        description={album?.description ?? appText.public.gallery.albumFallbackDescription}
                     />
 
                     <div className="mt-12">
@@ -67,7 +68,7 @@ export default function GalleryAlbumPage() {
                             loading={albumLoading || loading}
                             error={albumError ?? error}
                             isEmpty={photos.length === 0}
-                            emptyMessage="Ten album jest jeszcze pusty."
+                            emptyMessage={appText.public.gallery.albumEmpty}
                             loadingFallback={<AlbumLoadingFallback />}
                         >
                             <>
@@ -82,7 +83,7 @@ export default function GalleryAlbumPage() {
                                             onClick={() => void loadMore()}
                                             loading={loadingMore}
                                         >
-                                            Pokaż więcej mediów
+                                            {appText.public.gallery.loadMore}
                                         </Button>
                                     </div>
                                 ) : null}

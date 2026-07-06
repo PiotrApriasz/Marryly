@@ -3,6 +3,7 @@ import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
+import { appText } from '../content/appText';
 import { useEvents } from '../hooks/useEvents';
 
 function EventsSkeleton() {
@@ -26,7 +27,7 @@ function EventsSkeleton() {
 
 function formatTime(isoString: string): string {
     const date = new Date(isoString);
-    return date.toLocaleTimeString('pl-PL', { 
+    return date.toLocaleTimeString(appText.common.locale, {
         hour: '2-digit', 
         minute: '2-digit',
         timeZone: 'UTC'
@@ -40,13 +41,13 @@ export default function EventsPage() {
         <Layout>
             <div className="page-offset">
                 <Section background="white">
-                    <PageHeader title="Wydarzenia" className="mb-12" />
+                    <PageHeader title={appText.public.events.title} className="mb-12" />
 
                     <PageState
                         loading={loading}
                         error={error}
                         isEmpty={events.length === 0}
-                        emptyMessage="Wkrótce pojawi się tutaj harmonogram dnia"
+                        emptyMessage={appText.public.events.empty}
                         loadingFallback={<EventsSkeleton />}
                     >
                         <div className="mx-auto max-w-3xl">

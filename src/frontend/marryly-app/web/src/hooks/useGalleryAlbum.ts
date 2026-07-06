@@ -1,13 +1,14 @@
 import { apiClient } from '../api/client';
 import { config } from '../app/config';
+import { appText } from '../content/appText';
 import type { GalleryAlbum } from '../types/wedding.types';
 import { useCachedApiResource } from './useCachedApiResource';
 
 const MOCK_GUEST_ALBUM: GalleryAlbum = {
     id: 'guest',
-    title: 'Od gości',
+    title: appText.public.gallery.defaultGuestAlbumTitle,
     slug: 'od-gosci',
-    description: 'Zdjęcia dodane przez gości.',
+    description: appText.public.gallery.defaultGuestAlbumDescription,
     coverUrl: null,
     itemCount: 120,
 };
@@ -34,7 +35,7 @@ export function useGalleryAlbum(slug: string | undefined): UseGalleryAlbumResult
 
             return apiClient.getGalleryAlbum(safeSlug);
         },
-        fallbackErrorMessage: 'Nie udało się pobrać albumu.',
+        fallbackErrorMessage: appText.errors.fallback.galleryAlbum,
         logContext: 'Failed to load gallery album',
         initialData: null,
     });

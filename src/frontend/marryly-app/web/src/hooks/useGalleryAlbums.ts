@@ -1,5 +1,6 @@
 import { apiClient } from '../api/client';
 import { config } from '../app/config';
+import { appText } from '../content/appText';
 import type { GalleryAlbumsResponse } from '../types/wedding.types';
 import { useCachedApiResource } from './useCachedApiResource';
 
@@ -7,9 +8,9 @@ const MOCK_GALLERY_ALBUMS: GalleryAlbumsResponse = {
     items: [
         {
             id: 'guest',
-            title: 'Od gości',
+            title: appText.public.gallery.defaultGuestAlbumTitle,
             slug: 'od-gosci',
-            description: 'Zdjęcia dodane przez gości.',
+            description: appText.public.gallery.defaultGuestAlbumDescription,
             coverUrl: null,
             itemCount: 120,
         },
@@ -29,7 +30,7 @@ export function useGalleryAlbums(): UseGalleryAlbumsResult {
         fetcher: () => config.useMockPhotos
             ? Promise.resolve(MOCK_GALLERY_ALBUMS)
             : apiClient.getGalleryAlbums(),
-        fallbackErrorMessage: 'Nie udało się pobrać albumów.',
+        fallbackErrorMessage: appText.errors.fallback.galleryAlbums,
         logContext: 'Failed to load gallery albums',
         initialData: { items: [] },
     });

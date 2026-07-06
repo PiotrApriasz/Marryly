@@ -13,6 +13,7 @@ import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import { adminClient } from '../api/adminClient';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { invalidateAdminCache } from '../hooks/admin/useAdminApiResource';
 import { useAdminAlbums } from '../hooks/admin/useAdminAlbums';
@@ -49,15 +50,15 @@ function SlideshowSettingsSkeleton() {
 
 function formatDateTime(value: string): string {
     if (!value) {
-        return 'Jeszcze nie zapisano';
+        return appText.admin.slideshow.notSavedYet;
     }
 
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) {
-        return 'Jeszcze nie zapisano';
+        return appText.admin.slideshow.notSavedYet;
     }
 
-    return date.toLocaleString('pl-PL', {
+    return date.toLocaleString(appText.common.locale, {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -111,7 +112,7 @@ export default function AdminSlideshowPage() {
 
     const handleSave = async () => {
         if (!canSave) {
-            setPageError('Wybierz przynajmniej jeden album i uzupełnij poprawnie czasy pokazu.');
+            setPageError(appText.admin.slideshow.validationError);
             return;
         }
 
@@ -127,7 +128,7 @@ export default function AdminSlideshowPage() {
             invalidateAdminCache('slideshow_settings');
             reload();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zapisać ustawień pokazu slajdów.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.slideshow.saveFailed));
             logErrorDetails(err, 'Failed to save slideshow settings');
         } finally {
             setIsSaving(false);
@@ -150,8 +151,8 @@ export default function AdminSlideshowPage() {
                 <Section background="white">
                     <AdminBackLink />
                     <PageHeader
-                        title="Pokaz slajdów"
-                        helpText="Pełnoekranowy pokaz działa bez widocznych kontrolek, korzysta z wybranych albumów i sam dopina nowe zdjęcia podczas wesela."
+                        title={appText.admin.slideshow.title}
+                        helpText={appText.admin.slideshow.helpText}
                     />
 
                     {pageError ? (
@@ -177,19 +178,19 @@ export default function AdminSlideshowPage() {
                             <Card className="p-6 md:p-8">
                                 <div className="flex flex-wrap items-start justify-between gap-4">
                                     <div>
-                                        <h2 className="font-serif text-2xl text-ink">Konfiguracja odtwarzania</h2>
+                                        <h2 className="font-serif text-2xl text-ink">{appText.admin.slideshow.playbackTitle}</h2>
                                         <p className="mt-2 text-sm text-muted">
-                                            Pokaz przestawia zdjęcia dopiero po wczytaniu następnego kadru, więc ekran nie gaśnie między slajdami.
+                                            {appText.admin.slideshow.note}
                                         </p>
                                     </div>
                                     <div className="text-right text-sm text-muted">
-                                        Ostatni zapis
+                                        {appText.admin.slideshow.lastSaved}
                                         <div className="mt-1 font-medium text-ink">{formatDateTime(settings.updatedAt)}</div>
                                     </div>
                                 </div>
 
                                 <div className="mt-8 grid gap-5">
-                                    <Field label="Albumy źródłowe" htmlFor="slideshow-albums" labelTone="strong">
+                                    <Field label={appText.admin.slideshow.fields.albums} htmlFor="slideshow-albums" labelTone="strong">
                                         <div id="slideshow-albums" className="grid gap-3">
                                             {albumsResponse.items.map((album) => (
                                                 <div key={album.id} className="rounded-2xl border border-sand/80 bg-sand/35 p-4">
@@ -199,7 +200,7 @@ export default function AdminSlideshowPage() {
                                                         label={(
                                                             <div className="flex flex-wrap items-center justify-between gap-2">
                                                                 <span className="font-medium text-ink">{album.title}</span>
-                                                                <span className="text-xs text-muted">{album.itemCount} mediów</span>
+                                                                <span className="text-xs text-muted">{album.itemCount} {appText.common.media.mediaPlural}</span>
                                                             </div>
                                                         )}
                                                     />
@@ -209,7 +210,7 @@ export default function AdminSlideshowPage() {
                                     </Field>
 
                                     <div className="grid gap-5 md:grid-cols-2">
-                                        <Field label="Czas jednego zdjęcia (sekundy)" htmlFor="slideshow-duration" labelTone="strong">
+                                        <Field label={appText.admin.slideshow.fields.slideDuration} htmlFor="slideshow-duration" labelTone="strong">
                                             <Input
                                                 id="slideshow-duration"
                                                 type="number"
@@ -220,7 +221,7 @@ export default function AdminSlideshowPage() {
                                             />
                                         </Field>
 
-                                        <Field label="Sprawdzanie nowych zdjęć (sekundy)" htmlFor="slideshow-refresh" labelTone="strong">
+                                        <Field label={appText.admin.slideshow.fields.refreshInterval} htmlFor="slideshow-refresh" labelTone="strong">
                                             <Input
                                                 id="slideshow-refresh"
                                                 type="number"
@@ -235,7 +236,7 @@ export default function AdminSlideshowPage() {
 
                                 <div className="mt-8 flex flex-wrap gap-3">
                                     <Button type="button" onClick={() => void handleSave()} loading={isSaving}>
-                                        Zapisz ustawienia
+                                        {appText.admin.slideshow.actions.save}
                                     </Button>
                                     <Button
                                         type="button"
@@ -243,28 +244,28 @@ export default function AdminSlideshowPage() {
                                         onClick={() => void openSlideshow()}
                                         disabled={isSaving || hasUnsavedChanges || settings.albumIds.length === 0}
                                     >
-                                        Uruchom pełny ekran
+                                        {appText.admin.slideshow.actions.fullscreen}
                                     </Button>
                                 </div>
 
                                 {hasUnsavedChanges ? (
                                     <p className="mt-4 text-sm text-muted">
-                                        Zapisz zmiany, zanim uruchomisz pokaz z nową konfiguracją.
+                                        {appText.admin.slideshow.saveBeforeStart}
                                     </p>
                                 ) : null}
                             </Card>
 
                             <div className="space-y-6">
                                 <Card className="p-6">
-                                    <h2 className="font-serif text-2xl text-ink">Podgląd ustawień</h2>
+                                    <h2 className="font-serif text-2xl text-ink">{appText.admin.slideshow.previewTitle}</h2>
                                     <div className="mt-6 space-y-4 text-sm text-muted">
                                         <div className="rounded-2xl bg-sand/45 p-4">
-                                            <p className="text-xs uppercase tracking-[0.18em] text-muted">Albumy</p>
+                                            <p className="text-xs uppercase tracking-[0.18em] text-muted">{appText.admin.slideshow.albumsPreviewLabel}</p>
                                             <p className="mt-2 text-lg font-semibold text-ink">
-                                                {selectedAlbumsCount > 0 ? `${selectedAlbumsCount} wybrane` : 'Nie wybrano albumów'}
+                                                {selectedAlbumsCount > 0 ? `${selectedAlbumsCount} ${appText.admin.slideshow.selectedSuffix}` : appText.admin.slideshow.noAlbumsSelected}
                                             </p>
                                             <p className="mt-1">
-                                                {selectedAlbumsCount > 0 ? `${selectedPhotosCount} mediów łącznie w źródłach` : 'Wybierz albumy do pokazu'}
+                                                {selectedAlbumsCount > 0 ? `${selectedPhotosCount} ${appText.admin.slideshow.mediaInSourcesSuffix}` : appText.admin.slideshow.chooseAlbums}
                                             </p>
                                             {selectedAlbumsCount > 0 ? (
                                                 <p className="mt-2 text-xs leading-5">
@@ -274,12 +275,12 @@ export default function AdminSlideshowPage() {
                                         </div>
 
                                         <div className="rounded-2xl bg-sand/45 p-4">
-                                            <p className="text-xs uppercase tracking-[0.18em] text-muted">Tempo</p>
+                                            <p className="text-xs uppercase tracking-[0.18em] text-muted">{appText.admin.slideshow.tempoPreviewLabel}</p>
                                             <p className="mt-2 text-lg font-semibold text-ink">
-                                                {hasValidNumericValues ? `${parsedSlideDuration}s na zdjęcie` : 'Brak poprawnej wartości'}
+                                                {hasValidNumericValues ? `${parsedSlideDuration}${appText.admin.slideshow.secondsPerPhoto}` : appText.admin.slideshow.invalidValue}
                                             </p>
                                             <p className="mt-1">
-                                                {hasValidNumericValues ? `Odświeżanie nowych zdjęć co ${parsedRefreshInterval}s` : 'Uzupełnij oba pola liczbowe'}
+                                                {hasValidNumericValues ? `${appText.admin.slideshow.refreshEveryPrefix} ${parsedRefreshInterval}${appText.admin.slideshow.refreshEverySuffix}` : appText.admin.slideshow.fillNumbers}
                                             </p>
                                         </div>
                                     </div>
@@ -287,7 +288,7 @@ export default function AdminSlideshowPage() {
 
                                 <Notice tone="info" className="p-5">
                                     <p className="text-sm">
-                                        Pokaz będzie cyklicznie sprawdzał, czy w wybranych albumach pojawiły się nowe zdjęcia, i dopnie je na koniec kolejki bez zatrzymywania odtwarzania.
+                                        {appText.admin.slideshow.explanation}
                                     </p>
                                 </Notice>
                             </div>

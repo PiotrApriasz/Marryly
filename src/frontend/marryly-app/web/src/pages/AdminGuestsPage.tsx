@@ -18,6 +18,7 @@ import Section from '../components/Section';
 import Select from '../components/Select';
 import StatusBadge from '../components/StatusBadge';
 import Textarea from '../components/Textarea';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { invalidateAdminCache } from '../hooks/admin/useAdminApiResource';
 import { useAdminGuests } from '../hooks/admin/useAdminGuests';
@@ -32,17 +33,17 @@ import type {
 } from '../types/admin.types';
 
 const CATEGORY_OPTIONS: Array<{ value: GuestCategory; label: string }> = [
-    { value: 'adult', label: 'Dorosły' },
-    { value: 'child_3_10', label: 'Dziecko 3-10 lat' },
-    { value: 'child_over_10', label: 'Dziecko powyżej 10 lat' },
-    { value: 'child_under_3', label: 'Dziecko do 3 lat' },
-    { value: 'vendor', label: 'Usługodawca' },
+    { value: 'adult', label: appText.admin.guests.ageGroups.adult },
+    { value: 'child_3_10', label: appText.admin.guests.ageGroups.child3To10 },
+    { value: 'child_over_10', label: appText.admin.guests.ageGroups.childOver10 },
+    { value: 'child_under_3', label: appText.admin.guests.ageGroups.childUnder3 },
+    { value: 'vendor', label: appText.admin.guests.ageGroups.vendor },
 ];
 
 const ATTENDANCE_OPTIONS: Array<{ value: GuestAttendanceStatus; label: string }> = [
-    { value: 'pending', label: 'Oczekuje' },
-    { value: 'confirmed', label: 'Potwierdzono' },
-    { value: 'declined', label: 'Nieobecny' },
+    { value: 'pending', label: appText.admin.guests.attendanceOptions.pending },
+    { value: 'confirmed', label: appText.admin.guests.attendanceOptions.confirmed },
+    { value: 'declined', label: appText.admin.guests.attendanceOptions.declined },
 ];
 
 type BadgeTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
@@ -145,12 +146,12 @@ function getCategoryLabel(category: GuestCategory): string {
 function getAttendanceMetadata(status: GuestAttendanceStatus): { label: string; tone: BadgeTone } {
     switch (status) {
         case 'confirmed':
-            return { label: 'Potwierdzono', tone: 'success' };
+            return { label: appText.admin.guests.attendanceOptions.confirmed, tone: 'success' };
         case 'declined':
-            return { label: 'Nieobecny', tone: 'danger' };
+            return { label: appText.admin.guests.attendanceOptions.declined, tone: 'danger' };
         case 'pending':
         default:
-            return { label: 'Oczekuje', tone: 'warning' };
+            return { label: appText.admin.guests.attendanceOptions.pending, tone: 'warning' };
     }
 }
 
@@ -307,15 +308,15 @@ function GuestForm({
     return (
         <div className="grid gap-4">
             <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Imię i nazwisko" htmlFor={`guest-name-${fieldIdSuffix}`}>
+                <Field label={appText.admin.guests.forms.name} htmlFor={`guest-name-${fieldIdSuffix}`}>
                     <Input
                         id={`guest-name-${fieldIdSuffix}`}
                         value={form.fullName}
                         onChange={(event) => updateForm('fullName', event.target.value)}
-                        placeholder="Np. Anna Kowalska"
+                        placeholder={appText.admin.guests.forms.namePlaceholder}
                     />
                 </Field>
-                <Field label="Kategoria" htmlFor={`guest-category-${fieldIdSuffix}`}>
+                <Field label={appText.admin.guests.forms.category} htmlFor={`guest-category-${fieldIdSuffix}`}>
                     <Select
                         id={`guest-category-${fieldIdSuffix}`}
                         value={form.category}
@@ -329,7 +330,7 @@ function GuestForm({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Obecność" htmlFor={`guest-attendance-${fieldIdSuffix}`}>
+                <Field label={appText.admin.guests.attendance} htmlFor={`guest-attendance-${fieldIdSuffix}`}>
                     <Select
                         id={`guest-attendance-${fieldIdSuffix}`}
                         value={isVendor ? 'confirmed' : form.attendanceStatus}
@@ -343,7 +344,7 @@ function GuestForm({
                 </Field>
                 <div className="md:pt-7">
                     <Checkbox
-                        label="Potrzebuje noclegu"
+                        label={appText.admin.guests.forms.needsAccommodation}
                         checked={form.needsAccommodation}
                         onChange={(event) => updateForm('needsAccommodation', event.target.checked)}
                     />
@@ -352,30 +353,30 @@ function GuestForm({
 
             {groups.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                    <Field label="Grupa zaproszenia" htmlFor={`guest-group-${fieldIdSuffix}`}>
+                    <Field label={appText.admin.guests.forms.invitationGroup} htmlFor={`guest-group-${fieldIdSuffix}`}>
                         <Select
                             id={`guest-group-${fieldIdSuffix}`}
                             value={form.invitationGroupId}
                             onChange={(event) => handleGroupChange(event.target.value)}
                         >
-                            <option value="">Bez grupy</option>
+                            <option value="">{appText.admin.guests.forms.noGroup}</option>
                             {groups.map((group) => (
                                 <option key={group.id} value={group.id}>{group.displayName}</option>
                             ))}
                         </Select>
                     </Field>
-                    <Field label="Relacja w grupie" htmlFor={`guest-relationship-${fieldIdSuffix}`}>
+                    <Field label={appText.admin.guests.forms.relationshipInGroup} htmlFor={`guest-relationship-${fieldIdSuffix}`}>
                         <Select
                             id={`guest-relationship-${fieldIdSuffix}`}
                             value={form.relationshipToGroup}
                             disabled={!form.invitationGroupId}
                             onChange={(event) => updateForm('relationshipToGroup', event.target.value as GuestFormState['relationshipToGroup'])}
                         >
-                            <option value="">Brak</option>
-                            <option value="primary">Główna osoba</option>
-                            <option value="partner">Partner/partnerka</option>
-                            <option value="child">Dziecko</option>
-                            <option value="other">Inna osoba</option>
+                            <option value="">{appText.admin.guests.forms.noValue}</option>
+                            <option value="primary">{appText.admin.guests.forms.primaryPerson}</option>
+                            <option value="partner">{appText.admin.guests.forms.partner}</option>
+                            <option value="child">{appText.admin.guests.forms.child}</option>
+                            <option value="other">{appText.admin.guests.forms.otherPerson}</option>
                         </Select>
                     </Field>
                 </div>
@@ -383,20 +384,20 @@ function GuestForm({
 
             {form.needsAccommodation ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                    <Field label="Hotel" htmlFor={`guest-hotel-${fieldIdSuffix}`}>
+                    <Field label={appText.admin.guests.forms.hotel} htmlFor={`guest-hotel-${fieldIdSuffix}`}>
                         <Input
                             id={`guest-hotel-${fieldIdSuffix}`}
                             value={form.hotelName}
                             onChange={(event) => updateForm('hotelName', event.target.value)}
-                            placeholder="Np. Willa Poprad"
+                            placeholder={appText.admin.guests.forms.hotelPlaceholder}
                         />
                     </Field>
-                    <Field label="Pokój" htmlFor={`guest-room-${fieldIdSuffix}`}>
+                    <Field label={appText.admin.guests.forms.room} htmlFor={`guest-room-${fieldIdSuffix}`}>
                         <Input
                             id={`guest-room-${fieldIdSuffix}`}
                             value={form.roomNameOrNumber}
                             onChange={(event) => updateForm('roomNameOrNumber', event.target.value)}
-                            placeholder="Np. 12 / apartament rodzinny"
+                            placeholder={appText.admin.guests.forms.roomPlaceholder}
                         />
                     </Field>
                 </div>
@@ -405,37 +406,37 @@ function GuestForm({
             <div className="grid gap-4 md:grid-cols-2">
                 <div>
                     <Checkbox
-                        label="Potrzebuje transportu"
+                        label={appText.admin.guests.forms.needsTransport}
                         checked={form.needsTransport}
                         onChange={(event) => updateForm('needsTransport', event.target.checked)}
                     />
                 </div>
                 {form.needsTransport ? (
-                    <Field label="Transport" htmlFor={`guest-transport-${fieldIdSuffix}`}>
+                    <Field label={appText.admin.guests.forms.transport} htmlFor={`guest-transport-${fieldIdSuffix}`}>
                         <Input
                             id={`guest-transport-${fieldIdSuffix}`}
                             value={form.transportNotes}
                             onChange={(event) => updateForm('transportNotes', event.target.value)}
-                            placeholder="Np. bus z hotelu, powrót po weselu"
+                            placeholder={appText.admin.guests.forms.transportNotesPlaceholder}
                         />
                     </Field>
                 ) : null}
             </div>
 
             {showNotes ? (
-                <Field label="Notatka" htmlFor={`guest-notes-${fieldIdSuffix}`}>
+                <Field label={appText.admin.guests.forms.note} htmlFor={`guest-notes-${fieldIdSuffix}`}>
                     <Textarea
                         id={`guest-notes-${fieldIdSuffix}`}
                         rows={3}
                         value={form.notes}
                         onChange={(event) => updateForm('notes', event.target.value)}
-                        placeholder="Dieta, transport, dodatkowe ustalenia"
+                        placeholder={appText.admin.guests.forms.notePlaceholder}
                     />
                 </Field>
             ) : (
                 <div>
                     <Button type="button" variant="ghost" size="sm" onClick={() => setShowNotes(true)}>
-                        Dodaj notatkę
+                        {appText.admin.guests.forms.addNote}
                     </Button>
                 </div>
             )}
@@ -522,69 +523,69 @@ function FamilyForm({
 
     return (
         <div className="grid gap-5">
-            <Field label="Nazwa grupy" htmlFor="family-display-name">
+            <Field label={appText.admin.guests.forms.groupName} htmlFor="family-display-name">
                 <Input
                     id="family-display-name"
                     value={form.displayName}
                     onChange={(event) => updateForm('displayName', event.target.value)}
-                    placeholder="Np. Anna i Jan Kowalscy wraz z dziećmi"
+                    placeholder={appText.admin.guests.forms.familyNamePlaceholder}
                 />
             </Field>
 
             <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Osoba 1" htmlFor="family-primary-name">
+                <Field label={appText.admin.guests.forms.personOne} htmlFor="family-primary-name">
                     <Input
                         id="family-primary-name"
                         value={form.primaryName}
                         onChange={(event) => updateForm('primaryName', event.target.value)}
-                        placeholder="Np. Anna Kowalska"
+                        placeholder={appText.admin.guests.forms.namePlaceholder}
                     />
                 </Field>
-                <Field label="Osoba 2" htmlFor="family-partner-name">
+                <Field label={appText.admin.guests.forms.personTwo} htmlFor="family-partner-name">
                     <Input
                         id="family-partner-name"
                         value={form.partnerName}
                         onChange={(event) => updateForm('partnerName', event.target.value)}
-                        placeholder="Np. Jan Kowalski"
+                        placeholder={appText.admin.guests.forms.partnerNamePlaceholder}
                     />
                 </Field>
             </div>
 
             <div className="rounded-2xl border border-sand p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h3 className="font-serif text-xl text-ink">Dzieci w zaproszeniu</h3>
+                    <h3 className="font-serif text-xl text-ink">{appText.admin.guests.forms.childrenTitle}</h3>
                     <Button type="button" variant="secondary" size="sm" onClick={addChild}>
-                        Dodaj dziecko
+                        {appText.admin.guests.forms.addChild}
                     </Button>
                 </div>
 
                 {form.children.length === 0 ? (
-                    <p className="mt-3 font-sans text-sm text-muted">Brak dzieci w tej grupie.</p>
+                    <p className="mt-3 font-sans text-sm text-muted">{appText.admin.guests.forms.noChildren}</p>
                 ) : (
                     <div className="mt-4 grid gap-3">
                         {form.children.map((child) => (
                             <div key={child.id} className="grid gap-3 md:grid-cols-[1fr_180px_auto] md:items-end">
-                                <Field label="Imię i nazwisko" htmlFor={`family-child-name-${child.id}`}>
+                                <Field label={appText.admin.guests.forms.name} htmlFor={`family-child-name-${child.id}`}>
                                     <Input
                                         id={`family-child-name-${child.id}`}
                                         value={child.fullName}
                                         onChange={(event) => updateChild(child.id, { fullName: event.target.value })}
-                                        placeholder="Np. Zosia Kowalska"
+                                        placeholder={appText.admin.guests.forms.childNamePlaceholder}
                                     />
                                 </Field>
-                                <Field label="Wiek" htmlFor={`family-child-category-${child.id}`}>
+                                <Field label={appText.admin.guests.forms.age} htmlFor={`family-child-category-${child.id}`}>
                                     <Select
                                         id={`family-child-category-${child.id}`}
                                         value={child.category}
                                         onChange={(event) => updateChild(child.id, { category: event.target.value as FamilyChildFormState['category'] })}
                                     >
-                                        <option value="child_3_10">3-10 lat</option>
-                                        <option value="child_over_10">Powyżej 10 lat</option>
+                                        <option value="child_3_10">{appText.admin.guests.forms.child3To10}</option>
+                                        <option value="child_over_10">{appText.admin.guests.forms.childOver10}</option>
                                         <option value="child_under_3">Do 3 lat</option>
                                     </Select>
                                 </Field>
                                 <Button type="button" variant="ghost" size="sm" onClick={() => removeChild(child.id)}>
-                                    Usuń
+                                    {appText.common.actions.delete}
                                 </Button>
                             </div>
                         ))}
@@ -593,7 +594,7 @@ function FamilyForm({
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Domyślna obecność" htmlFor="family-attendance">
+                <Field label={appText.admin.guests.forms.defaultAttendance} htmlFor="family-attendance">
                     <Select
                         id="family-attendance"
                         value={form.attendanceStatus}
@@ -615,7 +616,7 @@ function FamilyForm({
 
             {form.needsAccommodation ? (
                 <div className="grid gap-4 md:grid-cols-2">
-                    <Field label="Hotel" htmlFor="family-hotel">
+                    <Field label={appText.admin.guests.forms.hotel} htmlFor="family-hotel">
                         <Input
                             id="family-hotel"
                             value={form.hotelName}
@@ -623,7 +624,7 @@ function FamilyForm({
                             placeholder="Np. Willa Poprad"
                         />
                     </Field>
-                    <Field label="Pokój" htmlFor="family-room">
+                    <Field label={appText.admin.guests.forms.room} htmlFor="family-room">
                         <Input
                             id="family-room"
                             value={form.roomNameOrNumber}
@@ -643,12 +644,12 @@ function FamilyForm({
                     />
                 </div>
                 {form.needsTransport ? (
-                    <Field label="Transport" htmlFor="family-transport">
+                    <Field label={appText.admin.guests.forms.transport} htmlFor="family-transport">
                         <Input
                             id="family-transport"
                             value={form.transportNotes}
                             onChange={(event) => updateForm('transportNotes', event.target.value)}
-                            placeholder="Np. bus z hotelu, powrót po weselu"
+                            placeholder={appText.admin.guests.forms.transportNotesPlaceholder}
                         />
                     </Field>
                 ) : null}
@@ -662,7 +663,7 @@ function FamilyForm({
                     disabled={form.displayName.trim().length === 0 || validMembersCount === 0}
                     onClick={onSubmit}
                 >
-                    Dodaj grupę
+                    {appText.admin.guests.addGroup}
                 </Button>
                 <Button type="button" variant="secondary" disabled={saving} onClick={onCancel}>
                     Anuluj
@@ -786,11 +787,11 @@ export default function AdminGuestsPage() {
 
         return [
             {
-                label: 'Usługodawcy',
+                label: appText.admin.guests.summary.vendorsLong,
                 value: confirmedItems.filter((guest) => guest.category === 'vendor').length,
             },
             {
-                label: 'Dorośli + dzieci 10+',
+                label: appText.admin.guests.summary.adultsAndChildrenOver10,
                 value: confirmedItems.filter((guest) => guest.category === 'adult' || guest.category === 'child_over_10').length,
             },
             {
@@ -994,7 +995,7 @@ export default function AdminGuestsPage() {
             }
             invalidateAfterChange();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się dodać osoby do listy gości.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.addPerson));
             logErrorDetails(err, 'Failed to create guest');
         } finally {
             setIsCreating(false);
@@ -1012,7 +1013,7 @@ export default function AdminGuestsPage() {
             setIsFamilyDrawerOpen(false);
             invalidateAfterChange();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się dodać rodziny do listy gości.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.addFamily));
             logErrorDetails(err, 'Failed to create guest family');
         } finally {
             setIsCreatingFamily(false);
@@ -1034,7 +1035,7 @@ export default function AdminGuestsPage() {
             setEditingGuestId(null);
             invalidateAfterChange();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zapisać osoby.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.savePerson));
             logErrorDetails(err, 'Failed to update guest');
         } finally {
             setSavingGuestId(null);
@@ -1059,7 +1060,7 @@ export default function AdminGuestsPage() {
             invalidateAfterChange();
         } catch (err: unknown) {
             updateLocalGuest(guest.id, guest);
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zmienić statusu obecności.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.attendance));
             logErrorDetails(err, 'Failed to update guest attendance');
         } finally {
             setSavingGuestId(null);
@@ -1093,7 +1094,7 @@ export default function AdminGuestsPage() {
             invalidateAfterChange();
         } catch (err: unknown) {
             updateLocalGuest(guest.id, guest);
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zmienić noclegu.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.accommodationToggle));
             logErrorDetails(err, 'Failed to clear guest accommodation');
         } finally {
             setSavingAccommodationId(null);
@@ -1125,7 +1126,7 @@ export default function AdminGuestsPage() {
         } catch (err: unknown) {
             updateLocalGuest(currentDraft.guest.id, currentDraft.guest);
             setAccommodationDraft(currentDraft);
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zapisać danych noclegu.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.accommodationSave));
             logErrorDetails(err, 'Failed to save guest accommodation');
         } finally {
             setSavingAccommodationId(null);
@@ -1156,7 +1157,7 @@ export default function AdminGuestsPage() {
             invalidateAfterChange();
         } catch (err: unknown) {
             updateLocalGuest(guest.id, guest);
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zmienić transportu.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.transportToggle));
             logErrorDetails(err, 'Failed to clear guest transport');
         } finally {
             setSavingTransportId(null);
@@ -1186,7 +1187,7 @@ export default function AdminGuestsPage() {
         } catch (err: unknown) {
             updateLocalGuest(currentDraft.guest.id, currentDraft.guest);
             setTransportDraft(currentDraft);
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zapisać danych transportu.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.transportSave));
             logErrorDetails(err, 'Failed to save guest transport');
         } finally {
             setSavingTransportId(null);
@@ -1194,7 +1195,7 @@ export default function AdminGuestsPage() {
     };
 
     const handleDeleteGuest = async (guestId: string) => {
-        if (!window.confirm('Czy na pewno chcesz usunąć tę osobę z listy gości?')) {
+        if (!window.confirm(appText.admin.guests.deleteConfirm)) {
             return;
         }
 
@@ -1206,7 +1207,7 @@ export default function AdminGuestsPage() {
             removeLocalGuest(guestId);
             invalidateAfterChange();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się usunąć osoby z listy gości.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.guests.errors.deletePerson));
             logErrorDetails(err, 'Failed to delete guest');
         } finally {
             setDeletingGuestId(null);
@@ -1214,14 +1215,14 @@ export default function AdminGuestsPage() {
     };
 
     const inlineSummaryItems = [
-        { label: 'Potwierdziło', value: `${peopleSummary.confirmedCount}/${peopleSummary.invitedCount}`, suffix: `${peopleSummary.confirmationPercent}%` },
-        { label: 'Razem z Parą', value: String(peopleSummary.attendingTotalWithCouple) },
-        { label: 'Dorośli', value: String(peopleSummary.adultsCount) },
-        { label: 'Usługodawcy', value: String(peopleSummary.vendorsCount) },
+        { label: appText.admin.guests.summary.confirmed, value: `${peopleSummary.confirmedCount}/${peopleSummary.invitedCount}`, suffix: `${peopleSummary.confirmationPercent}%` },
+        { label: appText.admin.guests.summary.totalWithCouple, value: String(peopleSummary.attendingTotalWithCouple) },
+        { label: appText.admin.guests.summary.adults, value: String(peopleSummary.adultsCount) },
+        { label: appText.admin.guests.summary.vendors, value: String(peopleSummary.vendorsCount) },
         { label: 'Dzieci 3-10', value: String(peopleSummary.children3To10Count) },
         { label: 'Dzieci do 3 lat', value: String(peopleSummary.childrenUnder3Count) },
-        { label: 'Nocleg', value: String(peopleSummary.accommodationNeededCount) },
-        { label: 'Transport', value: String(peopleSummary.transportNeededCount) },
+        { label: appText.admin.guests.table.accommodation, value: String(peopleSummary.accommodationNeededCount) },
+        { label: appText.admin.guests.table.transport, value: String(peopleSummary.transportNeededCount) },
     ];
 
     return (
@@ -1230,8 +1231,8 @@ export default function AdminGuestsPage() {
                 <Section background="white">
                     <AdminBackLink />
                     <PageHeader
-                        title="Lista gości"
-                        helpText="Zarządzaj zaproszonymi, potwierdzeniami obecności i noclegami."
+                        title={appText.admin.guests.title}
+                        helpText={appText.admin.guests.helpText}
                     />
 
                     {pageError ? (
@@ -1248,11 +1249,11 @@ export default function AdminGuestsPage() {
                                         id="guest-search"
                                         value={searchTerm}
                                         onChange={(event) => setSearchTerm(event.target.value)}
-                                        placeholder="Nazwisko, hotel, pokój"
+                                        placeholder={appText.admin.guests.searchPlaceholder}
                                         className="admin-toolbar-control"
                                     />
                                 </Field>
-                                <Field label="Kategoria" htmlFor="guest-category-filter">
+                                <Field label={appText.admin.guests.forms.category} htmlFor="guest-category-filter">
                                     <Select
                                         id="guest-category-filter"
                                         value={categoryFilter}
@@ -1265,7 +1266,7 @@ export default function AdminGuestsPage() {
                                         ))}
                                     </Select>
                                 </Field>
-                                <Field label="Obecność" htmlFor="guest-attendance-filter">
+                                <Field label={appText.admin.guests.attendance} htmlFor="guest-attendance-filter">
                                     <Select
                                         id="guest-attendance-filter"
                                         value={attendanceFilter}
@@ -1278,7 +1279,7 @@ export default function AdminGuestsPage() {
                                         ))}
                                     </Select>
                                 </Field>
-                                <Field label="Nocleg" htmlFor="guest-accommodation-filter">
+                                <Field label={appText.admin.guests.table.accommodation} htmlFor="guest-accommodation-filter">
                                     <Select
                                         id="guest-accommodation-filter"
                                         value={accommodationFilter}
@@ -1298,13 +1299,13 @@ export default function AdminGuestsPage() {
                         loading={loading}
                         error={error}
                         isEmpty={items.length === 0}
-                        emptyMessage="Lista gości jest jeszcze pusta."
+                        emptyMessage={appText.admin.guests.empty}
                         loadingFallback={<GuestsSkeleton />}
                     >
                         <div className="mx-auto mt-5 max-w-6xl">
                             <div className="guest-list-status-line">
                                 <p className="font-sans text-sm text-muted">
-                                    Pokazano {filteredGuests.length} z {items.length} osób
+                                    {appText.admin.guests.shownPrefix} {filteredGuests.length} {appText.admin.guests.shownMiddle} {items.length} {appText.admin.guests.shownSuffix}
                                 </p>
                                 <div className="guest-list-inline-summary">
                                     {inlineSummaryItems.map((item) => (
@@ -1322,7 +1323,7 @@ export default function AdminGuestsPage() {
                                     <div className="flex flex-wrap items-center gap-3">
                                         <p className="font-serif text-lg text-ink">Potwierdzeni</p>
                                         <p className="font-sans text-xs uppercase tracking-[0.18em] text-muted">
-                                            według typów gości
+                                            {appText.admin.guests.byGuestTypes}
                                         </p>
                                     </div>
                                     <div className="mt-3 flex flex-wrap gap-2">
@@ -1362,7 +1363,7 @@ export default function AdminGuestsPage() {
                                     ref={actionsRef}
                                     className="guest-list-actions-column"
                                     style={floatingActionsStyle}
-                                    aria-label="Dodawanie gości"
+                                    aria-label={appText.admin.guests.addGuestsAriaLabel}
                                 >
                                     <Button
                                         type="button"
@@ -1371,7 +1372,7 @@ export default function AdminGuestsPage() {
                                         className="guest-floating-action-button"
                                         onClick={() => setIsFamilyDrawerOpen(true)}
                                     >
-                                        Dodaj grupę
+                                        {appText.admin.guests.addGroup}
                                     </Button>
                                     <Button
                                         type="button"
@@ -1380,7 +1381,7 @@ export default function AdminGuestsPage() {
                                         className="guest-floating-action-button"
                                         onClick={() => setIsCreateDrawerOpen(true)}
                                     >
-                                        Dodaj osobę
+                                        {appText.admin.guests.addPerson}
                                     </Button>
                                 </div>
 
@@ -1388,13 +1389,13 @@ export default function AdminGuestsPage() {
                                     <table className="admin-table">
                                     <thead>
                                         <tr>
-                                            <th>Osoba</th>
-                                            <th>Kategoria</th>
-                                            <th>Obecność</th>
-                                            <th>Nocleg</th>
-                                            <th>Transport</th>
-                                            <th>Notatka</th>
-                                            <th>Akcje</th>
+                                            <th>{appText.admin.guests.table.person}</th>
+                                            <th>{appText.admin.guests.table.category}</th>
+                                            <th>{appText.admin.guests.attendance}</th>
+                                            <th>{appText.admin.guests.table.accommodation}</th>
+                                            <th>{appText.admin.guests.table.transport}</th>
+                                            <th>{appText.admin.guests.table.note}</th>
+                                            <th>{appText.admin.guests.table.actions}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1402,7 +1403,7 @@ export default function AdminGuestsPage() {
                                             <tr>
                                                 <td colSpan={7}>
                                                     <p className="py-6 text-center text-sm text-muted">
-                                                        Brak osób pasujących do wybranych filtrów.
+                                                        {appText.admin.guests.noFilterResults}
                                                     </p>
                                                 </td>
                                             </tr>
@@ -1414,7 +1415,7 @@ export default function AdminGuestsPage() {
                                                         <td colSpan={7}>
                                                             <div className="flex flex-wrap items-baseline gap-2">
                                                                 <p className="font-serif text-lg text-ink">{guestGroup.label}</p>
-                                                                <p className="font-sans text-xs text-muted">{guestGroup.guests.length} osób</p>
+                                                                <p className="font-sans text-xs text-muted">{guestGroup.guests.length} {appText.admin.guests.peopleSuffix}</p>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -1469,7 +1470,7 @@ export default function AdminGuestsPage() {
                                                                 <div className="flex min-w-36 flex-col gap-1">
                                                                     <Checkbox
                                                                         className="checkbox-field-compact"
-                                                                        label={guest.needsAccommodation ? 'Tak' : 'Nie'}
+                                                                        label={guest.needsAccommodation ? appText.common.toggles.yes : appText.common.toggles.no}
                                                                         checked={guest.needsAccommodation}
                                                                         disabled={savingAccommodationId === guest.id || isBusy}
                                                                         onChange={(event) => void handleAccommodationToggle(guest, event.target.checked)}
@@ -1484,7 +1485,7 @@ export default function AdminGuestsPage() {
                                                                                 roomNameOrNumber: guest.roomNameOrNumber ?? '',
                                                                             })}
                                                                         >
-                                                                            {guest.hotelName || 'Hotel do ustalenia'}{guest.roomNameOrNumber ? `, ${guest.roomNameOrNumber}` : ''}
+                                                                            {guest.hotelName || appText.admin.guests.table.hotelToSet}{guest.roomNameOrNumber ? `, ${guest.roomNameOrNumber}` : ''}
                                                                         </button>
                                                                     ) : null}
                                                                 </div>
@@ -1493,7 +1494,7 @@ export default function AdminGuestsPage() {
                                                                 <div className="flex min-w-36 flex-col gap-1">
                                                                     <Checkbox
                                                                         className="checkbox-field-compact"
-                                                                        label={guest.needsTransport ? 'Tak' : 'Nie'}
+                                                                        label={guest.needsTransport ? appText.common.toggles.yes : appText.common.toggles.no}
                                                                         checked={guest.needsTransport}
                                                                         disabled={savingTransportId === guest.id || isBusy}
                                                                         onChange={(event) => void handleTransportToggle(guest, event.target.checked)}
@@ -1507,7 +1508,7 @@ export default function AdminGuestsPage() {
                                                                                 transportNotes: guest.transportNotes ?? '',
                                                                             })}
                                                                         >
-                                                                            {guest.transportNotes || 'Szczegóły do ustalenia'}
+                                                                            {guest.transportNotes || appText.admin.guests.transportToSet}
                                                                         </button>
                                                                     ) : null}
                                                                 </div>
@@ -1520,13 +1521,13 @@ export default function AdminGuestsPage() {
                                                             <td>
                                                                 <div className="flex flex-nowrap gap-2">
                                                                     <IconButton
-                                                                        label="Edytuj osobę"
+                                                                        label={appText.admin.guests.editPerson}
                                                                         icon={<PencilIcon />}
                                                                         disabled={isBusy}
                                                                         onClick={() => handleStartEdit(guest)}
                                                                     />
                                                                     <IconButton
-                                                                        label="Usuń osobę"
+                                                                        label={appText.admin.guests.deletePerson}
                                                                         icon={<TrashIcon />}
                                                                         tone="danger"
                                                                         loading={deletingGuestId === guest.id}
@@ -1550,8 +1551,8 @@ export default function AdminGuestsPage() {
             </div>
             <Drawer
                 open={isFamilyDrawerOpen}
-                title="Dodaj grupę"
-                description="Utwórz jedną grupę zaproszenia, np. Anna i Jan Kowalscy wraz z dziećmi."
+                title={appText.admin.guests.forms.addGroupTitle}
+                description={appText.admin.guests.forms.addGroupDescription}
                 onClose={() => setIsFamilyDrawerOpen(false)}
             >
                 <FamilyForm
@@ -1564,15 +1565,15 @@ export default function AdminGuestsPage() {
             </Drawer>
             <Drawer
                 open={isCreateDrawerOpen}
-                title="Dodaj gościa"
-                description="Po dodaniu możesz od razu wpisać kolejną osobę z tymi samymi ustawieniami."
+                title={appText.admin.guests.forms.addPersonTitle}
+                description={appText.admin.guests.forms.addPersonDescription}
                 onClose={() => setIsCreateDrawerOpen(false)}
             >
                 <GuestForm
                     form={createForm}
                     setForm={setCreateForm}
                     saving={isCreating}
-                    primarySubmitLabel="Dodaj i następny"
+                    primarySubmitLabel={appText.admin.guests.forms.addAndNext}
                     secondarySubmitLabel="Dodaj i zamknij"
                     onPrimarySubmit={() => void handleCreateGuest(false)}
                     onSecondarySubmit={() => void handleCreateGuest(true)}
@@ -1591,7 +1592,7 @@ export default function AdminGuestsPage() {
                         <p className="font-sans text-sm text-muted">
                             {accommodationDraft.guest.fullName}
                         </p>
-                        <Field label="Hotel" htmlFor="accommodation-hotel">
+                        <Field label={appText.admin.guests.forms.hotel} htmlFor="accommodation-hotel">
                             <Input
                                 id="accommodation-hotel"
                                 value={accommodationDraft.hotelName}
@@ -1602,7 +1603,7 @@ export default function AdminGuestsPage() {
                                 placeholder="Np. Willa Poprad"
                             />
                         </Field>
-                        <Field label="Pokój" htmlFor="accommodation-room">
+                        <Field label={appText.admin.guests.forms.room} htmlFor="accommodation-room">
                             <Input
                                 id="accommodation-room"
                                 value={accommodationDraft.roomNameOrNumber}

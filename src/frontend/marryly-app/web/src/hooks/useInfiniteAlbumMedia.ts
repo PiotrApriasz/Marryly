@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { apiClient } from '../api/client';
 import { config } from '../app/config';
+import { appText } from '../content/appText';
 import type { GalleryMediaItem } from '../types/wedding.types';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { getMockPhotosPage } from '../mocks/photos';
@@ -60,7 +61,7 @@ export function useInfiniteAlbumMedia({
             setContinuationToken(page.continuationToken);
             setHasMore(page.hasMore);
         } catch (err) {
-            setError(getErrorMessageForDisplay(err, 'Nie udało się pobrać mediów albumu.'));
+            setError(getErrorMessageForDisplay(err, appText.errors.fallback.albumMedia));
             logErrorDetails(err, 'Failed to load album media');
         } finally {
             requestInFlightRef.current = false;

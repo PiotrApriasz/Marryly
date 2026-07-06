@@ -4,6 +4,7 @@ import Card from '../components/Card';
 import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
 import PageState from '../components/PageState';
+import { appText } from '../content/appText';
 import { useGalleryAlbums } from '../hooks/useGalleryAlbums';
 
 function GalleryLoadingFallback() {
@@ -32,8 +33,8 @@ export default function GalleryPage() {
             <div className="page-offset">
                 <Section background="white">
                     <PageHeader
-                        title="Galeria"
-                        description="Wybierz album, który chcesz obejrzeć."
+                        title={appText.public.gallery.title}
+                        description={appText.public.gallery.description}
                     />
 
                     <div className="mt-12">
@@ -41,7 +42,7 @@ export default function GalleryPage() {
                             loading={loading}
                             error={error}
                             isEmpty={albums.length === 0}
-                            emptyMessage="Galeria będzie widoczna, gdy pojawi się pierwszy album."
+                            emptyMessage={appText.public.gallery.empty}
                             loadingFallback={<GalleryLoadingFallback />}
                         >
                             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -52,13 +53,13 @@ export default function GalleryPage() {
                                                 {album.coverUrl ? (
                                                     <img
                                                         src={album.coverUrl}
-                                                        alt={`Okładka albumu ${album.title}`}
+                                                        alt={`${appText.public.gallery.coverAltPrefix} ${album.title}`}
                                                         loading="lazy"
                                                         className="h-full w-full object-cover"
                                                     />
                                                 ) : (
                                                     <div className="flex h-full items-center justify-center text-sm text-muted">
-                                                        Album bez okładki
+                                                        {appText.common.media.noCover}
                                                     </div>
                                                 )}
                                             </div>
@@ -66,11 +67,11 @@ export default function GalleryPage() {
                                                 <div className="flex items-center justify-between gap-3">
                                                     <h2 className="font-serif text-2xl text-ink">{album.title}</h2>
                                                     <span className="font-sans text-xs text-muted">
-                                                        {album.itemCount} mediów
+                                                        {album.itemCount} {appText.common.media.mediaPlural}
                                                     </span>
                                                 </div>
                                                 <p className="text-sm leading-6 text-muted">
-                                                    {album.description || 'Otwórz album, aby zobaczyć zawartość.'}
+                                                    {album.description || appText.public.gallery.defaultAlbumDescription}
                                                 </p>
                                             </div>
                                         </Card>

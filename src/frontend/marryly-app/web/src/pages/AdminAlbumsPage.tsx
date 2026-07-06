@@ -13,6 +13,7 @@ import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
 import Textarea from '../components/Textarea';
+import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { invalidateAdminCache, invalidateAdminCacheByPrefix } from '../hooks/admin/useAdminApiResource';
 import { useAdminAlbums } from '../hooks/admin/useAdminAlbums';
@@ -50,7 +51,7 @@ function AlbumEditForm({
 
     return (
         <div className="space-y-4">
-            <Field label="Tytuł albumu" htmlFor={`album-title-${album.id}`}>
+            <Field label={appText.admin.albums.fields.albumTitle} htmlFor={`album-title-${album.id}`}>
                 <Input
                     id={`album-title-${album.id}`}
                     value={title}
@@ -58,7 +59,7 @@ function AlbumEditForm({
                     disabled={album.isSystem}
                 />
             </Field>
-            <Field label="Opis" htmlFor={`album-description-${album.id}`}>
+            <Field label={appText.admin.albums.fields.description} htmlFor={`album-description-${album.id}`}>
                 <Textarea
                     id={`album-description-${album.id}`}
                     rows={3}
@@ -73,7 +74,7 @@ function AlbumEditForm({
                     disabled={album.isSystem}
                     onChange={(event) => setIsVisible(event.target.checked)}
                 />
-                Widoczny publicznie
+                {appText.admin.albums.visiblePublicly}
             </label>
             <div className="flex flex-wrap gap-3">
                 <Button
@@ -87,10 +88,10 @@ function AlbumEditForm({
                         isVisible,
                     })}
                 >
-                    Zapisz
+                    {appText.common.actions.save}
                 </Button>
                 <Button type="button" variant="secondary" size="sm" onClick={onCancel} disabled={saving}>
-                    Anuluj
+                    {appText.common.actions.cancel}
                 </Button>
             </div>
         </div>
@@ -135,7 +136,7 @@ export default function AdminAlbumsPage() {
             invalidateAfterAlbumChange();
             reload();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się utworzyć albumu.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.albums.errors.create));
             logErrorDetails(err, 'Failed to create album');
         } finally {
             setIsCreating(false);
@@ -152,7 +153,7 @@ export default function AdminAlbumsPage() {
             invalidateAfterAlbumChange();
             reload();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zapisać albumu.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.albums.errors.save));
             logErrorDetails(err, 'Failed to update album');
         } finally {
             setSavingAlbumId(null);
@@ -168,7 +169,7 @@ export default function AdminAlbumsPage() {
             invalidateAfterAlbumChange();
             reload();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się usunąć albumu.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.albums.errors.delete));
             logErrorDetails(err, 'Failed to delete album');
         } finally {
             setActionAlbumId(null);
@@ -194,7 +195,7 @@ export default function AdminAlbumsPage() {
             invalidateAfterAlbumChange();
             reload();
         } catch (err: unknown) {
-            setPageError(getErrorMessageForDisplay(err, 'Nie udało się zmienić kolejności albumów.'));
+            setPageError(getErrorMessageForDisplay(err, appText.admin.albums.errors.reorder));
             logErrorDetails(err, 'Failed to reorder albums');
         } finally {
             setActionAlbumId(null);
@@ -207,8 +208,8 @@ export default function AdminAlbumsPage() {
                 <Section background="white">
                     <AdminBackLink />
                     <PageHeader
-                        title="Galeria"
-                        helpText="Zarządzaj albumami widocznymi dla gości i dodawaj nowe kolekcje mediów."
+                        title={appText.admin.albums.title}
+                        helpText={appText.admin.albums.helpText}
                     />
 
                     {pageError ? (
@@ -219,23 +220,23 @@ export default function AdminAlbumsPage() {
 
                     <div className="mx-auto mt-12 max-w-4xl">
                         <Card className="p-6">
-                            <h2 className="font-serif text-2xl text-ink">Nowy album</h2>
+                            <h2 className="font-serif text-2xl text-ink">{appText.admin.albums.newAlbum}</h2>
                             <div className="mt-6 grid gap-4">
-                                <Field label="Tytuł" htmlFor="new-album-title">
+                                <Field label={appText.admin.albums.fields.title} htmlFor="new-album-title">
                                     <Input
                                         id="new-album-title"
                                         value={createTitle}
                                         onChange={(event) => setCreateTitle(event.target.value)}
-                                        placeholder="Np. Z dzieciństwa"
+                                        placeholder={appText.admin.albums.placeholders.title}
                                     />
                                 </Field>
-                                <Field label="Opis" htmlFor="new-album-description">
+                                <Field label={appText.admin.albums.fields.description} htmlFor="new-album-description">
                                     <Textarea
                                         id="new-album-description"
                                         rows={3}
                                         value={createDescription}
                                         onChange={(event) => setCreateDescription(event.target.value)}
-                                        placeholder="Krótki opis albumu dla gości"
+                                        placeholder={appText.admin.albums.placeholders.description}
                                     />
                                 </Field>
                                 <label className="flex items-center gap-3 font-sans text-sm text-ink">
@@ -244,7 +245,7 @@ export default function AdminAlbumsPage() {
                                         checked={createVisible}
                                         onChange={(event) => setCreateVisible(event.target.checked)}
                                     />
-                                    Widoczny publicznie
+                                    {appText.admin.albums.visiblePublicly}
                                 </label>
                                 <div>
                                     <Button
@@ -254,7 +255,7 @@ export default function AdminAlbumsPage() {
                                         disabled={!isCreateTitleValid}
                                         onClick={() => void handleCreateAlbum()}
                                     >
-                                        Utwórz album
+                                        {appText.admin.albums.create}
                                     </Button>
                                 </div>
                             </div>
@@ -265,7 +266,7 @@ export default function AdminAlbumsPage() {
                         loading={loading}
                         error={error}
                         isEmpty={albums.length === 0}
-                        emptyMessage="Brak albumów do wyświetlenia."
+                        emptyMessage={appText.admin.albums.empty}
                         loadingFallback={<AlbumsSkeleton />}
                     >
                         <div className="mx-auto mt-8 max-w-4xl space-y-4">
@@ -284,18 +285,18 @@ export default function AdminAlbumsPage() {
                                                 <div className="flex flex-wrap items-center gap-3">
                                                     <h2 className="font-serif text-2xl text-ink">{album.title}</h2>
                                                     <span className="status-badge border-sand bg-sand/50 text-ink">
-                                                        {album.isSystem ? 'Systemowy' : 'Niestandardowy'}
+                                                        {album.isSystem ? appText.admin.albums.system : appText.admin.albums.custom}
                                                     </span>
                                                     <span className={`status-badge ${album.isVisible ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
-                                                        {album.isVisible ? 'Widoczny' : 'Ukryty'}
+                                                        {album.isVisible ? appText.common.status.visible : appText.common.status.hidden}
                                                     </span>
                                                 </div>
-                                                <p className="mt-2 text-sm text-muted">Slug: {album.slug}</p>
+                                                <p className="mt-2 text-sm text-muted">{appText.admin.albums.slug}: {album.slug}</p>
                                                 <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted">
-                                                    {album.description || 'Brak opisu albumu.'}
+                                                    {album.description || appText.admin.albums.noDescription}
                                                 </p>
                                                 <p className="mt-3 text-sm text-muted">
-                                                    {album.itemCount} mediów
+                                                    {album.itemCount} {appText.common.media.mediaPlural}
                                                 </p>
                                             </div>
 
@@ -307,7 +308,7 @@ export default function AdminAlbumsPage() {
                                                     onClick={() => void handleMoveAlbum(album.id, 'up')}
                                                     disabled={index === 0 || actionAlbumId !== null}
                                                 >
-                                                    Wyżej
+                                                    {appText.admin.albums.moveUp}
                                                 </Button>
                                                 <Button
                                                     type="button"
@@ -316,7 +317,7 @@ export default function AdminAlbumsPage() {
                                                     onClick={() => void handleMoveAlbum(album.id, 'down')}
                                                     disabled={index === albums.length - 1 || actionAlbumId !== null}
                                                 >
-                                                    Niżej
+                                                    {appText.admin.albums.moveDown}
                                                 </Button>
                                                 <Button
                                                     type="button"
@@ -324,20 +325,20 @@ export default function AdminAlbumsPage() {
                                                     size="sm"
                                                     onClick={() => setEditingAlbumId(album.id)}
                                                 >
-                                                    Edytuj
+                                                    {appText.admin.albums.edit}
                                                 </Button>
                                                 <Link to={`/admin/albums/${album.id}`}>
                                                     <Button type="button" variant="primary" size="sm">
-                                                        Zarządzaj mediami
+                                                        {appText.admin.albums.manageMedia}
                                                     </Button>
                                                 </Link>
                                                 {!album.isSystem ? (
                                                     <ConfirmActionButton
-                                                        confirmMessage="Czy na pewno chcesz usunąć ten album? Usuń najpierw wszystkie media z albumu."
+                                                        confirmMessage={appText.admin.albums.deleteConfirm}
                                                         onConfirm={() => handleDeleteAlbum(album.id)}
                                                         loading={actionAlbumId === album.id}
                                                     >
-                                                        Usuń album
+                                                        {appText.admin.albums.deleteAlbum}
                                                     </ConfirmActionButton>
                                                 ) : null}
                                             </div>

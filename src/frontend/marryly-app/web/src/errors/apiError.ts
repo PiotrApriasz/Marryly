@@ -1,4 +1,5 @@
 import { config } from '../app/config';
+import { appText } from '../content/appText';
 import type {ProblemDetails} from "../types/basic.types.ts";
 
 export class ApiError extends Error {
@@ -29,22 +30,9 @@ export class ApiError extends Error {
     }
 }
 
-const friendlyMessagesByCode: Record<string, string> = {
-    MENU_NOT_FOUND: 'Menu weselne nie zostało jeszcze opublikowane.',
-    EVENTS_NOT_FOUND: 'Harmonogram dnia nie został jeszcze opublikowany.',
-    SCHEDULE_NOT_FOUND: 'Harmonogram dnia nie został jeszcze opublikowany.',
-    UNHANDLED_ERROR: 'Wystąpił problem po stronie serwera. Spróbuj ponownie później.',
-};
+const friendlyMessagesByCode: Record<string, string> = appText.errors.byCode;
 
-const friendlyMessagesByStatus: Record<number, string> = {
-    400: 'Nie udało się przetworzyć żądania. Spróbuj ponownie.',
-    401: 'Brak dostępu do tych danych.',
-    403: 'Brak dostępu do tych danych.',
-    404: 'Szukane dane nie są obecnie dostępne.',
-    500: 'Wystąpił problem po stronie serwera. Spróbuj ponownie później.',
-    502: 'Usługa jest chwilowo niedostępna. Spróbuj ponownie później.',
-    503: 'Usługa jest chwilowo niedostępna. Spróbuj ponownie później.',
-};
+const friendlyMessagesByStatus: Record<number, string> = appText.errors.byStatus;
 
 function getFriendlyMessage(error: ApiError, fallbackMessage: string): string {
     if (error.code && friendlyMessagesByCode[error.code]) {
@@ -65,20 +53,20 @@ function getDebugMessage(error: ApiError, fallbackMessage: string): string {
     lines.push(primaryMessage);
 
     if (error.title && error.title !== primaryMessage) {
-        lines.push(`Title: ${error.title}`);
+        lines.push(`${appText.errors.debug.title}: ${error.title}`);
     }
 
     if (error.code) {
-        lines.push(`Code: ${error.code}`);
+        lines.push(`${appText.errors.debug.code}: ${error.code}`);
     }
 
     if (error.traceId) {
-        lines.push(`Trace ID: ${error.traceId}`);
+        lines.push(`${appText.errors.debug.traceId}: ${error.traceId}`);
     }
 
     if (error.raw?.stackTrace) {
         lines.push('');
-        lines.push('Stack trace:');
+        lines.push(appText.errors.debug.stackTrace);
         lines.push(error.raw.stackTrace);
     }
 

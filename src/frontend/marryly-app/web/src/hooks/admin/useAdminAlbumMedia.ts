@@ -1,5 +1,6 @@
 import type { AdminAlbumMediaPage } from '../../types/admin.types';
 import { adminClient } from '../../api/adminClient';
+import { appText } from '../../content/appText';
 import { useAdminApiResource } from './useAdminApiResource';
 
 interface UseAdminAlbumMediaResult {
@@ -22,7 +23,7 @@ export function useAdminAlbumMedia(albumId: string | undefined, page: number, pa
                 totalCount: 0,
                 totalPages: 1,
             }),
-        fallbackErrorMessage: 'Nie udało się pobrać mediów albumu.',
+        fallbackErrorMessage: appText.errors.fallback.albumMedia,
         logContext: 'Failed to load admin album media',
         initialData: {
             items: [],
