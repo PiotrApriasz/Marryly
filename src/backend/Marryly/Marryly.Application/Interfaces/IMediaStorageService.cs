@@ -6,6 +6,7 @@ public interface IMediaStorageService
     Task UploadDerivedAsync(string blobName, Stream content, string contentType, CancellationToken ct = default);
     string GetDerivedBlobUrl(string blobName);
     string GetOriginalReadUrl(string blobName);
+    string GetOriginalDownloadUrl(string blobName);
     Task DeleteOriginalIfExistsAsync(string? blobName, CancellationToken ct = default);
     Task DeleteDerivedIfExistsAsync(string? blobName, CancellationToken ct = default);
 }

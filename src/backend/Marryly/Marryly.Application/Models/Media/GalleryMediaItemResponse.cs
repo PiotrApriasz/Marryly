@@ -16,6 +16,12 @@ public class GalleryMediaItemResponse
     [JsonProperty("url")]
     public string? Url { get; set; }
 
+    [JsonProperty("originalUrl")]
+    public string? OriginalUrl { get; set; }
+
+    [JsonProperty("downloadUrl")]
+    public string? DownloadUrl { get; set; }
+
     [JsonProperty("thumbnailUrl")]
     public string? ThumbnailUrl { get; set; }
 
@@ -24,6 +30,9 @@ public class GalleryMediaItemResponse
 
     [JsonProperty("uploadedAt")]
     public DateTime UploadedAt { get; set; }
+
+    [JsonProperty("capturedAt")]
+    public DateTime? CapturedAt { get; set; }
 
     [JsonProperty("approved")]
     public bool Approved { get; set; }

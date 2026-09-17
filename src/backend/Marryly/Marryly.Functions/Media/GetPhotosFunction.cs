@@ -64,6 +64,7 @@ public class GetPhotosFunction(
                     url = photo.PreviewBlobUrl,
                     thumbnailUrl = photo.ThumbnailBlobUrl,
                     uploadedAt = photo.UploadedAt,
+                    capturedAt = photo.CapturedAt,
                     approved = photo.Approved,
                     width = photo.Width,
                     height = photo.Height

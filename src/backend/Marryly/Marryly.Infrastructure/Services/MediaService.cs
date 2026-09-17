@@ -439,6 +439,8 @@ public class MediaService(
 
     private AdminPhotoItemResponse MapAdminPhoto(MediaItem item)
     {
+        var originalUrl = GetOriginalUrlForResponse(item);
+
         return new AdminPhotoItemResponse
         {
             Id = item.Id,
@@ -449,12 +451,15 @@ public class MediaService(
             AlbumId = item.AlbumId,
             SourceType = item.SourceType,
             UploadedAt = item.UploadedAt,
+            CapturedAt = item.CapturedAt,
             ContentType = item.ContentType,
             SizeBytes = item.SizeBytes,
             Width = item.Width,
             Height = item.Height,
             OriginalBlobName = item.OriginalBlobName,
-            OriginalBlobUrl = GetOriginalUrlForResponse(item),
+            OriginalBlobUrl = originalUrl,
+            OriginalUrl = originalUrl,
+            DownloadUrl = mediaStorageService.GetOriginalDownloadUrl(item.OriginalBlobName),
             PreviewBlobName = item.PreviewBlobName,
             PreviewBlobUrl = item.PreviewBlobUrl,
             ThumbnailBlobName = item.ThumbnailBlobName,
@@ -465,17 +470,22 @@ public class MediaService(
 
     private GalleryMediaItemResponse MapGalleryMedia(MediaItem item)
     {
+        var originalUrl = GetOriginalUrlForResponse(item);
+
         return new GalleryMediaItemResponse
         {
             Id = item.Id,
             EventId = item.EventId,
             Kind = item.Kind,
-            Url = item.PreviewBlobUrl ?? GetOriginalUrlForResponse(item),
+            Url = item.PreviewBlobUrl ?? originalUrl,
+            OriginalUrl = originalUrl,
+            DownloadUrl = mediaStorageService.GetOriginalDownloadUrl(item.OriginalBlobName),
             ThumbnailUrl = string.Equals(item.Kind, "photo", StringComparison.Ordinal)
                 ? item.ThumbnailBlobUrl ?? item.PreviewBlobUrl ?? item.OriginalBlobUrl
                 : null,
             ContentType = item.ContentType,
             UploadedAt = item.UploadedAt,
+            CapturedAt = item.CapturedAt,
             Approved = item.Approved,
             Width = item.Width,
             Height = item.Height
@@ -522,9 +532,7 @@ public class MediaService(
 
     private string GetOriginalUrlForResponse(MediaItem item)
     {
-        return string.Equals(item.Kind, "video", StringComparison.Ordinal)
-            ? mediaStorageService.GetOriginalReadUrl(item.OriginalBlobName)
-            : item.OriginalBlobUrl;
+        return mediaStorageService.GetOriginalReadUrl(item.OriginalBlobName);
     }
 
     private static bool IsSupportedMediaKind(string kind)

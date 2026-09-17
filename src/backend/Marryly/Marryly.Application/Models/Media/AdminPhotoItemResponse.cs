@@ -28,6 +28,9 @@ public class AdminPhotoItemResponse
     [JsonProperty("uploadedAt")]
     public DateTime UploadedAt { get; set; }
 
+    [JsonProperty("capturedAt")]
+    public DateTime? CapturedAt { get; set; }
+
     [JsonProperty("contentType")]
     public required string ContentType { get; set; }
 
@@ -45,6 +48,12 @@ public class AdminPhotoItemResponse
 
     [JsonProperty("originalBlobUrl")]
     public required string OriginalBlobUrl { get; set; }
+
+    [JsonProperty("originalUrl")]
+    public string? OriginalUrl { get; set; }
+
+    [JsonProperty("downloadUrl")]
+    public string? DownloadUrl { get; set; }
 
     [JsonProperty("previewBlobName")]
     public string? PreviewBlobName { get; set; }

@@ -18,4 +18,10 @@ public class CompletePhotoUploadRequest
 
     [JsonProperty("sizeBytes")]
     public long SizeBytes { get; set; }
+
+    [JsonProperty("capturedAt")]
+    public DateTimeOffset? CapturedAt { get; set; }
+
+    [JsonProperty("lastModifiedAt")]
+    public DateTimeOffset? LastModifiedAt { get; set; }
 }

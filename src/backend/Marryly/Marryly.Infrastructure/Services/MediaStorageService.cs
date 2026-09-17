@@ -37,6 +37,16 @@ public class MediaStorageService(IConfiguration configuration) : IMediaStorageSe
 
     public string GetOriginalReadUrl(string blobName)
     {
+        return BuildOriginalUrl(blobName);
+    }
+
+    public string GetOriginalDownloadUrl(string blobName)
+    {
+        return BuildOriginalUrl(blobName, "attachment");
+    }
+
+    private string BuildOriginalUrl(string blobName, string? contentDisposition = null)
+    {
         var blobClient = GetOriginalsContainerClient().GetBlobClient(blobName);
         var now = DateTimeOffset.UtcNow;
         var sasBuilder = new BlobSasBuilder
@@ -49,6 +59,7 @@ public class MediaStorageService(IConfiguration configuration) : IMediaStorageSe
         };
 
         sasBuilder.SetPermissions(BlobSasPermissions.Read);
+        sasBuilder.ContentDisposition = contentDisposition;
 
         var uploadUrlBuilder = new UriBuilder(blobClient.Uri)
         {

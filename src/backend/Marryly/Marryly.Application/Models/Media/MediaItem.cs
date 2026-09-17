@@ -43,6 +43,9 @@ public class MediaItem : BaseModel
     [JsonProperty("uploadedAt")]
     public DateTime UploadedAt { get; set; }
 
+    [JsonProperty("capturedAt")]
+    public DateTime? CapturedAt { get; set; }
+
     [JsonProperty("width")]
     public int Width { get; set; }
 

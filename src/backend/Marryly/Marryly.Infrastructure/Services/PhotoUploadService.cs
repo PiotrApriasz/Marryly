@@ -170,6 +170,7 @@ public class PhotoUploadService(
             ContentType = NormalizeContentType(request.ContentType, request.BlobName, kind),
             SizeBytes = request.SizeBytes,
             UploadedAt = DateTime.UtcNow,
+            CapturedAt = request.CapturedAt?.UtcDateTime ?? request.LastModifiedAt?.UtcDateTime,
             Approved = true,
             ProcessedAt = kind == VideoKind ? DateTime.UtcNow : null
         };
@@ -178,6 +179,7 @@ public class PhotoUploadService(
 
         if (kind == VideoKind)
         {
+            savedItem.CapturedAt ??= savedItem.UploadedAt;
             return savedItem;
         }
 
@@ -193,6 +195,7 @@ public class PhotoUploadService(
             savedItem.Width = derivativeResult.Width;
             savedItem.Height = derivativeResult.Height;
             savedItem.ProcessedAt = derivativeResult.ProcessedAt;
+            savedItem.CapturedAt ??= savedItem.UploadedAt;
             savedItem.ProcessingError = null;
 
             return await mediaService.UpsertMediaAsync(eventId, savedItem, ct);
