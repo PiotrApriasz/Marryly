@@ -47,6 +47,8 @@ public class GetAdminAlbumsFunction(
                         Description = album.Description,
                         IsSystem = album.IsSystem,
                         IsVisible = album.IsVisible,
+                        IsLinkAccessible = album.IsLinkAccessible,
+                        ShareCode = album.ShareCode,
                         SortOrder = album.SortOrder,
                         CoverUrl = insight?.CoverUrl,
                         ItemCount = insight?.ItemCount ?? 0

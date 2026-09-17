@@ -80,7 +80,8 @@ public class GetGalleryAlbumsFunction(
             Slug = album.Slug,
             Description = album.Description,
             CoverUrl = insight?.CoverUrl,
-            ItemCount = insight?.ItemCount ?? 0
+            ItemCount = insight?.ItemCount ?? 0,
+            PhotoCount = insight?.PhotoCount ?? 0
         };
     }
 }

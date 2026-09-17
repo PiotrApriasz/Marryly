@@ -1,5 +1,6 @@
 using System.Net;
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using Marryly.Application.Constants;
 using Marryly.Application.Exceptions;
@@ -14,6 +15,8 @@ public class AlbumService(
     ICosmosDbService<Album> cosmosDbService,
     IMediaService mediaService) : IAlbumService
 {
+    private const string ShareCodeAlphabet = "abcdefghijklmnopqrstuvwyz0123456789";
+
     public async Task<Album> EnsureGuestAlbumAsync(string eventId, CancellationToken ct = default)
     {
         var existing = await cosmosDbService.GetAsync(AlbumConstants.GuestAlbumId, PartitionKeyResolver.ForEventIdBasedData(eventId), ct);
@@ -58,6 +61,29 @@ public class AlbumService(
                 .WithParameter("@eventId", eventId),
             eventId,
             ct);
+    }
+
+    public async Task<IReadOnlyList<Album>> GetLinkAccessibleAlbumsAsync(
+        string eventId,
+        IReadOnlyList<string> shareCodes,
+        CancellationToken ct = default)
+    {
+        if (shareCodes.Count == 0)
+        {
+            return [];
+        }
+
+        var requestedCodes = shareCodes.ToHashSet(StringComparer.Ordinal);
+        var albumsByCode = (await GetAdminAlbumsAsync(eventId, ct))
+            .Where(album => album.IsLinkAccessible &&
+                            !string.IsNullOrWhiteSpace(album.ShareCode) &&
+                            requestedCodes.Contains(album.ShareCode))
+            .ToDictionary(album => album.ShareCode!, StringComparer.Ordinal);
+
+        return shareCodes
+            .Where(albumsByCode.ContainsKey)
+            .Select(code => albumsByCode[code])
+            .ToList();
     }
 
     public async Task<Album?> GetAlbumByIdAsync(string eventId, string albumId, CancellationToken ct = default)
@@ -114,10 +140,16 @@ public class AlbumService(
             Description = request.Description?.Trim(),
             IsSystem = false,
             IsVisible = request.IsVisible ?? true,
+            IsLinkAccessible = request.IsLinkAccessible ?? false,
             SortOrder = albums.Count == 0 ? 0 : albums.Max(item => item.SortOrder) + 1,
             CreatedAt = now,
             UpdatedAt = now
         };
+
+        if (album.IsLinkAccessible)
+        {
+            album.ShareCode = await CreateUniqueShareCodeAsync(eventId, ct);
+        }
 
         return await cosmosDbService.AddAsync(album, ct);
     }
@@ -137,6 +169,15 @@ public class AlbumService(
         if (!album.IsSystem && request.IsVisible.HasValue)
         {
             album.IsVisible = request.IsVisible.Value;
+        }
+
+        if (!album.IsSystem && request.IsLinkAccessible.HasValue)
+        {
+            album.IsLinkAccessible = request.IsLinkAccessible.Value;
+            if (album.IsLinkAccessible && string.IsNullOrWhiteSpace(album.ShareCode))
+            {
+                album.ShareCode = await CreateUniqueShareCodeAsync(eventId, ct);
+            }
         }
 
         album.UpdatedAt = DateTime.UtcNow;
@@ -234,6 +275,22 @@ public class AlbumService(
 
             candidate = $"{baseSlug}-{suffix}";
             suffix += 1;
+        }
+    }
+
+    private async Task<string> CreateUniqueShareCodeAsync(string eventId, CancellationToken ct)
+    {
+        while (true)
+        {
+            var candidate = new string(Enumerable.Range(0, SharedGalleryAccess.ShareCodeLength)
+                .Select(_ => ShareCodeAlphabet[RandomNumberGenerator.GetInt32(ShareCodeAlphabet.Length)])
+                .ToArray());
+
+            var existing = await GetLinkAccessibleAlbumsAsync(eventId, [candidate], ct);
+            if (existing.Count == 0)
+            {
+                return candidate;
+            }
         }
     }
 

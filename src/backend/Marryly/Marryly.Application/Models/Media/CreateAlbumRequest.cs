@@ -12,4 +12,7 @@ public class CreateAlbumRequest
 
     [JsonProperty("isVisible")]
     public bool? IsVisible { get; set; }
+
+    [JsonProperty("isLinkAccessible")]
+    public bool? IsLinkAccessible { get; set; }
 }

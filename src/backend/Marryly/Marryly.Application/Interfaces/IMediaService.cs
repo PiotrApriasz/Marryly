@@ -12,6 +12,12 @@ public interface IMediaService
     Task<PagedPhotosResponse> GetApprovedPhotosPageAsync(string eventId, int limit, string? continuationToken, CancellationToken ct = default);
     Task<PagedAdminPhotosResponse> GetAdminPhotosPageAsync(string eventId, int page, int pageSize, CancellationToken ct = default);
     Task<AlbumMediaPageResponse> GetAlbumMediaPageAsync(string eventId, string albumId, int limit, string? continuationToken, CancellationToken ct = default);
+    Task<string?> GetRandomAlbumPhotoUrlAsync(string eventId, string albumId, CancellationToken ct = default);
+    Task<IReadOnlyList<MediaItem>> GetDownloadableAlbumPhotosAsync(
+        string eventId,
+        string albumId,
+        IReadOnlyCollection<string>? mediaIds = null,
+        CancellationToken ct = default);
     Task<PagedAdminPhotosResponse> GetAdminAlbumMediaPageAsync(string eventId, string albumId, int page, int pageSize, CancellationToken ct = default);
     Task<IReadOnlyList<AdminSlideshowPhotoResponse>> GetSlideshowPhotosAsync(string eventId, IReadOnlyList<string> albumIds, DateTime? afterUploadedAt, CancellationToken ct = default);
     Task<Dictionary<string, AlbumMediaInsight>> GetAlbumInsightsAsync(string eventId, bool publicOnly, CancellationToken ct = default);

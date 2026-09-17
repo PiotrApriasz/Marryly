@@ -25,6 +25,7 @@ public class CosmosDbService<T> : ICosmosDbService<T>
         { typeof(Album), "Albums" },
         { typeof(MediaItem), "MediaItems" },
         { typeof(SlideshowSettings), "EventData" },
+        { typeof(GalleryShareLink), "EventData" },
     };
 
     public CosmosDbService(ICosmosContainerProvider provider)

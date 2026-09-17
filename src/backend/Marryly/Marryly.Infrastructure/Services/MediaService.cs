@@ -4,6 +4,7 @@ using Marryly.Application.Models.Media;
 using Marryly.Application.Models.Slideshow;
 using Marryly.Infrastructure.Database;
 using Microsoft.Azure.Cosmos;
+using System.Security.Cryptography;
 
 namespace Marryly.Infrastructure.Services;
 
@@ -202,6 +203,80 @@ public class MediaService(
         };
     }
 
+    public async Task<string?> GetRandomAlbumPhotoUrlAsync(
+        string eventId,
+        string albumId,
+        CancellationToken ct = default)
+    {
+        var query = new QueryDefinition(
+                $"SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND c.approved = true AND c.status = @status AND {BuildAlbumFilterClause(albumId)} ORDER BY c.uploadedAt DESC")
+            .WithParameter("@eventId", eventId)
+            .WithParameter("@kind", "photo")
+            .WithParameter("@status", "ready")
+            .WithParameter("@albumId", albumId);
+
+        var photos = new List<MediaItem>();
+        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
+                       {
+                           PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId)
+                       }, ct))
+        {
+            photos.Add(item);
+        }
+
+        if (photos.Count == 0)
+        {
+            return null;
+        }
+
+        var selectedPhoto = photos[RandomNumberGenerator.GetInt32(photos.Count)];
+        return GetHeroUrl(selectedPhoto);
+    }
+
+    public async Task<IReadOnlyList<MediaItem>> GetDownloadableAlbumPhotosAsync(
+        string eventId,
+        string albumId,
+        IReadOnlyCollection<string>? mediaIds = null,
+        CancellationToken ct = default)
+    {
+        var normalizedMediaIds = mediaIds?
+            .Select(mediaId => mediaId?.Trim() ?? string.Empty)
+            .Where(mediaId => mediaId.Length > 0)
+            .Distinct(StringComparer.Ordinal)
+            .ToList();
+
+        if (normalizedMediaIds is not null && normalizedMediaIds.Count == 0)
+        {
+            return [];
+        }
+
+        var mediaFilter = normalizedMediaIds is null
+            ? string.Empty
+            : " AND ARRAY_CONTAINS(@mediaIds, c.id)";
+        var query = new QueryDefinition(
+                $"SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND c.approved = true AND c.status = @status AND {BuildAlbumFilterClause(albumId)}{mediaFilter} ORDER BY c.uploadedAt DESC")
+            .WithParameter("@eventId", eventId)
+            .WithParameter("@kind", "photo")
+            .WithParameter("@status", "ready")
+            .WithParameter("@albumId", albumId);
+
+        if (normalizedMediaIds is not null)
+        {
+            query = query.WithParameter("@mediaIds", normalizedMediaIds);
+        }
+
+        var photos = new List<MediaItem>();
+        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
+                       {
+                           PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId)
+                       }, ct))
+        {
+            photos.Add(item);
+        }
+
+        return photos;
+    }
+
     public async Task<PagedAdminPhotosResponse> GetAdminAlbumMediaPageAsync(
         string eventId,
         string albumId,
@@ -363,6 +438,7 @@ public class MediaService(
                 group => new AlbumMediaInsight
                 {
                     ItemCount = group.Count(),
+                    PhotoCount = group.Count(item => string.Equals(item.Kind, "photo", StringComparison.Ordinal)),
                     CoverUrl = group.Select(GetBestCoverUrl).FirstOrDefault(url => !string.IsNullOrWhiteSpace(url))
                 },
                 StringComparer.Ordinal);
@@ -528,6 +604,11 @@ public class MediaService(
         }
 
         return item.ThumbnailBlobUrl ?? item.PreviewBlobUrl ?? item.OriginalBlobUrl;
+    }
+
+    private string GetHeroUrl(MediaItem item)
+    {
+        return item.PreviewBlobUrl ?? item.ThumbnailBlobUrl ?? GetOriginalUrlForResponse(item);
     }
 
     private string GetOriginalUrlForResponse(MediaItem item)

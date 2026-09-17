@@ -18,4 +18,7 @@ public class CreatePhotoUploadRequest
 
     [JsonProperty("lastModifiedAt")]
     public DateTimeOffset? LastModifiedAt { get; set; }
+
+    [JsonProperty("clientUploadId")]
+    public string? ClientUploadId { get; set; }
 }

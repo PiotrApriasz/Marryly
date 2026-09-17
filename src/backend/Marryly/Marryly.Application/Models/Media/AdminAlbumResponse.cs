@@ -22,6 +22,12 @@ public class AdminAlbumResponse
     [JsonProperty("isVisible")]
     public bool IsVisible { get; set; }
 
+    [JsonProperty("isLinkAccessible")]
+    public bool IsLinkAccessible { get; set; }
+
+    [JsonProperty("shareCode")]
+    public string? ShareCode { get; set; }
+
     [JsonProperty("sortOrder")]
     public int SortOrder { get; set; }
 

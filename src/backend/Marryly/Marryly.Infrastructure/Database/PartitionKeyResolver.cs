@@ -33,6 +33,9 @@ public static class PartitionKeyResolver
         SlideshowSettings g => new PartitionKeyBuilder()
             .Add(g.EventId)
             .Build(),
+        GalleryShareLink g => new PartitionKeyBuilder()
+            .Add(g.EventId)
+            .Build(),
         _ => throw new InvalidOperationException("No partition key definition for this entity type.")
     };
     

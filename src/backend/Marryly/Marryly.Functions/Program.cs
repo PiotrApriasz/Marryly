@@ -63,6 +63,7 @@ builder.Services.AddScoped<IEventDetailsService, EventDetailsService>();
 builder.Services.AddScoped<IGuestBookService, GuestBookService>();
 builder.Services.AddScoped<IGuestListService, GuestListService>();
 builder.Services.AddScoped<IAlbumService, AlbumService>();
+builder.Services.AddScoped<IGalleryShareLinkService, GalleryShareLinkService>();
 builder.Services.AddScoped<IMediaStorageService, MediaStorageService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IPhotoUploadService, PhotoUploadService>();

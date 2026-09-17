@@ -21,4 +21,13 @@ public class GalleryAlbumResponse
 
     [JsonProperty("itemCount")]
     public int ItemCount { get; set; }
+
+    [JsonProperty("photoCount")]
+    public int PhotoCount { get; set; }
+
+    [JsonProperty("heroUrl")]
+    public string? HeroUrl { get; set; }
+
+    [JsonProperty("shareCode")]
+    public string? ShareCode { get; set; }
 }

@@ -1,7 +1,10 @@
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
+using Marryly.Application.Constants;
 using Marryly.Application.Exceptions;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Media;
@@ -58,7 +61,26 @@ public class PhotoUploadService(
         return CreateMediaUploadAsync(eventId, request, ct);
     }
 
+    public Task<PhotoUploadTargetResponse> CreateAdminAlbumPhotoUploadAsync(
+        string eventId,
+        string albumId,
+        CreatePhotoUploadRequest request,
+        CancellationToken ct = default)
+    {
+        request.Kind = PhotoKind;
+        return CreateMediaUploadAsync(eventId, albumId, request, ct);
+    }
+
     public Task<PhotoUploadTargetResponse> CreateMediaUploadAsync(string eventId, CreatePhotoUploadRequest request, CancellationToken ct = default)
+    {
+        return CreateMediaUploadAsync(eventId, null, request, ct);
+    }
+
+    private Task<PhotoUploadTargetResponse> CreateMediaUploadAsync(
+        string eventId,
+        string? albumId,
+        CreatePhotoUploadRequest request,
+        CancellationToken ct = default)
     {
         var kind = NormalizeMediaKind(request.Kind, request.ContentType, request.FileName);
         var validationError = ValidateCreateRequest(request, kind, GetMaxAllowedFileSizeBytes(kind));
@@ -82,11 +104,14 @@ public class PhotoUploadService(
                 "Media upload storage configuration is missing.");
         }
 
-        var mediaId = Guid.NewGuid().ToString();
+        var mediaId = ResolveMediaId(eventId, albumId, request.ClientUploadId);
         var fileExtension = GetSafeExtension(request.FileName, kind);
         var now = DateTimeOffset.UtcNow;
         var blobFolder = kind == VideoKind ? "videos" : "photos";
-        var blobName = $"events/{eventId}/{blobFolder}/{now:yyyy}/{now:MM}/{now:dd}/{mediaId}{fileExtension}";
+        var blobPath = string.IsNullOrWhiteSpace(albumId) || string.IsNullOrWhiteSpace(request.ClientUploadId)
+            ? $"{now:yyyy}/{now:MM}/{now:dd}/{mediaId}"
+            : $"bulk/{mediaId}";
+        var blobName = $"events/{eventId}/{blobFolder}/{blobPath}{fileExtension}";
 
         var credential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
         var serviceUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
@@ -157,6 +182,29 @@ public class PhotoUploadService(
             throw validationError;
         }
 
+        var normalizedBlobName = request.BlobName.Trim();
+        var existingItem = string.Equals(sourceType, AlbumConstants.AdminSourceType, StringComparison.Ordinal)
+            ? await mediaService.GetMediaByIdAsync(eventId, mediaId, ct)
+            : null;
+        if (existingItem is not null)
+        {
+            if (!string.Equals(existingItem.AlbumId, albumId, StringComparison.Ordinal) ||
+                !string.Equals(existingItem.Kind, kind, StringComparison.Ordinal) ||
+                !string.Equals(existingItem.OriginalBlobName, normalizedBlobName, StringComparison.Ordinal))
+            {
+                throw new ApiErrorException(
+                    HttpStatusCode.Conflict,
+                    "MEDIA_UPLOAD_IDEMPOTENCY_CONFLICT",
+                    "Media upload conflict",
+                    "The upload identifier is already associated with a different media item.");
+            }
+
+            if (string.Equals(existingItem.Status, "ready", StringComparison.Ordinal))
+            {
+                return existingItem;
+            }
+        }
+
         var mediaItem = new MediaItem
         {
             Id = mediaId,
@@ -165,7 +213,7 @@ public class PhotoUploadService(
             Status = kind == VideoKind ? "ready" : "processing",
             AlbumId = albumId,
             SourceType = sourceType,
-            OriginalBlobName = request.BlobName.Trim(),
+            OriginalBlobName = normalizedBlobName,
             OriginalBlobUrl = request.BlobUrl.Trim(),
             ContentType = NormalizeContentType(request.ContentType, request.BlobName, kind),
             SizeBytes = request.SizeBytes,
@@ -255,6 +303,33 @@ public class PhotoUploadService(
         }
 
         return ValidateFileMetadata(request.FileName, request.ContentType, request.FileSizeBytes, kind, maxAllowedFileSizeBytes);
+    }
+
+    private static string ResolveMediaId(string eventId, string? albumId, string? clientUploadId)
+    {
+        if (string.IsNullOrWhiteSpace(albumId) || string.IsNullOrWhiteSpace(clientUploadId))
+        {
+            return Guid.NewGuid().ToString();
+        }
+
+        if (!Guid.TryParse(clientUploadId, out _))
+        {
+            throw new ApiErrorException(
+                HttpStatusCode.BadRequest,
+                "INVALID_CLIENT_UPLOAD_ID",
+                "Invalid client upload identifier",
+                "Client upload identifier must be a valid UUID.");
+        }
+
+        var seed = Encoding.UTF8.GetBytes($"{eventId}:{albumId}:{clientUploadId}");
+        var hash = SHA256.HashData(seed);
+        var guidBytes = hash[..16];
+
+        // Mark the deterministic identifier as a version 5 UUID and apply the RFC variant.
+        guidBytes[6] = (byte)((guidBytes[6] & 0x0F) | 0x50);
+        guidBytes[8] = (byte)((guidBytes[8] & 0x3F) | 0x80);
+
+        return new Guid(guidBytes).ToString();
     }
 
     private static ApiErrorException? ValidateCompleteRequest(
