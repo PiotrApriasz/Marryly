@@ -9,6 +9,8 @@ import { sortMediaByDate } from '../utils/media';
 
 interface UseInfiniteAlbumMediaOptions {
     albumSlug?: string;
+    sharedView?: string;
+    shareCode?: string;
     pageSize?: number;
 }
 
@@ -23,6 +25,8 @@ interface UseInfiniteAlbumMediaResult {
 
 export function useInfiniteAlbumMedia({
     albumSlug,
+    sharedView,
+    shareCode,
     pageSize = 50,
 }: UseInfiniteAlbumMediaOptions = {}): UseInfiniteAlbumMediaResult {
     const [photos, setPhotos] = useState<GalleryMediaItem[]>([]);
@@ -35,7 +39,8 @@ export function useInfiniteAlbumMedia({
     const requestInFlightRef = useRef(false);
 
     const fetchPage = useCallback(async (nextToken?: string | null, append = false) => {
-        if (!albumSlug || requestInFlightRef.current) {
+        const albumIdentifier = shareCode ?? albumSlug;
+        if (!albumIdentifier || requestInFlightRef.current) {
             return;
         }
 
@@ -51,7 +56,9 @@ export function useInfiniteAlbumMedia({
         try {
             const page = config.useMockPhotos
                 ? await getMockPhotosPage(pageSize, nextToken)
-                : await apiClient.getGalleryAlbumMedia(albumSlug, pageSize, nextToken);
+                : sharedView && shareCode
+                    ? await apiClient.getSharedGalleryAlbumMedia(shareCode, sharedView, pageSize, nextToken)
+                    : await apiClient.getGalleryAlbumMedia(albumSlug!, pageSize, nextToken);
             const nextItems = page.items
                 .map((item) => ({ ...item, kind: item.kind ?? 'photo' }) as GalleryMediaItem)
                 .filter((item) => !loadedIdsRef.current.has(item.id));
@@ -72,7 +79,7 @@ export function useInfiniteAlbumMedia({
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [albumSlug, pageSize]);
+    }, [albumSlug, pageSize, shareCode, sharedView]);
 
     useEffect(() => {
         loadedIdsRef.current = new Set();
@@ -80,13 +87,13 @@ export function useInfiniteAlbumMedia({
         setContinuationToken(null);
         setHasMore(true);
 
-        if (!albumSlug) {
+        if (!shareCode && !albumSlug) {
             setLoading(false);
             return;
         }
 
         void fetchPage(null, false);
-    }, [albumSlug, fetchPage]);
+    }, [albumSlug, fetchPage, shareCode]);
 
     const loadMore = useCallback(async () => {
         if (!hasMore || !continuationToken) {

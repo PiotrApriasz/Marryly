@@ -3,6 +3,8 @@ import type {
     AdminAlbum,
     AdminAlbumMediaPage,
     AdminAlbumsResponse,
+    AdminGalleryShareLink,
+    AdminGalleryShareLinksResponse,
     AdminGuestFamilyPayload,
     AdminGuestFamilyResponse,
     AdminGuestInvitationGroup,
@@ -74,11 +76,11 @@ export class AdminClient {
         return adminApiClient.get<AdminAlbumsResponse>('/panel/albums');
     }
 
-    async createAlbum(payload: { title: string; description?: string; isVisible?: boolean }): Promise<AdminAlbum> {
+    async createAlbum(payload: { title: string; description?: string; isVisible?: boolean; isLinkAccessible?: boolean }): Promise<AdminAlbum> {
         return adminApiClient.post<AdminAlbum>('/panel/albums', payload);
     }
 
-    async updateAlbum(albumId: string, payload: { title?: string; description?: string; isVisible?: boolean }): Promise<AdminAlbum> {
+    async updateAlbum(albumId: string, payload: { title?: string; description?: string; isVisible?: boolean; isLinkAccessible?: boolean }): Promise<AdminAlbum> {
         return adminApiClient.patch<AdminAlbum>(`/panel/albums/${albumId}`, payload);
     }
 
@@ -88,6 +90,18 @@ export class AdminClient {
 
     async reorderAlbums(albumIds: string[]): Promise<void> {
         await adminApiClient.post<void>('/panel/albums/reorder', { albumIds });
+    }
+
+    async getGalleryShareLinks(): Promise<AdminGalleryShareLinksResponse> {
+        return adminApiClient.get<AdminGalleryShareLinksResponse>('/panel/gallery-share-links');
+    }
+
+    async createGalleryShareLink(payload: { description?: string; albumIds: string[]; url: string }): Promise<AdminGalleryShareLink> {
+        return adminApiClient.post<AdminGalleryShareLink>('/panel/gallery-share-links', payload);
+    }
+
+    async deleteGalleryShareLink(linkId: string): Promise<void> {
+        await adminApiClient.delete<void>(`/panel/gallery-share-links/${linkId}`);
     }
 
     async getAlbumMedia(albumId: string, page: number, pageSize: number): Promise<AdminAlbumMediaPage> {

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { adminClient } from '../api/adminClient';
+import AdminBulkPhotoUploadPanel from '../components/AdminBulkPhotoUploadPanel';
 import ApiErrorAlert from '../components/ApiErrorAlert';
 import AdminBackLink from '../components/AdminBackLink';
 import AdminMediaGrid from '../components/AdminMediaGrid';
@@ -9,13 +10,13 @@ import InfiniteLoadMore from '../components/InfiniteLoadMore';
 import Layout from '../components/Layout';
 import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
-import PhotoUploadPanel from '../components/PhotoUploadPanel';
 import Section from '../components/Section';
 import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { invalidateAdminCache, invalidateAdminCacheByPrefix } from '../hooks/admin/useAdminApiResource';
 import { useAdminAlbumMedia } from '../hooks/admin/useAdminAlbumMedia';
 import { useAdminAlbums } from '../hooks/admin/useAdminAlbums';
+import { useAdminUploadQueue } from '../hooks/admin/useAdminUploadQueue';
 import { invalidateCachedApiResourcesByPrefix } from '../hooks/useCachedApiResource';
 
 const PAGE_SIZE = 12;
@@ -27,6 +28,16 @@ export default function AdminAlbumPage() {
     const { albumsResponse, loading: albumsLoading, error: albumsError, reload: reloadAlbums } = useAdminAlbums();
     const { items, loading, loadingMore, error, hasMore, totalCount, loadMore, reload } = useAdminAlbumMedia(albumId, PAGE_SIZE);
     const album = albumsResponse.items.find((item) => item.id === albumId) ?? null;
+    const { completedAlbumIds, completionVersion } = useAdminUploadQueue();
+
+    useEffect(() => {
+        if (!albumId || !completedAlbumIds.includes(albumId)) {
+            return;
+        }
+
+        reloadAlbums();
+        reload();
+    }, [albumId, completedAlbumIds, completionVersion, reload, reloadAlbums]);
 
     const invalidateAfterChange = () => {
         invalidateAdminCache('albums');
@@ -83,19 +94,7 @@ export default function AdminAlbumPage() {
 
                     {album ? (
                         <div className="mt-12">
-                            <PhotoUploadPanel
-                                addButtonLabel={appText.admin.album.upload.addButtonLabel}
-                                addButtonDescription={appText.admin.album.upload.addButtonDescription}
-                                successTitle={appText.admin.album.upload.successTitle}
-                                acceptedKinds={['photo']}
-                                onCreateUpload={(payload) => adminClient.createAlbumPhotoUpload(album.id, payload)}
-                                onCompleteUpload={(payload) => adminClient.completeAlbumPhotoUpload(album.id, payload)}
-                                onAfterUpload={() => {
-                                    invalidateAfterChange();
-                                    reloadAlbums();
-                                    reload();
-                                }}
-                            />
+                            <AdminBulkPhotoUploadPanel albumId={album.id} />
                         </div>
                     ) : null}
 

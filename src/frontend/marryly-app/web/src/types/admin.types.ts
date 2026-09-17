@@ -172,6 +172,8 @@ export interface AdminAlbum {
     description?: string | null;
     isSystem: boolean;
     isVisible: boolean;
+    isLinkAccessible: boolean;
+    shareCode?: string | null;
     sortOrder: number;
     coverUrl?: string | null;
     itemCount: number;
@@ -179,6 +181,18 @@ export interface AdminAlbum {
 
 export interface AdminAlbumsResponse {
     items: AdminAlbum[];
+}
+
+export interface AdminGalleryShareLink {
+    id: string;
+    description?: string | null;
+    albumIds: string[];
+    url: string;
+    createdAt: string;
+}
+
+export interface AdminGalleryShareLinksResponse {
+    items: AdminGalleryShareLink[];
 }
 
 export type AdminAlbumMediaItem = AdminMediaItem;

@@ -4,7 +4,7 @@ import ProtectedRoute from './ProtectedRoute';
 import RouteLoadingScreen from '../components/RouteLoadingScreen';
 
 const AccessPage = lazy(() => import('../pages/AccessPage'));
-const MainPage = lazy(() => import('../pages/MainPage'));
+const RootPage = lazy(() => import('../pages/RootPage'));
 const MenuPage = lazy(() => import('../pages/MenuPage'));
 const AttractionsPage = lazy(() => import('../pages/AttractionsPage'));
 const EventsPage = lazy(() => import('../pages/EventsPage'));
@@ -13,6 +13,7 @@ const GuestUploadPage = lazy(() => import('../pages/GuestUploadPage'));
 const CurrentPhotosPage = lazy(() => import('../pages/CurrentPhotosPage'));
 const GalleryPage = lazy(() => import('../pages/GalleryPage'));
 const GalleryAlbumPage = lazy(() => import('../pages/GalleryAlbumPage'));
+const SharedGalleryAlbumPage = lazy(() => import('../pages/SharedGalleryAlbumPage'));
 const SlideshowPage = lazy(() => import('../pages/SlideshowPage'));
 const AdminDashboardPage = lazy(() => import('../pages/AdminDashboardPage'));
 const AdminGuestsPage = lazy(() => import('../pages/AdminGuestsPage'));
@@ -21,6 +22,7 @@ const AdminGuestBookPage = lazy(() => import('../pages/AdminGuestBookPage'));
 const AdminAlbumsPage = lazy(() => import('../pages/AdminAlbumsPage'));
 const AdminAlbumPage = lazy(() => import('../pages/AdminAlbumPage'));
 const AdminSlideshowPage = lazy(() => import('../pages/AdminSlideshowPage'));
+const AdminGalleryShareLinksPage = lazy(() => import('../pages/AdminGalleryShareLinksPage'));
 
 function pageElement(PageComponent: LazyExoticComponent<ComponentType>) {
     return (
@@ -36,7 +38,7 @@ export const router = createBrowserRouter([
     {
         element: <ProtectedRoute />,
         children: [
-            { path: '/', element: pageElement(MainPage) },
+            { path: '/', element: pageElement(RootPage) },
             { path: '/menu', element: pageElement(MenuPage) },
             { path: '/attractions', element: pageElement(AttractionsPage) },
             { path: '/events', element: pageElement(EventsPage) },
@@ -47,6 +49,7 @@ export const router = createBrowserRouter([
             { path: '/gallery/:slug', element: pageElement(GalleryAlbumPage) },
         ],
     },
+    { path: '/shared-gallery/:shareCode', element: pageElement(SharedGalleryAlbumPage) },
     {
         element: <ProtectedRoute requireAdmin />,
         children: [
@@ -56,6 +59,7 @@ export const router = createBrowserRouter([
             { path: '/admin/guestbook', element: pageElement(AdminGuestBookPage) },
             { path: '/admin/albums', element: pageElement(AdminAlbumsPage) },
             { path: '/admin/albums/:albumId', element: pageElement(AdminAlbumPage) },
+            { path: '/admin/gallery-share-links', element: pageElement(AdminGalleryShareLinksPage) },
             { path: '/admin/slideshow', element: pageElement(AdminSlideshowPage) },
             { path: '/admin/photos', element: <Navigate to="/admin/albums" replace /> },
             { path: '/slideshow', element: pageElement(SlideshowPage) },

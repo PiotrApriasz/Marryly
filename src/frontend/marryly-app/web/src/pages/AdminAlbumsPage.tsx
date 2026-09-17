@@ -42,12 +42,13 @@ function AlbumEditForm({
 }: {
     album: AdminAlbum;
     onCancel: () => void;
-    onSave: (payload: { title?: string; description?: string; isVisible?: boolean }) => Promise<void>;
+    onSave: (payload: { title?: string; description?: string; isVisible?: boolean; isLinkAccessible?: boolean }) => Promise<void>;
     saving: boolean;
 }) {
     const [title, setTitle] = useState(album.title);
     const [description, setDescription] = useState(album.description ?? '');
     const [isVisible, setIsVisible] = useState(album.isVisible);
+    const [isLinkAccessible, setIsLinkAccessible] = useState(album.isLinkAccessible);
 
     return (
         <div className="space-y-4">
@@ -76,6 +77,15 @@ function AlbumEditForm({
                 />
                 {appText.admin.albums.visiblePublicly}
             </label>
+            <label className="flex items-center gap-3 font-sans text-sm text-ink">
+                <input
+                    type="checkbox"
+                    checked={isLinkAccessible}
+                    disabled={album.isSystem}
+                    onChange={(event) => setIsLinkAccessible(event.target.checked)}
+                />
+                {appText.admin.albums.linkAccessible}
+            </label>
             <div className="flex flex-wrap gap-3">
                 <Button
                     type="button"
@@ -86,6 +96,7 @@ function AlbumEditForm({
                         title,
                         description,
                         isVisible,
+                        isLinkAccessible,
                     })}
                 >
                     {appText.common.actions.save}
@@ -104,6 +115,7 @@ export default function AdminAlbumsPage() {
     const [createTitle, setCreateTitle] = useState('');
     const [createDescription, setCreateDescription] = useState('');
     const [createVisible, setCreateVisible] = useState(true);
+    const [createLinkAccessible, setCreateLinkAccessible] = useState(false);
     const [pageError, setPageError] = useState<string | null>(null);
     const [isCreating, setIsCreating] = useState(false);
     const [editingAlbumId, setEditingAlbumId] = useState<string | null>(null);
@@ -129,10 +141,12 @@ export default function AdminAlbumsPage() {
                 title: createTitle.trim(),
                 description: createDescription.trim() || undefined,
                 isVisible: createVisible,
+                isLinkAccessible: createLinkAccessible,
             });
             setCreateTitle('');
             setCreateDescription('');
             setCreateVisible(true);
+            setCreateLinkAccessible(false);
             invalidateAfterAlbumChange();
             reload();
         } catch (err: unknown) {
@@ -143,7 +157,7 @@ export default function AdminAlbumsPage() {
         }
     };
 
-    const handleSaveAlbum = async (albumId: string, payload: { title?: string; description?: string; isVisible?: boolean }) => {
+    const handleSaveAlbum = async (albumId: string, payload: { title?: string; description?: string; isVisible?: boolean; isLinkAccessible?: boolean }) => {
         setPageError(null);
         setSavingAlbumId(albumId);
 
@@ -212,6 +226,14 @@ export default function AdminAlbumsPage() {
                         helpText={appText.admin.albums.helpText}
                     />
 
+                    <div className="mt-6 flex justify-end">
+                        <Link to="/admin/gallery-share-links">
+                            <Button type="button" variant="secondary" size="sm">
+                                {appText.admin.albums.manageShareLinks}
+                            </Button>
+                        </Link>
+                    </div>
+
                     {pageError ? (
                         <div className="mt-8">
                             <ApiErrorAlert message={pageError} />
@@ -246,6 +268,14 @@ export default function AdminAlbumsPage() {
                                         onChange={(event) => setCreateVisible(event.target.checked)}
                                     />
                                     {appText.admin.albums.visiblePublicly}
+                                </label>
+                                <label className="flex items-center gap-3 font-sans text-sm text-ink">
+                                    <input
+                                        type="checkbox"
+                                        checked={createLinkAccessible}
+                                        onChange={(event) => setCreateLinkAccessible(event.target.checked)}
+                                    />
+                                    {appText.admin.albums.linkAccessible}
                                 </label>
                                 <div>
                                     <Button
@@ -290,6 +320,11 @@ export default function AdminAlbumsPage() {
                                                     <span className={`status-badge ${album.isVisible ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>
                                                         {album.isVisible ? appText.common.status.visible : appText.common.status.hidden}
                                                     </span>
+                                                    {album.isLinkAccessible ? (
+                                                        <span className="status-badge border-sky-200 bg-sky-50 text-sky-700">
+                                                            {appText.admin.albums.linkAccessibleStatus}
+                                                        </span>
+                                                    ) : null}
                                                 </div>
                                                 <p className="mt-2 text-sm text-muted">{appText.admin.albums.slug}: {album.slug}</p>
                                                 <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-muted">

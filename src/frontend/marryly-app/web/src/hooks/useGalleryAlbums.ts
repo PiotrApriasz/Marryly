@@ -13,6 +13,7 @@ const MOCK_GALLERY_ALBUMS: GalleryAlbumsResponse = {
             description: appText.public.gallery.defaultGuestAlbumDescription,
             coverUrl: null,
             itemCount: 120,
+            photoCount: 120,
         },
     ],
 };

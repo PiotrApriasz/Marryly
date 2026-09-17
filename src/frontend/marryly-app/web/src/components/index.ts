@@ -30,6 +30,8 @@ export { default as PageHeader } from './PageHeader';
 export { default as PageState } from './PageState';
 export { default as PhotoGalleryGrid } from './PhotoGalleryGrid';
 export { default as PhotoUploadPanel } from './PhotoUploadPanel';
+export { default as AdminBulkPhotoUploadPanel } from './AdminBulkPhotoUploadPanel';
+export { default as AdminUploadQueueStatus } from './AdminUploadQueueStatus';
 export { default as InfiniteLoadMore } from './InfiniteLoadMore';
 export { default as RouteLoadingScreen } from './RouteLoadingScreen';
 export { default as StatusBadge } from './StatusBadge';

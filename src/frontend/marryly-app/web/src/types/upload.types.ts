@@ -6,6 +6,7 @@ export interface CreatePhotoUploadRequest {
     fileSizeBytes: number;
     contentType: string;
     lastModifiedAt?: string;
+    clientUploadId?: string;
 }
 
 export interface PhotoUploadTarget {

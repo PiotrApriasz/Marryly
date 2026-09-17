@@ -11,6 +11,7 @@ const MOCK_GUEST_ALBUM: GalleryAlbum = {
     description: appText.public.gallery.defaultGuestAlbumDescription,
     coverUrl: null,
     itemCount: 120,
+    photoCount: 120,
 };
 
 interface UseGalleryAlbumResult {

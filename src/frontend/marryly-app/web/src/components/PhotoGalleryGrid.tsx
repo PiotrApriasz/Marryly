@@ -10,6 +10,9 @@ interface PhotoGalleryGridProps {
     hasMoreMedia: boolean;
     loadingMore: boolean;
     onRequestMore: () => Promise<void>;
+    selectionMode?: boolean;
+    selectedPhotoIds?: ReadonlySet<string>;
+    onTogglePhotoSelection?: (photoId: string) => void;
 }
 
 export default function PhotoGalleryGrid({
@@ -17,6 +20,9 @@ export default function PhotoGalleryGrid({
     hasMoreMedia,
     loadingMore,
     onRequestMore,
+    selectionMode = false,
+    selectedPhotoIds,
+    onTogglePhotoSelection,
 }: PhotoGalleryGridProps) {
     const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
 
@@ -29,11 +35,23 @@ export default function PhotoGalleryGrid({
                 renderItem={(photo) => (
                     <button
                         type="button"
-                        className="photo-gallery-tile group text-left transition-transform hover:-translate-y-1"
-                        onClick={() => setSelectedPhotoId(photo.id)}
+                        className={`photo-gallery-tile group text-left transition-transform hover:-translate-y-1 ${
+                            selectionMode && photo.kind === 'photo' && selectedPhotoIds?.has(photo.id)
+                                ? 'photo-gallery-tile-selected'
+                                : ''
+                        }`}
+                        aria-pressed={selectionMode && photo.kind === 'photo' ? selectedPhotoIds?.has(photo.id) : undefined}
+                        onClick={() => {
+                            if (selectionMode && photo.kind === 'photo' && onTogglePhotoSelection) {
+                                onTogglePhotoSelection(photo.id);
+                                return;
+                            }
+
+                            setSelectedPhotoId(photo.id);
+                        }}
                     >
                         <div
-                            className="masonry-media"
+                            className="masonry-media relative"
                             style={{ aspectRatio: getMediaAspectRatio(photo) }}
                         >
                             {photo.kind === 'video' ? (
@@ -59,6 +77,15 @@ export default function PhotoGalleryGrid({
                                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                                 />
                             )}
+                            {selectionMode && photo.kind === 'photo' ? (
+                                <span className="photo-gallery-selection-indicator" aria-hidden="true">
+                                    {selectedPhotoIds?.has(photo.id) ? (
+                                        <svg viewBox="0 0 24 24" fill="none">
+                                            <path d="m5 12 4 4L19 6" />
+                                        </svg>
+                                    ) : null}
+                                </span>
+                            ) : null}
                         </div>
                     </button>
                 )}

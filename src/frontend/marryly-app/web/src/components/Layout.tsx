@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import Navigation from './Navigation';
 import Footer from './Footer';
+import AdminUploadQueueStatus from './AdminUploadQueueStatus';
 
 interface LayoutProps {
     children: ReactNode;
@@ -22,6 +23,7 @@ export default function Layout({
             </main>
             
             {showFooter && <Footer />}
+            <AdminUploadQueueStatus />
         </div>
     );
 }

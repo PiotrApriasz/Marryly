@@ -13,12 +13,12 @@ export class ApiClient {
         this.baseUrl = config.apiBaseUrl;
     }
 
-    private async fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+    private async fetchResponse(path: string, init?: RequestInit, accept = 'application/json, application/problem+json'): Promise<Response> {
         const accessToken = readAccessToken();
         const response = await fetch(`${this.baseUrl}${path}`, {
             ...init,
             headers: {
-                Accept: 'application/json, application/problem+json',
+                Accept: accept,
                 ...(accessToken ? { [ACCESS_TOKEN_HEADER]: accessToken } : {}),
                 ...(init?.headers ?? {}),
             },
@@ -50,7 +50,17 @@ export class ApiClient {
             throw apiError;
         }
 
+        return response;
+    }
+
+    private async fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
+        const response = await this.fetchResponse(path, init);
         return responseProcessor.parseResponse<T>(response);
+    }
+
+    private async fetchBlob(path: string, init?: RequestInit): Promise<Blob> {
+        const response = await this.fetchResponse(path, init, 'application/zip, application/json, application/problem+json');
+        return response.blob();
     }
 
     async getMenu(): Promise<Menu> {
@@ -195,6 +205,38 @@ export class ApiClient {
         }
 
         return this.fetchJson<AlbumMediaPage>(`/app/gallery/albums/${slug}/media?${params.toString()}`);
+    }
+
+    async getSharedGalleryAlbums(view: string): Promise<GalleryAlbumsResponse> {
+        return this.fetchJson<GalleryAlbumsResponse>(`/app/gallery/shared?${new URLSearchParams({ view }).toString()}`);
+    }
+
+    async getSharedGalleryAlbum(shareCode: string, view: string): Promise<GalleryAlbum> {
+        return this.fetchJson<GalleryAlbum>(`/app/gallery/shared/${shareCode}?${new URLSearchParams({ view }).toString()}`);
+    }
+
+    async getSharedGalleryAlbumMedia(shareCode: string, view: string, limit = 50, continuationToken?: string | null): Promise<AlbumMediaPage> {
+        const params = new URLSearchParams({ view, limit: String(limit) });
+        if (continuationToken) {
+            params.set('continuationToken', continuationToken);
+        }
+
+        return this.fetchJson<AlbumMediaPage>(`/app/gallery/shared/${shareCode}/media?${params.toString()}`);
+    }
+
+    async downloadSharedGalleryAlbumPhotos(shareCode: string, view: string, mediaIds?: string[]): Promise<Blob> {
+        const params = new URLSearchParams({ view });
+        const isSelectionDownload = mediaIds !== undefined;
+
+        return this.fetchBlob(`/app/gallery/shared/${shareCode}/download?${params.toString()}`, {
+            method: isSelectionDownload ? 'POST' : 'GET',
+            ...(isSelectionDownload ? {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ mediaIds }),
+            } : {}),
+        });
     }
 }
 

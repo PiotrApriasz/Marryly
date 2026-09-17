@@ -10,6 +10,11 @@ export default function ProtectedRoute({ requireAdmin = false }: ProtectedRouteP
     const { isAdmin, isAuthenticated, isChecking } = useAuth();
     const location = useLocation();
     const from = `${location.pathname}${location.search}${location.hash}`;
+    const isSharedGalleryEntry = location.pathname === '/' && new URLSearchParams(location.search).has('view');
+
+    if (isSharedGalleryEntry) {
+        return <Outlet />;
+    }
 
     if (isChecking) {
         return <LoadingState fullscreen />;

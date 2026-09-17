@@ -133,6 +133,9 @@ export interface GalleryAlbum {
     description?: string | null;
     coverUrl?: string | null;
     itemCount: number;
+    photoCount: number;
+    heroUrl?: string | null;
+    shareCode?: string | null;
 }
 
 export interface GalleryAlbumsResponse {
