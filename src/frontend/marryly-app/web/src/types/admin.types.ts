@@ -130,13 +130,16 @@ export interface AdminGuestBookEntriesPage {
     totalPages: number;
 }
 
-export interface AdminPhoto {
+export interface AdminMediaItem {
     id: string;
     eventId: string;
     kind: 'photo' | 'video' | string;
     status: 'ready' | 'processing' | 'failed' | string;
     approved: boolean;
     uploadedAt: string;
+    capturedAt?: string | null;
+    albumId?: string | null;
+    sourceType?: string | null;
     contentType: string;
     sizeBytes: number;
     width: number;
@@ -147,8 +150,12 @@ export interface AdminPhoto {
     previewBlobUrl?: string | null;
     thumbnailBlobName?: string | null;
     thumbnailBlobUrl?: string | null;
+    originalUrl?: string | null;
+    downloadUrl?: string | null;
     processingError?: string | null;
 }
+
+export type AdminPhoto = AdminMediaItem;
 
 export interface AdminPhotosPage {
     items: AdminPhoto[];
@@ -174,27 +181,7 @@ export interface AdminAlbumsResponse {
     items: AdminAlbum[];
 }
 
-export interface AdminAlbumMediaItem {
-    id: string;
-    eventId: string;
-    kind: 'photo' | 'video' | string;
-    albumId?: string | null;
-    sourceType?: string | null;
-    status: string;
-    approved: boolean;
-    uploadedAt: string;
-    contentType: string;
-    sizeBytes: number;
-    width: number;
-    height: number;
-    originalBlobName: string;
-    originalBlobUrl: string;
-    previewBlobName?: string | null;
-    previewBlobUrl?: string | null;
-    thumbnailBlobName?: string | null;
-    thumbnailBlobUrl?: string | null;
-    processingError?: string | null;
-}
+export type AdminAlbumMediaItem = AdminMediaItem;
 
 export interface AdminAlbumMediaPage {
     items: AdminAlbumMediaItem[];

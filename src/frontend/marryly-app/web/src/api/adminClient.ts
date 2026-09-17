@@ -104,6 +104,8 @@ export class AdminClient {
             blobUrl: payload.blobUrl,
             contentType: payload.contentType,
             sizeBytes: payload.sizeBytes,
+            capturedAt: payload.capturedAt,
+            lastModifiedAt: payload.lastModifiedAt,
         });
     }
 

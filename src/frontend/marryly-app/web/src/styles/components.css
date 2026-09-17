@@ -46,6 +46,105 @@
   @apply transition-all duration-300 hover:-translate-y-1 hover:border-gold hover:shadow-md;
 }
 
+.masonry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.masonry-grid-column {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.masonry-grid-item {
+  min-width: 0;
+}
+
+.photo-gallery-tile {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  background: white;
+}
+
+.masonry-media {
+  overflow: hidden;
+  background: rgb(233 228 220 / 40%);
+}
+
+.lightbox-overlay {
+  @apply fixed inset-0 z-[100] flex overflow-hidden bg-ink/95;
+}
+
+.lightbox-stage {
+  @apply flex h-full w-full items-center justify-center px-16 py-6 outline-none sm:px-20 sm:py-8;
+}
+
+.lightbox-media {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.lightbox-loading-indicator {
+  @apply pointer-events-none fixed inset-0 z-[102] flex items-center justify-center;
+}
+
+.lightbox-spinner {
+  @apply h-10 w-10 animate-spin rounded-full border-2 border-white/25 border-t-white;
+}
+
+.lightbox-control {
+  @apply fixed z-[101] inline-flex h-12 w-12 items-center justify-center rounded-full border border-transparent bg-transparent text-white/85 transition-colors duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:opacity-30;
+}
+
+.lightbox-control svg {
+  @apply h-7 w-7;
+}
+
+.lightbox-control svg path {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.lightbox-control-previous {
+  left: max(0.75rem, env(safe-area-inset-left));
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-control-next {
+  right: max(0.75rem, env(safe-area-inset-right));
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.lightbox-control-close {
+  right: max(0.75rem, env(safe-area-inset-right));
+  top: max(0.75rem, env(safe-area-inset-top));
+}
+
+.lightbox-control-download {
+  right: calc(max(0.75rem, env(safe-area-inset-right)) + 3rem);
+  top: max(0.75rem, env(safe-area-inset-top));
+}
+
+@media (min-width: 1024px) {
+  .masonry-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 .surface-panel {
   @apply rounded-lg border border-sand bg-white shadow-sm;
 }
@@ -329,10 +428,6 @@
 
 .menu-public-item-index {
   @apply flex h-10 w-10 items-center justify-center rounded-full bg-paper font-serif text-base text-ink;
-}
-
-.dialog-surface {
-  @apply relative max-h-[90vh] w-full max-w-5xl overflow-hidden rounded-3xl bg-white shadow-2xl;
 }
 
 .overlay-surface {

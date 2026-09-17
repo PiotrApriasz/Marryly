@@ -3,9 +3,16 @@ import type { Photo, PhotosPage } from '../types/wedding.types';
 
 const MOCK_PHOTO_COUNT = 120;
 const MOCK_BATCH_DELAY_MS = 250;
+const MOCK_DIMENSIONS = [
+    { width: 2048, height: 1365 },
+    { width: 1365, height: 2048 },
+    { width: 1800, height: 1800 },
+    { width: 2400, height: 1350 },
+];
 
 const mockPhotos: Photo[] = Array.from({ length: MOCK_PHOTO_COUNT }, (_, index) => {
     const uploadedAt = new Date(Date.now() - index * 1000 * 60 * 7).toISOString();
+    const dimensions = MOCK_DIMENSIONS[index % MOCK_DIMENSIONS.length];
 
     return {
         id: `mock-photo-${index + 1}`,
@@ -13,8 +20,8 @@ const mockPhotos: Photo[] = Array.from({ length: MOCK_PHOTO_COUNT }, (_, index) 
         thumbnailUrl: mainPagePhoto,
         uploadedAt,
         approved: true,
-        width: 2048,
-        height: 1365,
+        width: dimensions.width,
+        height: dimensions.height,
     };
 });
 

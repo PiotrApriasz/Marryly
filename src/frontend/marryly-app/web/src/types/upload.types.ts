@@ -27,4 +27,6 @@ export interface CompletePhotoUploadRequest {
     blobUrl: string;
     contentType: string;
     sizeBytes: number;
+    capturedAt?: string;
+    lastModifiedAt?: string;
 }

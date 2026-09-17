@@ -5,6 +5,7 @@ import { appText } from '../content/appText';
 import type { GalleryMediaItem } from '../types/wedding.types';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { getMockPhotosPage } from '../mocks/photos';
+import { sortMediaByDate } from '../utils/media';
 
 interface UseInfiniteAlbumMediaOptions {
     albumSlug?: string;
@@ -57,7 +58,10 @@ export function useInfiniteAlbumMedia({
 
             nextItems.forEach((item) => loadedIdsRef.current.add(item.id));
 
-            setPhotos((currentPhotos) => append ? [...currentPhotos, ...nextItems] : nextItems);
+            const orderedNextItems = sortMediaByDate(nextItems);
+            setPhotos((currentPhotos) => append
+                ? [...currentPhotos, ...orderedNextItems]
+                : orderedNextItems);
             setContinuationToken(page.continuationToken);
             setHasMore(page.hasMore);
         } catch (err) {

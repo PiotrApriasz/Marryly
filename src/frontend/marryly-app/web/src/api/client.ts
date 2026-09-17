@@ -92,6 +92,8 @@ export class ApiClient {
                 blobUrl: payload.blobUrl,
                 contentType: payload.contentType,
                 sizeBytes: payload.sizeBytes,
+                capturedAt: payload.capturedAt,
+                lastModifiedAt: payload.lastModifiedAt,
             }),
         });
     }
@@ -119,6 +121,8 @@ export class ApiClient {
                 blobUrl: payload.blobUrl,
                 contentType: payload.contentType,
                 sizeBytes: payload.sizeBytes,
+                capturedAt: payload.capturedAt,
+                lastModifiedAt: payload.lastModifiedAt,
             }),
         });
     }
@@ -136,6 +140,8 @@ export class ApiClient {
                 blobUrl: payload.blobUrl,
                 contentType: payload.contentType,
                 sizeBytes: payload.sizeBytes,
+                capturedAt: payload.capturedAt,
+                lastModifiedAt: payload.lastModifiedAt,
             }),
         });
     }
@@ -153,6 +159,8 @@ export class ApiClient {
                 blobUrl: payload.blobUrl,
                 contentType: payload.contentType,
                 sizeBytes: payload.sizeBytes,
+                capturedAt: payload.capturedAt,
+                lastModifiedAt: payload.lastModifiedAt,
             }),
         });
     }

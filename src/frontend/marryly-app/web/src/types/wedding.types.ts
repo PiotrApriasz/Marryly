@@ -97,6 +97,7 @@ export interface Photo {
     thumbnailUrl: string;
     uploadedBy?: string;
     uploadedAt: string;
+    capturedAt?: string | null;
     approved: boolean;
     width: number;
     height: number;
@@ -106,10 +107,13 @@ export interface GalleryMediaItem {
     id: string;
     kind: 'photo' | 'video';
     url: string;
+    originalUrl?: string | null;
+    downloadUrl?: string | null;
     thumbnailUrl?: string | null;
     contentType?: string | null;
     uploadedBy?: string;
     uploadedAt: string;
+    capturedAt?: string | null;
     approved: boolean;
     width: number;
     height: number;

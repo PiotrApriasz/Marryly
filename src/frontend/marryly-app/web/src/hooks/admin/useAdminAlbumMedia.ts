@@ -1,43 +1,29 @@
-import type { AdminAlbumMediaPage } from '../../types/admin.types';
+import { useCallback } from 'react';
 import { adminClient } from '../../api/adminClient';
 import { appText } from '../../content/appText';
-import { useAdminApiResource } from './useAdminApiResource';
+import type { AdminAlbumMediaItem } from '../../types/admin.types';
+import { sortMediaByDate } from '../../utils/media';
+import { useInfiniteAdminMedia } from './useInfiniteAdminMedia';
 
-interface UseAdminAlbumMediaResult {
-    mediaPage: AdminAlbumMediaPage;
-    loading: boolean;
-    error: string | null;
-    reload: () => void;
+function getAdminAlbumMediaId(mediaItem: AdminAlbumMediaItem): string {
+    return mediaItem.id;
 }
 
-export function useAdminAlbumMedia(albumId: string | undefined, page: number, pageSize: number): UseAdminAlbumMediaResult {
+export function useAdminAlbumMedia(albumId: string | undefined, pageSize: number) {
     const safeAlbumId = albumId?.trim() ?? '';
-    const { data, loading, error, reload } = useAdminApiResource<AdminAlbumMediaPage>({
-        cacheKey: `album_media_${safeAlbumId}_${page}_${pageSize}`,
-        fetcher: () => safeAlbumId
-            ? adminClient.getAlbumMedia(safeAlbumId, page, pageSize)
-            : Promise.resolve({
-                items: [],
-                page,
-                pageSize,
-                totalCount: 0,
-                totalPages: 1,
-            }),
+    const fetchPage = useCallback(
+        (page: number, size: number) => adminClient.getAlbumMedia(safeAlbumId, page, size),
+        [safeAlbumId]
+    );
+
+    return useInfiniteAdminMedia<AdminAlbumMediaItem>({
+        resourceKey: `album_media_${safeAlbumId}_${pageSize}`,
+        pageSize,
+        enabled: Boolean(safeAlbumId),
+        fetchPage,
+        getItemId: getAdminAlbumMediaId,
+        sortItems: sortMediaByDate,
         fallbackErrorMessage: appText.errors.fallback.albumMedia,
         logContext: 'Failed to load admin album media',
-        initialData: {
-            items: [],
-            page,
-            pageSize,
-            totalCount: 0,
-            totalPages: 1,
-        },
     });
-
-    return {
-        mediaPage: data,
-        loading,
-        error,
-        reload,
-    };
 }

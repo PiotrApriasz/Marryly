@@ -270,7 +270,12 @@ export const appText = {
             refresh: 'Spróbuj odświeżyć stronę',
         },
         galleryGrid: {
+            dialogAriaLabel: 'Podgląd medium',
+            previousAriaLabel: 'Poprzednie medium',
             nextAriaLabel: 'Następne medium',
+            closeAriaLabel: 'Zamknij podgląd',
+            downloadAriaLabel: 'Pobierz medium',
+            loadingAriaLabel: 'Ładowanie medium',
         },
         mediaUpload: {
             defaults: {

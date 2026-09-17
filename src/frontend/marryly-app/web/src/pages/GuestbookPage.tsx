@@ -12,6 +12,7 @@ import Section from '../components/Section';
 import Textarea from '../components/Textarea';
 import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
+import { extractPhotoCapturedAt } from '../media/extractPhotoMetadata';
 import { preparePhotoFileForUpload } from '../media/preparePhotoFileForUpload';
 
 type AttachmentKind = 'photo' | 'video';
@@ -265,6 +266,8 @@ export default function GuestbookPage() {
         });
 
         try {
+            const capturedAt = kind === 'photo' ? await extractPhotoCapturedAt(file) : null;
+            const lastModifiedAt = new Date(file.lastModified).toISOString();
             const preparedFile = kind === 'photo' ? await preparePhotoFileForUpload(file) : file;
             const contentType = getContentType(preparedFile, kind);
 
@@ -318,6 +321,8 @@ export default function GuestbookPage() {
                 blobUrl: target.blobUrl,
                 contentType,
                 sizeBytes: preparedFile.size,
+                capturedAt: capturedAt ?? undefined,
+                lastModifiedAt,
             });
 
             setAttachmentUpload({

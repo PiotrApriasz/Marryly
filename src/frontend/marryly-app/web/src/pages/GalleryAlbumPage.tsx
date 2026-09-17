@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import Layout from '../components/Layout';
-import Button from '../components/Button';
+import InfiniteLoadMore from '../components/InfiniteLoadMore';
 import PageHeader from '../components/PageHeader';
 import Section from '../components/Section';
 import PageState from '../components/PageState';
@@ -25,34 +24,11 @@ function AlbumLoadingFallback() {
 
 export default function GalleryAlbumPage() {
     const { slug } = useParams();
-    const sentinelRef = useRef<HTMLDivElement | null>(null);
     const { album, loading: albumLoading, error: albumError } = useGalleryAlbum(slug);
     const { photos, loading, error, hasMore, loadingMore, loadMore } = useInfiniteAlbumMedia({
         albumSlug: slug,
         pageSize: 50,
     });
-
-    useEffect(() => {
-        const node = sentinelRef.current;
-
-        if (!node || !hasMore || loadingMore) {
-            return;
-        }
-
-        const observer = new IntersectionObserver((entries) => {
-            const [entry] = entries;
-
-            if (entry?.isIntersecting) {
-                void loadMore();
-            }
-        }, {
-            rootMargin: '300px 0px',
-        });
-
-        observer.observe(node);
-
-        return () => observer.disconnect();
-    }, [hasMore, loadMore, loadingMore, photos.length]);
 
     return (
         <Layout>
@@ -72,21 +48,18 @@ export default function GalleryAlbumPage() {
                             loadingFallback={<AlbumLoadingFallback />}
                         >
                             <>
-                                <PhotoGalleryGrid photos={photos} showUploadedAt />
-                                {hasMore ? (
-                                    <div className="mt-8 flex flex-col items-center gap-4">
-                                        <div ref={sentinelRef} className="h-1 w-full" />
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="md"
-                                            onClick={() => void loadMore()}
-                                            loading={loadingMore}
-                                        >
-                                            {appText.public.gallery.loadMore}
-                                        </Button>
-                                    </div>
-                                ) : null}
+                                <PhotoGalleryGrid
+                                    photos={photos}
+                                    hasMoreMedia={hasMore}
+                                    loadingMore={loadingMore}
+                                    onRequestMore={loadMore}
+                                />
+                                <InfiniteLoadMore
+                                    hasMore={hasMore}
+                                    loading={loadingMore}
+                                    onLoadMore={loadMore}
+                                    label={appText.public.gallery.loadMore}
+                                />
                             </>
                         </PageState>
                     </div>

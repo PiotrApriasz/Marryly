@@ -1,16 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { adminClient } from '../api/adminClient';
 import ApiErrorAlert from '../components/ApiErrorAlert';
 import AdminBackLink from '../components/AdminBackLink';
-import AdminPagination from '../components/AdminPagination';
-import Card from '../components/Card';
-import ConfirmActionButton from '../components/ConfirmActionButton';
+import AdminMediaGrid from '../components/AdminMediaGrid';
+import AdminMediaSkeleton from '../components/AdminMediaSkeleton';
+import InfiniteLoadMore from '../components/InfiniteLoadMore';
 import Layout from '../components/Layout';
-import Notice from '../components/Notice';
 import PageHeader from '../components/PageHeader';
 import PageState from '../components/PageState';
 import Section from '../components/Section';
-import StatusBadge from '../components/StatusBadge';
 import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { useAdminPhotos } from '../hooks/admin/useAdminPhotos';
@@ -19,79 +17,10 @@ import { invalidateCachedApiResourcesByPrefix } from '../hooks/useCachedApiResou
 
 const PAGE_SIZE = 12;
 
-function PhotosSkeleton() {
-    return (
-        <div className="mt-12 grid gap-6 animate-pulse sm:grid-cols-2 xl:grid-cols-3">
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-                <Card key={item} padding="none" className="overflow-hidden">
-                    <div className="aspect-[4/3] bg-sand/60" />
-                    <div className="space-y-3 p-5">
-                        <div className="h-5 w-24 rounded bg-sand" />
-                        <div className="h-4 w-40 rounded bg-sand/70" />
-                        <div className="h-4 w-28 rounded bg-sand/60" />
-                    </div>
-                </Card>
-            ))}
-        </div>
-    );
-}
-
-function formatDate(isoDate: string): string {
-    const date = new Date(isoDate);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-
-    return date.toLocaleString(appText.common.locale, {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
-}
-
-function formatBytes(size: number): string {
-    if (size < 1024) {
-        return `${size} B`;
-    }
-
-    if (size < 1024 * 1024) {
-        return `${(size / 1024).toFixed(1)} KB`;
-    }
-
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getStatusMetadata(status: string): { label: string; tone: 'success' | 'warning' | 'danger' | 'neutral' } {
-    switch (status) {
-        case 'ready':
-            return { label: appText.common.status.ready, tone: 'success' };
-        case 'processing':
-            return { label: appText.common.status.processing, tone: 'warning' };
-        case 'failed':
-            return { label: appText.common.status.failed, tone: 'danger' };
-        default:
-            return { label: status, tone: 'neutral' };
-    }
-}
-
 export default function AdminPhotosPage() {
-    const [currentPage, setCurrentPage] = useState(1);
     const [deleteError, setDeleteError] = useState<string | null>(null);
     const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
-    const { photosPage, loading, error, reload } = useAdminPhotos(currentPage, PAGE_SIZE);
-    const { items, totalPages, totalCount, page } = photosPage;
-
-    useEffect(() => {
-        if (page !== currentPage) {
-            setCurrentPage(page);
-        }
-    }, [currentPage, page]);
-
-    const summaryLabel = useMemo(() => {
-        return `${appText.admin.common.pageSummary} ${page} z ${totalPages} • ${totalCount} ${appText.admin.media.totalSuffix}`;
-    }, [page, totalCount, totalPages]);
+    const { items, loading, loadingMore, error, hasMore, totalCount, loadMore, reload } = useAdminPhotos(PAGE_SIZE);
 
     const handleDelete = async (photoId: string) => {
         setDeleteError(null);
@@ -105,11 +34,7 @@ export default function AdminPhotosPage() {
             invalidateAdminCache('overview');
             invalidateCachedApiResourcesByPrefix('gallery_');
 
-            if (items.length === 1 && currentPage > 1) {
-                setCurrentPage((value) => value - 1);
-            } else {
-                reload();
-            }
+            reload();
         } catch (err: unknown) {
             setDeleteError(getErrorMessageForDisplay(err, appText.admin.media.deleteFailed));
             logErrorDetails(err, 'Failed to delete media');
@@ -139,87 +64,35 @@ export default function AdminPhotosPage() {
                         error={error}
                         isEmpty={items.length === 0}
                         emptyMessage={appText.admin.media.empty}
-                        loadingFallback={<PhotosSkeleton />}
+                        loadingFallback={<AdminMediaSkeleton />}
                     >
                         <div className="mt-12">
                             <div className="flex flex-wrap items-center justify-between gap-3">
                                 <p className="font-sans text-sm text-muted">
-                                    {summaryLabel}
+                                    {totalCount} {appText.admin.media.totalSuffix}
                                 </p>
                             </div>
 
-                            <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                                {items.map((photo) => {
-                                    const previewUrl = photo.thumbnailBlobUrl ?? photo.previewBlobUrl ?? photo.originalBlobUrl;
-                                    const status = getStatusMetadata(photo.status);
-                                    const isVideo = photo.kind === 'video';
-
-                                    return (
-                                        <article key={photo.id}>
-                                            <Card padding="none" className="overflow-hidden">
-                                                <div className="aspect-[4/3] overflow-hidden bg-sand/40">
-                                                    {isVideo ? (
-                                                        <video
-                                                            src={previewUrl}
-                                                            preload="metadata"
-                                                            muted
-                                                            playsInline
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <img
-                                                            src={previewUrl}
-                                                            alt={appText.admin.common.photoThumbnailAlt}
-                                                            loading="lazy"
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                    )}
-                                                </div>
-                                                <div className="space-y-4 p-5">
-                                                    <div className="flex flex-wrap items-center justify-between gap-2">
-                                                        <StatusBadge label={status.label} tone={status.tone} />
-                                                        <span className="font-sans text-xs text-muted">
-                                                            {photo.approved ? appText.common.status.visibleForGuests : appText.common.status.hidden}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="space-y-2 text-sm text-muted">
-                                                        <p>{appText.admin.common.addedAt}: {formatDate(photo.uploadedAt)}</p>
-                                                        <p>{appText.admin.common.size}: {formatBytes(photo.sizeBytes)}</p>
-                                                        <p>{appText.admin.common.kind}: {isVideo ? appText.common.media.video : appText.common.media.photo}</p>
-                                                        <p>{appText.admin.common.type}: {photo.contentType}</p>
-                                                        {photo.width > 0 && photo.height > 0 ? (
-                                                            <p>{appText.admin.common.dimensions}: {photo.width} × {photo.height}</p>
-                                                        ) : null}
-                                                    </div>
-
-                                                    {photo.processingError ? (
-                                                        <Notice tone="error" className="p-4">
-                                                            <p className="text-sm">{photo.processingError}</p>
-                                                        </Notice>
-                                                    ) : null}
-
-                                                    <div className="flex items-center justify-end">
-                                                        <ConfirmActionButton
-                                                            confirmMessage={appText.admin.common.deleteMediaConfirm}
-                                                            onConfirm={() => handleDelete(photo.id)}
-                                                            loading={deletingPhotoId === photo.id}
-                                                            disabled={deletingPhotoId !== null && deletingPhotoId !== photo.id}
-                                                        >
-                                                            {appText.common.actions.delete}
-                                                        </ConfirmActionButton>
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        </article>
-                                    );
-                                })}
+                            <div className="mt-6">
+                                <AdminMediaGrid
+                                    items={items}
+                                    hasMoreMedia={hasMore}
+                                    loadingMore={loadingMore}
+                                    onRequestMore={loadMore}
+                                    thumbnailAlt={appText.admin.common.photoThumbnailAlt}
+                                    getSecondaryLabel={(photo) => photo.approved
+                                        ? appText.common.status.visibleForGuests
+                                        : appText.common.status.hidden}
+                                    deletingMediaId={deletingPhotoId}
+                                    onDelete={handleDelete}
+                                />
                             </div>
 
-                            <AdminPagination
-                                currentPage={page}
-                                totalPages={totalPages}
-                                onPageChange={setCurrentPage}
+                            <InfiniteLoadMore
+                                hasMore={hasMore}
+                                loading={loadingMore}
+                                onLoadMore={loadMore}
+                                label={appText.public.gallery.loadMore}
                             />
                         </div>
                     </PageState>

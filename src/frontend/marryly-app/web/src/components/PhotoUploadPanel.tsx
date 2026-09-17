@@ -4,6 +4,7 @@ import { uploadFileToSignedUrl } from '../api/photoUploadTransport';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
 import { appText } from '../content/appText';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
+import { extractPhotoCapturedAt } from '../media/extractPhotoMetadata';
 import { preparePhotoFileForUpload } from '../media/preparePhotoFileForUpload';
 import ApiErrorAlert from './ApiErrorAlert';
 import Button from './Button';
@@ -559,6 +560,10 @@ export default function PhotoUploadPanel({
         }));
 
         try {
+            const capturedAt = item.kind === 'photo'
+                ? await extractPhotoCapturedAt(item.file)
+                : null;
+            const lastModifiedAt = new Date(item.file.lastModified).toISOString();
             const preparedFile = item.preparedFile ?? await prepareFileForUpload(item.file, item.kind);
             const maxFileSizeBytes = getMaxFileSizeBytes(item.kind);
 
@@ -613,6 +618,8 @@ export default function PhotoUploadPanel({
                 blobUrl: target.blobUrl,
                 contentType: getNormalizedContentType(preparedFile),
                 sizeBytes: preparedFile.size,
+                capturedAt: capturedAt ?? undefined,
+                lastModifiedAt,
             });
 
             updateItem(itemId, (currentItem) => ({
