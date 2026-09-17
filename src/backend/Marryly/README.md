@@ -47,6 +47,8 @@ dotnet run --project Marryly.Tools.PasswordHash
 ### Container: EventData
 Partition Key: `/eventId`
 
+Zapisane katalogi linków do prywatnych albumów są przechowywane w tym samym kontenerze jako dokumenty z `type: "galleryShareLink"`.
+
 ### Container: GuestList
 Partition Key: `/eventId`
 

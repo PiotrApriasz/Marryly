@@ -20,10 +20,13 @@ Aplikacja laczy publiczna strone wydarzenia z zestawem narzedzi do obslugi wesel
 
 ```text
 src/
+  AGENTS.md
   backend/Marryly
-  docs/architecture
+  docs/
+    project-guide.md
+    current-status.md
+    architecture/
   frontend/marryly-app/web
-  marryly-codex-context.tmp
 ```
 
 ### Frontend
@@ -63,6 +66,14 @@ Na podstawie kodu i dokumentacji repo obejmuje obecnie:
 
 ## Najwazniejsze dokumenty
 
+- [docs/README.md](/Users/piotrek/Developer/Current/Marryly/src/docs/README.md)
+  Punkt wejscia do dokumentacji projektu i aktualnego handoffu.
+- [docs/project-guide.md](/Users/piotrek/Developer/Current/Marryly/src/docs/project-guide.md)
+  Opis aktualnej architektury, struktury repo i sposobu pracy.
+- [docs/current-status.md](/Users/piotrek/Developer/Current/Marryly/src/docs/current-status.md)
+  Krotki indeks statusu prac i odnosniki do dokumentacji funkcjonalnosci.
+- [docs/features/](/Users/piotrek/Developer/Current/Marryly/src/docs/features/)
+  Osobne dokumenty dla kazdego wiekszego obszaru funkcjonalnego.
 - [frontend/marryly-app/web/README.md](/Users/piotrek/Developer/Current/Marryly/src/frontend/marryly-app/web/README.md)
   Krotki opis produktu, stacku frontendu i uruchomienia aplikacji webowej.
 - [backend/Marryly/README.md](/Users/piotrek/Developer/Current/Marryly/src/backend/Marryly/README.md)
@@ -98,4 +109,4 @@ Backend wymaga skonfigurowania `local.settings.json` zgodnie z [backend/Marryly/
 
 ## Dla przyszlych sesji Codex
 
-Lokalny plik [marryly-codex-context.tmp](/Users/piotrek/Developer/Current/Marryly/src/marryly-codex-context.tmp) sluzy jako szybki handoff dla kolejnych rozmow. Zawiera on aktualny stan prac, ustalenia UX i pliki, od ktorych najlepiej zaczynac.
+Instrukcje w [AGENTS.md](/Users/piotrek/Developer/Current/Marryly/src/AGENTS.md) kieruja kazda nowa prace Codex w tym repo do przeczytania [docs/project-guide.md](/Users/piotrek/Developer/Current/Marryly/src/docs/project-guide.md) i [docs/current-status.md](/Users/piotrek/Developer/Current/Marryly/src/docs/current-status.md) przed rozpoczeciem zmian.
