@@ -222,6 +222,7 @@ export const appText = {
                 heroAlt: 'Zdjęcie z albumu',
                 noPhotos: 'Ten album nie ma jeszcze żadnych zdjęć.',
                 downloadFailed: 'Nie udało się pobrać zdjęć. Spróbuj ponownie.',
+                credits: 'Made by Piotr, approved by Alicja',
             },
         },
         guestUpload: {

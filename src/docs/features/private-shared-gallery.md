@@ -38,6 +38,7 @@ Selektor otwierany przez `?view=…` ma własny, dwuekranowy widok bez navbaru:
 - scroll-snap prowadzący do listy albumów;
 - to samo zdjęcie na drugim ekranie jest wycentrowanym, przyciemnionym i delikatnie rozmytym tłem pod półprzezroczystymi kartami;
 - osobne warstwy zdjęcia karty i tła ograniczają koszt animacji; widok obsługuje `prefers-reduced-motion`.
+- pod listą albumów znajduje się minimalistyczna stopka „Made by Piotr Apriasz, approved by Alicja Biel”.
 
 ## Wygląd pojedynczego albumu
 
@@ -49,7 +50,8 @@ Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 - drugi ekran ma jednolite tło papierowe, bez zdjęciowego tła, oraz minimalistyczne kontrolki inspirowane lightboxem;
 - kontrolki pozwalają wejść w tryb zaznaczania zdjęć i pobrać wszystkie zdjęcia albumu;
 - filmy pozostają widoczne i dostępne w lightboxie, ale nie są zaznaczane ani pobierane w ZIP-ach;
-- zaznaczenia są zachowywane podczas paginacji, a floating button pobiera zaznaczone zdjęcia i po sukcesie zamyka tryb zaznaczania.
+- zaznaczenia są zachowywane podczas paginacji, a floating button pobiera zaznaczone zdjęcia i po sukcesie zamyka tryb zaznaczania;
+- pod galerią znajduje się minimalistyczna stopka „Made by Piotr Apriasz, approved by Alicja Biel”.
 
 Pobieranie korzysta z capability-linku i jest realizowane przez endpointy `/app/gallery/shared/{shareCode}/download`: żądanie GET tworzy ZIP ze wszystkimi zdjęciami, a żądanie POST przyjmuje `mediaIds` i tworzy ZIP tylko dla wskazanych zdjęć. Backend ponownie sprawdza parametr `view`, kod albumu, przynależność mediów oraz `approved=true`, `status=ready` i typ `photo`.
 

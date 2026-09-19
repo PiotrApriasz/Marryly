@@ -774,6 +774,7 @@
 
 .shared-gallery-album-shell {
   background: #f5f1e8;
+  scroll-snap-type: y mandatory;
 }
 
 .shared-gallery-album-hero-photo,
@@ -947,6 +948,31 @@
   margin-bottom: 2rem;
 }
 
+.shared-gallery-credit-footer {
+  margin-top: 7rem;
+  padding: 0 0 max(1.5rem, env(safe-area-inset-bottom));
+  scroll-snap-align: end;
+  text-align: center;
+  color: rgba(31, 31, 31, 0.58);
+}
+
+.shared-gallery-credit-footer-rule {
+  width: 3rem;
+  height: 1px;
+  margin: 0 auto 1.5rem;
+  background: rgba(31, 31, 31, 0.25);
+}
+
+.shared-gallery-credit-footer p {
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
 .shared-gallery-selection-download {
   position: fixed;
   right: max(1.25rem, env(safe-area-inset-right));
@@ -1073,6 +1099,18 @@
 
   .shared-gallery-album-toolbar {
     margin-bottom: 3rem;
+  }
+
+  .shared-gallery-credit-footer {
+    margin-top: 5rem;
+  }
+
+  .shared-gallery-credit-footer p {
+    max-width: 19rem;
+    margin-right: auto;
+    margin-left: auto;
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
   }
 
   .shared-gallery-album-control {

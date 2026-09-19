@@ -261,6 +261,11 @@ export default function SharedGalleryAlbumPage() {
                                 />
                             </>
                         </PageState>
+
+                        <footer className="shared-gallery-credit-footer">
+                            <div className="shared-gallery-credit-footer-rule" aria-hidden="true" />
+                            <p>{appText.public.gallery.sharedAlbum.credits}</p>
+                        </footer>
                     </div>
 
                     {isSelectionMode && selectedPhotoIds.size > 0 ? (

@@ -4,6 +4,7 @@ import galleryMainPhoto from '../assets/gallery-main-photo.jpg';
 import Card from '../components/Card';
 import Layout from '../components/Layout';
 import PageState from '../components/PageState';
+import { appText } from '../content/appText';
 import { useSharedGalleryAlbums } from '../hooks/useSharedGalleryAlbums';
 
 export default function SharedGalleryPage() {
@@ -81,6 +82,11 @@ export default function SharedGalleryPage() {
                                 ))}
                             </div>
                         </PageState>
+
+                        <footer className="shared-gallery-credit-footer">
+                            <div className="shared-gallery-credit-footer-rule" aria-hidden="true" />
+                            <p>{appText.public.gallery.sharedAlbum.credits}</p>
+                        </footer>
                     </div>
                 </section>
             </div>
