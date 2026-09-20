@@ -75,7 +75,7 @@ public class CreateAdminAlbumPhotoUploadFunction(
 
         try
         {
-            var target = await photoUploadService.CreateAdminAlbumPhotoUploadAsync(eventId, albumId, request, ct);
+            var target = await photoUploadService.CreateAdminAlbumMediaUploadAsync(eventId, albumId, request, ct);
             return await ApiResponse.ProduceSuccessResponse(req, target);
         }
         catch (ApiErrorException ex)

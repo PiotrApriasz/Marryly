@@ -52,7 +52,7 @@ export function useAdminUploadQueue(): AdminUploadQueueContextValue {
     );
     const summary = isAdminQueue ? queue.summary : EMPTY_SUMMARY;
     const enqueueFiles = async (albumId: string, files: File[]): Promise<AdminUploadEnqueueResult> =>
-        queue.enqueueFiles('admin', albumId, files, ['photo']);
+        queue.enqueueFiles('admin', albumId, files, ['photo', 'video']);
     const retryFailed = (albumId?: string) => queue.retryFailed('admin', undefined, albumId);
 
     return {

@@ -76,7 +76,7 @@ public class CompleteAdminAlbumPhotoUploadFunction(
 
         try
         {
-            var savedItem = await photoUploadService.CompletePhotoUploadAsync(
+            var savedItem = await photoUploadService.CompleteAdminAlbumMediaUploadAsync(
                 eventId,
                 photoId,
                 albumId,

@@ -60,13 +60,12 @@ public class PhotoUploadService(
         return CreateMediaUploadAsync(eventId, request, ct);
     }
 
-    public Task<PhotoUploadTargetResponse> CreateAdminAlbumPhotoUploadAsync(
+    public Task<PhotoUploadTargetResponse> CreateAdminAlbumMediaUploadAsync(
         string eventId,
         string albumId,
         CreatePhotoUploadRequest request,
         CancellationToken ct = default)
     {
-        request.Kind = PhotoKind;
         return CreateMediaUploadAsync(eventId, albumId, request, ct);
     }
 
@@ -164,6 +163,17 @@ public class PhotoUploadService(
     {
         request.Kind = PhotoKind;
         return CompleteMediaUploadAsync(eventId, photoId, albumId, sourceType, request, ct);
+    }
+
+    public Task<MediaItem> CompleteAdminAlbumMediaUploadAsync(
+        string eventId,
+        string mediaId,
+        string albumId,
+        string sourceType,
+        CompletePhotoUploadRequest request,
+        CancellationToken ct = default)
+    {
+        return CompleteMediaUploadAsync(eventId, mediaId, albumId, sourceType, request, ct);
     }
 
     public async Task<MediaItem> CompleteMediaUploadAsync(

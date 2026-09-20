@@ -2,12 +2,12 @@
 
 ## Cel
 
-Panel administracyjny pozwala dodać do 500 zdjęć do jednego albumu w ramach jednej kolejki. Upload działa w tle panelu i nie blokuje przechodzenia między stronami.
+Panel administracyjny pozwala dodać do 500 zdjęć lub filmów do jednego albumu w ramach jednej kolejki. Upload działa w tle panelu i nie blokuje przechodzenia między stronami.
 Widok uploadu gościa wykorzystuje ten sam wspólny mechanizm kolejki i przyjmuje do 500 mediów w jednej partii.
 
 ## Zachowanie kolejki
 
-- Kolejka przyjmuje zdjęcia partiami do limitu 500 pozycji przypisanych do albumu.
+- Kolejka przyjmuje zdjęcia i filmy partiami do limitu 500 pozycji przypisanych do albumu.
 - Do wysyłania używane są maksymalnie dwa równoległe workery.
 - Każdy plik przechodzi przez utworzenie celu SAS, bezpośredni upload do Blob Storage oraz zakończenie uploadu i generowanie pochodnych wersji.
 - Kolejka jest przechowywana w IndexedDB razem z lokalnymi plikami, dlatego oczekujące i błędne pozycje mogą zostać wznowione po odświeżeniu.
@@ -25,4 +25,4 @@ Limit 500 jest współdzielony przez kolejkę admina i partię uploadu gościa. 
 
 ## Weryfikacja
 
-Sprawdź wybór 500 zdjęć w panelu admina i widoku gościa, dodawanie kolejnych partii, zmianę strony panelu, odświeżenie, wznowienie po błędzie sieci, ponowienie błędnych pozycji, duplikaty, zdjęcia HEIC oraz przypadek ograniczonego miejsca w IndexedDB. Zweryfikuj również, że upload gościa nadal używa osobnych endpointów i poprawnie obsługuje zdjęcia oraz filmy.
+Sprawdź wybór 500 zdjęć i filmów w panelu admina i widoku gościa, dodawanie kolejnych partii, zmianę strony panelu, odświeżenie, wznowienie po błędzie sieci, ponowienie błędnych pozycji, zdjęcia HEIC oraz przypadek ograniczonego miejsca w IndexedDB. Zweryfikuj również, że upload gościa nadal używa osobnych endpointów i poprawnie obsługuje zdjęcia oraz filmy.

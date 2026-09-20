@@ -13,7 +13,7 @@ function formatQueueMessage(count: number): string {
         return appText.admin.bulkUpload.oneAdded;
     }
 
-    return `${appText.admin.bulkUpload.addedPrefix} ${count} ${appText.components.mediaUpload.nouns.photoGenitivePlural}.`;
+    return `${appText.admin.bulkUpload.addedPrefix} ${count} ${appText.components.mediaUpload.nouns.photoAndVideoGenitivePlural}.`;
 }
 
 function formatErrorList(errors: string[]): string {
@@ -66,7 +66,7 @@ export default function AdminBulkPhotoUploadPanel({ albumId }: AdminBulkPhotoUpl
             <input
                 ref={inputRef}
                 type="file"
-                accept="image/*,.heic,.heif"
+                accept="image/*,video/*,.heic,.heif"
                 multiple
                 className="hidden"
                 onChange={(event) => void handleFileSelection(event)}

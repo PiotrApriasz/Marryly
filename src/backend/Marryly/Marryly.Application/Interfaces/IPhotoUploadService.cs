@@ -5,7 +5,7 @@ namespace Marryly.Application.Interfaces;
 public interface IPhotoUploadService
 {
     Task<PhotoUploadTargetResponse> CreatePhotoUploadAsync(string eventId, CreatePhotoUploadRequest request, CancellationToken ct = default);
-    Task<PhotoUploadTargetResponse> CreateAdminAlbumPhotoUploadAsync(
+    Task<PhotoUploadTargetResponse> CreateAdminAlbumMediaUploadAsync(
         string eventId,
         string albumId,
         CreatePhotoUploadRequest request,
@@ -14,6 +14,13 @@ public interface IPhotoUploadService
     Task<MediaItem> CompletePhotoUploadAsync(
         string eventId,
         string photoId,
+        string albumId,
+        string sourceType,
+        CompletePhotoUploadRequest request,
+        CancellationToken ct = default);
+    Task<MediaItem> CompleteAdminAlbumMediaUploadAsync(
+        string eventId,
+        string mediaId,
         string albumId,
         string sourceType,
         CompletePhotoUploadRequest request,

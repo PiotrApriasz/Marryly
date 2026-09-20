@@ -114,6 +114,7 @@ export class AdminClient {
 
     async completeAlbumPhotoUpload(albumId: string, payload: CompletePhotoUploadRequest): Promise<void> {
         await adminApiClient.post<Record<string, unknown>>(`/panel/albums/${albumId}/photos/uploads/${payload.photoId}/complete`, {
+            kind: payload.kind,
             blobName: payload.blobName,
             blobUrl: payload.blobUrl,
             contentType: payload.contentType,
