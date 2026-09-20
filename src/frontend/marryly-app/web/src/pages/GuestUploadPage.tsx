@@ -1,7 +1,6 @@
 import Layout from '../components/Layout';
 import Section from '../components/Section';
 import PageHeader from '../components/PageHeader';
-import { apiClient } from '../api/client';
 import { appText } from '../content/appText';
 import PhotoUploadPanel from '../components/PhotoUploadPanel';
 
@@ -19,8 +18,6 @@ export default function GuestUploadPage() {
                             addButtonLabel={appText.public.guestUpload.addButtonLabel}
                             addButtonDescription={appText.public.guestUpload.addButtonDescription}
                             successTitle={appText.public.guestUpload.successTitle}
-                            onCreateUpload={(payload) => apiClient.createMediaUpload(payload)}
-                            onCompleteUpload={(payload) => apiClient.completeMediaUpload(payload)}
                         />
                     </div>
                 </Section>

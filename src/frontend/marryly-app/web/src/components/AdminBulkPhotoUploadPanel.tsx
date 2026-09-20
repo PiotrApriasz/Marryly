@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
+import { MAX_BATCH_MEDIA_COUNT } from '../constants/mediaUpload';
 import { appText } from '../content/appText';
-import { useAdminUploadQueue, MAX_PHOTOS_PER_ALBUM } from '../hooks/admin/useAdminUploadQueue';
+import { useAdminUploadQueue } from '../hooks/admin/useAdminUploadQueue';
 import Notice from './Notice';
 
 interface AdminBulkPhotoUploadPanelProps {
@@ -137,7 +138,7 @@ export default function AdminBulkPhotoUploadPanel({ albumId }: AdminBulkPhotoUpl
                         />
                     </div>
                     <p className="mt-3 text-xs text-muted">
-                        {appText.admin.bulkUpload.albumQueueLimitPrefix} {MAX_PHOTOS_PER_ALBUM}.
+                        {appText.admin.bulkUpload.albumQueueLimitPrefix} {MAX_BATCH_MEDIA_COUNT}.
                     </p>
                 </div>
             ) : null}

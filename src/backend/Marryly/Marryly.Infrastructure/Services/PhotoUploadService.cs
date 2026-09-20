@@ -4,7 +4,6 @@ using System.Text;
 using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
-using Marryly.Application.Constants;
 using Marryly.Application.Exceptions;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Media;
@@ -108,7 +107,7 @@ public class PhotoUploadService(
         var fileExtension = GetSafeExtension(request.FileName, kind);
         var now = DateTimeOffset.UtcNow;
         var blobFolder = kind == VideoKind ? "videos" : "photos";
-        var blobPath = string.IsNullOrWhiteSpace(albumId) || string.IsNullOrWhiteSpace(request.ClientUploadId)
+        var blobPath = string.IsNullOrWhiteSpace(request.ClientUploadId)
             ? $"{now:yyyy}/{now:MM}/{now:dd}/{mediaId}"
             : $"bulk/{mediaId}";
         var blobName = $"events/{eventId}/{blobFolder}/{blobPath}{fileExtension}";
@@ -183,9 +182,7 @@ public class PhotoUploadService(
         }
 
         var normalizedBlobName = request.BlobName.Trim();
-        var existingItem = string.Equals(sourceType, AlbumConstants.AdminSourceType, StringComparison.Ordinal)
-            ? await mediaService.GetMediaByIdAsync(eventId, mediaId, ct)
-            : null;
+        var existingItem = await mediaService.GetMediaByIdAsync(eventId, mediaId, ct);
         if (existingItem is not null)
         {
             if (!string.Equals(existingItem.AlbumId, albumId, StringComparison.Ordinal) ||
@@ -307,7 +304,7 @@ public class PhotoUploadService(
 
     private static string ResolveMediaId(string eventId, string? albumId, string? clientUploadId)
     {
-        if (string.IsNullOrWhiteSpace(albumId) || string.IsNullOrWhiteSpace(clientUploadId))
+        if (string.IsNullOrWhiteSpace(clientUploadId))
         {
             return Guid.NewGuid().ToString();
         }
@@ -321,7 +318,8 @@ public class PhotoUploadService(
                 "Client upload identifier must be a valid UUID.");
         }
 
-        var seed = Encoding.UTF8.GetBytes($"{eventId}:{albumId}:{clientUploadId}");
+        var uploadScope = string.IsNullOrWhiteSpace(albumId) ? "guest" : albumId;
+        var seed = Encoding.UTF8.GetBytes($"{eventId}:{uploadScope}:{clientUploadId}");
         var hash = SHA256.HashData(seed);
         var guidBytes = hash[..16];
 

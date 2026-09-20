@@ -20,9 +20,12 @@ Frontend uploads guest photos directly to Azure Blob Storage. The browser never 
   "fileName": "IMG_1024.HEIC",
   "fileSizeBytes": 4281193,
   "contentType": "image/heic",
-  "lastModifiedAt": "2026-03-17T12:34:56.000Z"
+  "lastModifiedAt": "2026-03-17T12:34:56.000Z",
+  "clientUploadId": "8bd7c6ec-68bb-4ba6-bf2f-a9a46a2c4db3"
 }
 ```
+
+Upload gościa może przekazać `clientUploadId` dla pozycji zapisanej w trwałej kolejce. Przy ponowieniu utworzenie celu SAS i zakończenie tego samego uploadu pozostają idempotentne.
 
 ## Response
 

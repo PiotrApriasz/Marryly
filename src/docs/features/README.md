@@ -7,4 +7,4 @@ Zanim utworzysz nowy dokument, wyszukaj, czy zakres nie jest już opisany. Jeże
 Aktualne dokumenty:
 
 - [private-shared-gallery.md](private-shared-gallery.md) — albumy dostępne przez link i ich dedykowany widok.
-- [admin-bulk-upload.md](admin-bulk-upload.md) — trwała kolejka masowego uploadu zdjęć w panelu admina.
+- [admin-bulk-upload.md](admin-bulk-upload.md) — kolejka masowego uploadu zdjęć w panelu admina oraz batchowy upload mediów gościa.

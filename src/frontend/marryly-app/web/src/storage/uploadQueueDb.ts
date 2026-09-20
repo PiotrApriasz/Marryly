@@ -1,18 +1,23 @@
 const DATABASE_NAME = 'marryly-admin-upload-queue';
 const STORE_NAME = 'items';
-const DATABASE_VERSION = 1;
+const DATABASE_VERSION = 2;
 
-export interface PersistedAdminUploadQueueItem {
+import type { UploadMediaKind } from '../types/upload.types';
+import type { MediaUploadQueueItemStatus, MediaUploadQueueScope } from '../types/media-upload.types';
+
+export interface PersistedUploadQueueItem {
     id: string;
     ownerUserId: string;
-    albumId: string;
+    scope?: MediaUploadQueueScope;
+    albumId?: string | null;
     file: Blob;
     fileName: string;
+    kind?: UploadMediaKind;
     contentType: string;
     sizeBytes: number;
     lastModified: number;
     fingerprint: string;
-    status: 'queued' | 'preparing' | 'uploading' | 'error';
+    status: MediaUploadQueueItemStatus;
     errorMessage: string | null;
     createdAt: number;
 }
@@ -69,15 +74,15 @@ function runTransaction<T>(
     }));
 }
 
-export function getPersistedAdminUploadQueue(ownerUserId: string): Promise<PersistedAdminUploadQueueItem[]> {
+export function getPersistedUploadQueue(ownerUserId: string): Promise<PersistedUploadQueueItem[]> {
     return runTransaction('readonly', (store, setResult, reject) => {
         const request = store.index('ownerUserId').getAll(ownerUserId);
-        request.onsuccess = () => setResult(request.result as PersistedAdminUploadQueueItem[]);
+        request.onsuccess = () => setResult(request.result as PersistedUploadQueueItem[]);
         request.onerror = () => reject(request.error ?? new Error('Failed to read upload queue.'));
     });
 }
 
-export function savePersistedAdminUploadQueueItems(items: PersistedAdminUploadQueueItem[]): Promise<void> {
+export function savePersistedUploadQueueItems(items: PersistedUploadQueueItem[]): Promise<void> {
     if (items.length === 0) {
         return Promise.resolve();
     }
@@ -91,31 +96,14 @@ export function savePersistedAdminUploadQueueItems(items: PersistedAdminUploadQu
     });
 }
 
-export function savePersistedAdminUploadQueueItem(item: PersistedAdminUploadQueueItem): Promise<void> {
-    return savePersistedAdminUploadQueueItems([item]);
+export function savePersistedUploadQueueItem(item: PersistedUploadQueueItem): Promise<void> {
+    return savePersistedUploadQueueItems([item]);
 }
 
-export function deletePersistedAdminUploadQueueItem(id: string): Promise<void> {
+export function deletePersistedUploadQueueItem(id: string): Promise<void> {
     return runTransaction('readwrite', (store, setResult, reject) => {
         const request = store.delete(id);
         request.onsuccess = () => setResult(undefined);
         request.onerror = () => reject(request.error ?? new Error('Failed to delete upload queue item.'));
-    });
-}
-
-export function deletePersistedAdminUploadQueueForOwner(ownerUserId: string): Promise<void> {
-    return runTransaction('readwrite', (store, setResult, reject) => {
-        const request = store.index('ownerUserId').openCursor(ownerUserId);
-        request.onsuccess = () => {
-            const cursor = request.result;
-            if (!cursor) {
-                setResult(undefined);
-                return;
-            }
-
-            cursor.delete();
-            cursor.continue();
-        };
-        request.onerror = () => reject(request.error ?? new Error('Failed to clear upload queue.'));
     });
 }

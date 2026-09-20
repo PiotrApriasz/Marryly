@@ -8,7 +8,7 @@ Najważniejszą zasadą produktu jest rozdzielenie dostępu gości, administrato
 
 ## Aktualna architektura
 
-- **Frontend:** React 19, TypeScript, Vite, React Router i Tailwind CSS. Wspólne style komponentowe są głównie w `frontend/marryly-app/web/src/styles/components.css`; panel admina ma globalną kolejkę uploadu zdjęć utrwalaną w IndexedDB.
+- **Frontend:** React 19, TypeScript, Vite, React Router i Tailwind CSS. Wspólne style komponentowe są głównie w `frontend/marryly-app/web/src/styles/components.css`; panel admina i upload gościa korzystają ze wspólnej globalnej kolejki mediów utrwalanej w IndexedDB.
 - **Backend:** .NET 9 Azure Functions. Logika jest podzielona na `Marryly.Application`, `Marryly.Infrastructure` i `Marryly.Functions`.
 - **Dane:** Cosmos DB. Dane związane z wydarzeniem trafiają do kontenerów opisanych w [README backendu](../backend/Marryly/README.md).
 - **Media:** galeria korzysta z istniejącego przepływu uploadu i wersji pochodnych; szczegóły MVP uploadu są w [photo-upload-mvp.md](../frontend/marryly-app/web/docs/photo-upload-mvp.md).
