@@ -13,6 +13,7 @@ interface PhotoGalleryGridProps {
     selectionMode?: boolean;
     selectedPhotoIds?: ReadonlySet<string>;
     onTogglePhotoSelection?: (photoId: string) => void;
+    variant?: 'default' | 'masonry';
 }
 
 export default function PhotoGalleryGrid({
@@ -23,6 +24,7 @@ export default function PhotoGalleryGrid({
     selectionMode = false,
     selectedPhotoIds,
     onTogglePhotoSelection,
+    variant = 'default',
 }: PhotoGalleryGridProps) {
     const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null);
 
@@ -32,6 +34,7 @@ export default function PhotoGalleryGrid({
                 items={photos}
                 getItemId={(photo) => photo.id}
                 getItemHeightRatio={getMediaHeightRatio}
+                layout={variant === 'masonry' ? 'masonry' : 'columns'}
                 renderItem={(photo) => (
                     <button
                         type="button"
@@ -71,7 +74,7 @@ export default function PhotoGalleryGrid({
                                 </div>
                             ) : (
                                 <img
-                                    src={photo.thumbnailUrl ?? photo.url}
+                                    src={variant === 'masonry' ? photo.url : photo.thumbnailUrl ?? photo.url}
                                     alt={appText.common.media.weddingPhotoAlt}
                                     loading="lazy"
                                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"

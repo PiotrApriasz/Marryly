@@ -64,6 +64,11 @@
   min-width: 0;
 }
 
+.masonry-grid-shared,
+.masonry-grid-shared .masonry-grid-column {
+  gap: 0.45rem;
+}
+
 .photo-gallery-tile {
   display: block;
   width: 100%;
@@ -181,6 +186,23 @@
 @media (min-width: 1024px) {
   .masonry-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .masonry-grid-shared,
+  .masonry-grid-shared .masonry-grid-column {
+    gap: 0.65rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .masonry-grid-shared {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .masonry-grid-shared {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
@@ -575,7 +597,6 @@
   height: 100svh;
   overflow-y: auto;
   overflow-x: hidden;
-  scroll-snap-type: y mandatory;
   scroll-behavior: smooth;
   overscroll-behavior-y: contain;
   background: #f5f1e8;
@@ -629,8 +650,6 @@
   position: relative;
   z-index: 1;
   min-height: 100svh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 .shared-gallery-welcome {
@@ -774,7 +793,6 @@
 
 .shared-gallery-album-shell {
   background: #f5f1e8;
-  scroll-snap-type: y mandatory;
 }
 
 .shared-gallery-album-hero-photo,
@@ -809,8 +827,6 @@
   position: relative;
   z-index: 1;
   min-height: 100svh;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 .shared-gallery-album-welcome {
@@ -837,12 +853,12 @@
 }
 
 .shared-gallery-album-photos-screen {
-  padding: 4rem max(1.5rem, 4vw) 6rem;
+  padding: 2rem clamp(0.75rem, 1.2vw, 1.5rem) 6rem;
   background: #f5f1e8;
 }
 
 .shared-gallery-album-photos-content {
-  width: min(100%, 86rem);
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -951,7 +967,6 @@
 .shared-gallery-credit-footer {
   margin-top: 7rem;
   padding: 0 0 max(1.5rem, env(safe-area-inset-bottom));
-  scroll-snap-align: end;
   text-align: center;
   color: rgba(31, 31, 31, 0.58);
 }
@@ -1094,7 +1109,7 @@
   }
 
   .shared-gallery-album-photos-screen {
-    padding: 2.5rem 1rem 6rem;
+    padding: 1.25rem 0.5rem 6rem;
   }
 
   .shared-gallery-album-toolbar {

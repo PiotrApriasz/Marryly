@@ -15,6 +15,7 @@ export default function InfiniteLoadMore({
     label,
 }: InfiniteLoadMoreProps) {
     const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const awaitingSentinelExitRef = useRef(false);
 
     useEffect(() => {
         const node = sentinelRef.current;
@@ -26,7 +27,17 @@ export default function InfiniteLoadMore({
         const observer = new IntersectionObserver((entries) => {
             const [entry] = entries;
 
-            if (entry?.isIntersecting) {
+            if (!entry) {
+                return;
+            }
+
+            if (!entry.isIntersecting) {
+                awaitingSentinelExitRef.current = false;
+                return;
+            }
+
+            if (!awaitingSentinelExitRef.current) {
+                awaitingSentinelExitRef.current = true;
                 void onLoadMore();
             }
         }, {

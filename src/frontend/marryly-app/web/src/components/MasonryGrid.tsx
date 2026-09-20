@@ -5,14 +5,27 @@ interface MasonryGridProps<T> {
     getItemId: (item: T) => string;
     getItemHeightRatio: (item: T) => number;
     renderItem: (item: T) => ReactNode;
+    layout?: 'columns' | 'masonry';
 }
 
 interface MasonryLayout {
     columnItemIds: string[][];
 }
 
-function getColumnCount(): number {
-    return typeof window !== 'undefined' && window.innerWidth >= 1024 ? 3 : 2;
+function getColumnCount(layout: 'columns' | 'masonry'): number {
+    if (typeof window === 'undefined') {
+        return 2;
+    }
+
+    if (layout === 'masonry') {
+        if (window.innerWidth >= 1440) {
+            return 4;
+        }
+
+        return window.innerWidth >= 768 ? 3 : 2;
+    }
+
+    return window.innerWidth >= 1024 ? 3 : 2;
 }
 
 export default function MasonryGrid<T>({
@@ -20,19 +33,21 @@ export default function MasonryGrid<T>({
     getItemId,
     getItemHeightRatio,
     renderItem,
+    layout = 'columns',
 }: MasonryGridProps<T>) {
-    const [columnCount, setColumnCount] = useState(getColumnCount);
+    const [columnCount, setColumnCount] = useState(() => getColumnCount(layout));
 
     useEffect(() => {
         const handleResize = () => {
-            setColumnCount(getColumnCount());
+            setColumnCount(getColumnCount(layout));
         };
 
+        handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []);
+    }, [layout]);
 
-    const layout = useMemo<MasonryLayout>(() => {
+    const masonryLayout = useMemo<MasonryLayout>(() => {
         const columnItemIds = Array.from({ length: columnCount }, () => [] as string[]);
         const columnHeights = Array.from({ length: columnCount }, () => 0);
 
@@ -49,13 +64,13 @@ export default function MasonryGrid<T>({
 
     const columns = useMemo(() => {
         const itemsById = new Map(items.map((item) => [getItemId(item), item]));
-        return layout.columnItemIds.map((column) => column
+        return masonryLayout.columnItemIds.map((column) => column
             .map((id) => itemsById.get(id))
             .filter((item): item is T => item !== undefined));
-    }, [getItemId, items, layout]);
+    }, [getItemId, items, masonryLayout]);
 
     return (
-        <div className="masonry-grid">
+        <div className={`masonry-grid ${layout === 'masonry' ? 'masonry-grid-shared' : ''}`}>
             {columns.map((column, columnIndex) => (
                 <div key={columnIndex} className="masonry-grid-column">
                     {column.map((item) => (

@@ -249,6 +249,7 @@ export default function SharedGalleryAlbumPage() {
                                     hasMoreMedia={hasMore}
                                     loadingMore={loadingMore}
                                     onRequestMore={loadMore}
+                                    variant="masonry"
                                     selectionMode={isSelectionMode}
                                     selectedPhotoIds={selectedPhotoIds}
                                     onTogglePhotoSelection={togglePhotoSelection}
