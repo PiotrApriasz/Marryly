@@ -1,1 +1,1 @@
-export const MAX_BATCH_MEDIA_COUNT = 500;
+export const MAX_BATCH_MEDIA_COUNT = 800;
