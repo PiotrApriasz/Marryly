@@ -11,6 +11,7 @@ Widok uploadu gościa wykorzystuje ten sam wspólny mechanizm kolejki i przyjmuj
 - Do wysyłania używane są maksymalnie dwa równoległe workery.
 - Każdy plik przechodzi przez utworzenie celu SAS, bezpośredni upload do Blob Storage oraz zakończenie uploadu i generowanie pochodnych wersji.
 - Kolejka jest przechowywana w IndexedDB razem z lokalnymi plikami, dlatego oczekujące i błędne pozycje mogą zostać wznowione po odświeżeniu.
+- Filmy nie mają aplikacyjnego limitu rozmiaru; nadal obowiązują ograniczenia techniczne przeglądarki, IndexedDB, sieci i Blob Storage.
 - Elementy aktywne w chwili odświeżenia wracają do stanu oczekującego. Po sukcesie pozycja jest usuwana z kolejki, a po błędzie pozostaje dostępna dla akcji „Ponów błędne”.
 - Przy braku sieci kolejka zatrzymuje się i wznawia po powrocie połączenia. Wygaśnięcie sesji zatrzymuje upload bez usuwania zapisanych plików.
 - Upload gościa korzysta z tej samej trwałej kolejki, ale wysyła dane przez osobne endpointy gościa. Można przejść na inną stronę, a po odświeżeniu oczekujące i błędne pliki wracają do kolejki.

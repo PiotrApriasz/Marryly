@@ -283,22 +283,22 @@ public class PhotoUploadService(
             : defaultValue;
     }
 
-    private long GetMaxAllowedFileSizeBytes(string kind)
+    private long? GetMaxAllowedFileSizeBytes(string kind)
     {
-        var configKey = kind == VideoKind
-            ? "VIDEO_UPLOAD_MAX_FILE_SIZE_BYTES"
-            : "PHOTO_UPLOAD_MAX_FILE_SIZE_BYTES";
-        var defaultValue = kind == VideoKind
-            ? 500L * 1024 * 1024
-            : 25L * 1024 * 1024;
-        var configuredValue = configuration[configKey];
+        if (kind == VideoKind)
+        {
+            return null;
+        }
+
+        const long defaultValue = 25L * 1024 * 1024;
+        var configuredValue = configuration["PHOTO_UPLOAD_MAX_FILE_SIZE_BYTES"];
 
         return long.TryParse(configuredValue, out var parsedValue) && parsedValue > 0
             ? parsedValue
             : defaultValue;
     }
 
-    private static ApiErrorException? ValidateCreateRequest(CreatePhotoUploadRequest request, string kind, long maxAllowedFileSizeBytes)
+    private static ApiErrorException? ValidateCreateRequest(CreatePhotoUploadRequest request, string kind, long? maxAllowedFileSizeBytes)
     {
         if (string.IsNullOrWhiteSpace(request.FileName) || request.FileName.Length > 255)
         {
@@ -345,7 +345,7 @@ public class PhotoUploadService(
         string albumId,
         CompletePhotoUploadRequest request,
         string kind,
-        long maxAllowedFileSizeBytes)
+        long? maxAllowedFileSizeBytes)
     {
         if (string.IsNullOrWhiteSpace(mediaId) ||
             string.IsNullOrWhiteSpace(albumId) ||
@@ -368,7 +368,7 @@ public class PhotoUploadService(
         string? contentType,
         long fileSizeBytes,
         string kind,
-        long maxAllowedFileSizeBytes)
+        long? maxAllowedFileSizeBytes)
     {
         if (fileSizeBytes <= 0)
         {
@@ -379,13 +379,13 @@ public class PhotoUploadService(
                 "File size must be greater than zero.");
         }
 
-        if (fileSizeBytes > maxAllowedFileSizeBytes)
+        if (maxAllowedFileSizeBytes.HasValue && fileSizeBytes > maxAllowedFileSizeBytes.Value)
         {
             return new ApiErrorException(
                 HttpStatusCode.BadRequest,
                 "MEDIA_FILE_TOO_LARGE",
                 "Media file too large",
-                $"Media file exceeds the maximum allowed size of {maxAllowedFileSizeBytes} bytes.");
+                $"Media file exceeds the maximum allowed size of {maxAllowedFileSizeBytes.Value} bytes.");
         }
 
         var extension = Path.GetExtension(fileName);
