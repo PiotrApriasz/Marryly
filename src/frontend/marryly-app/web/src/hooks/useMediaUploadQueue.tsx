@@ -28,7 +28,6 @@ import type {
 
 const MAX_PARALLEL_UPLOADS = 2;
 const MAX_PHOTO_FILE_SIZE_BYTES = 25 * 1024 * 1024;
-const MAX_VIDEO_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 const PHOTO_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
 const VIDEO_FILE_TYPES = [
@@ -139,8 +138,8 @@ function getMediaKind(file: File): UploadMediaKind | null {
     return null;
 }
 
-function getMaxFileSizeBytes(kind: UploadMediaKind): number {
-    return kind === 'video' ? MAX_VIDEO_FILE_SIZE_BYTES : MAX_PHOTO_FILE_SIZE_BYTES;
+function getMaxFileSizeBytes(kind: UploadMediaKind): number | null {
+    return kind === 'video' ? null : MAX_PHOTO_FILE_SIZE_BYTES;
 }
 
 function formatBytes(size: number): string {
@@ -272,8 +271,13 @@ function getErrorForRejectedFile(file: File, acceptedKinds: UploadMediaKind[]): 
         return `${file.name}: ${appText.components.mediaUpload.errors.unsupportedFormat}`;
     }
 
-    if (file.size <= 0 || file.size > getMaxFileSizeBytes(kind)) {
-        return `${file.name}: ${appText.components.mediaUpload.errors.tooLarge} ${formatBytes(getMaxFileSizeBytes(kind))}.`;
+    const maxFileSizeBytes = getMaxFileSizeBytes(kind);
+    if (file.size <= 0) {
+        return `${file.name}: ${appText.components.mediaUpload.errors.unsupportedFormat}`;
+    }
+
+    if (maxFileSizeBytes !== null && file.size > maxFileSizeBytes) {
+        return `${file.name}: ${appText.components.mediaUpload.errors.tooLarge} ${formatBytes(maxFileSizeBytes)}.`;
     }
 
     return null;
@@ -477,7 +481,7 @@ export function MediaUploadQueueProvider({ children }: { children: ReactNode }) 
                 : item.file);
             const maxFileSizeBytes = getMaxFileSizeBytes(item.kind);
 
-            if (preparedFile.size > maxFileSizeBytes) {
+            if (maxFileSizeBytes !== null && preparedFile.size > maxFileSizeBytes) {
                 throw new Error(`Plik przekracza limit ${formatBytes(maxFileSizeBytes)}.`);
             }
 

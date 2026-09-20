@@ -28,7 +28,6 @@ interface AttachmentUploadState {
 }
 
 const MAX_PHOTO_FILE_SIZE_BYTES = 25 * 1024 * 1024;
-const MAX_VIDEO_FILE_SIZE_BYTES = 500 * 1024 * 1024;
 const PHOTO_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const PHOTO_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif'];
 const VIDEO_FILE_TYPES = ['video/mp4', 'video/quicktime', 'video/webm', 'video/3gpp', 'video/3gpp2', 'video/x-m4v'];
@@ -107,8 +106,8 @@ function getContentType(file: File, kind: AttachmentKind): string {
     }
 }
 
-function getMaxFileSizeBytes(kind: AttachmentKind): number {
-    return kind === 'video' ? MAX_VIDEO_FILE_SIZE_BYTES : MAX_PHOTO_FILE_SIZE_BYTES;
+function getMaxFileSizeBytes(kind: AttachmentKind): number | null {
+    return kind === 'video' ? null : MAX_PHOTO_FILE_SIZE_BYTES;
 }
 
 function getKindLabel(kind: AttachmentKind | null): string {
@@ -242,7 +241,7 @@ export default function GuestbookPage() {
         }
 
         const maxFileSizeBytes = getMaxFileSizeBytes(kind);
-        if (file.size > maxFileSizeBytes) {
+        if (maxFileSizeBytes !== null && file.size > maxFileSizeBytes) {
             setAttachmentUpload({
                 status: 'error',
                 file,
@@ -271,7 +270,7 @@ export default function GuestbookPage() {
             const preparedFile = kind === 'photo' ? await preparePhotoFileForUpload(file) : file;
             const contentType = getContentType(preparedFile, kind);
 
-            if (preparedFile.size > maxFileSizeBytes) {
+            if (maxFileSizeBytes !== null && preparedFile.size > maxFileSizeBytes) {
                 throw new Error(`${appText.public.guestbook.attachment.tooLargeAfterPreparing} ${formatBytes(maxFileSizeBytes)}.`);
             }
 
