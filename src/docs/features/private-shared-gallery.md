@@ -35,7 +35,7 @@ Parser odrzuca niepoprawną długość, niedozwolone znaki, wielkie litery i pow
 Selektor otwierany przez `?view=…` ma własny, dwuekranowy widok bez navbaru:
 
 - ekran powitalny z napisem „Alicja & Piotr” oraz `src/assets/gallery-main-photo.jpg`;
-- przycisk prowadzący płynnie do listy albumów, bez wymuszonego zatrzymywania przewijania;
+- przycisk prowadzący płynnie do listy albumów; sekcje ekranu korzystają z pionowego scroll snap;
 - to samo zdjęcie na drugim ekranie jest wycentrowanym, przyciemnionym i delikatnie rozmytym tłem pod półprzezroczystymi kartami;
 - osobne warstwy zdjęcia karty i tła ograniczają koszt animacji; widok obsługuje `prefers-reduced-motion`.
 - pod listą albumów znajduje się minimalistyczna stopka „Made by Piotr Apriasz, approved by Alicja Biel”.
@@ -46,11 +46,11 @@ Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 
 - pierwszy ekran pokazuje nazwę albumu oraz losowe zdjęcie wybrane spośród wszystkich zatwierdzonych i gotowych zdjęć tego albumu;
 - przy braku zdjęć ekran pokazuje neutralny placeholder, a przyciski pobierania pozostają nieaktywne;
-- przycisk „Zobacz zdjęcia” prowadzi płynnie do sekcji ze zdjęciami, bez wymuszonego zatrzymywania przewijania;
+- przycisk „Zobacz zdjęcia” prowadzi płynnie do sekcji ze zdjęciami, a ekrany albumu korzystają z pionowego scroll snap;
 - drugi ekran ma jednolite tło papierowe, bez zdjęciowego tła, oraz minimalistyczne kontrolki inspirowane lightboxem;
 - zdjęcia w albumie są wyświetlane w pełnoszerokim, responsywnym układzie masonry: zdjęcia zachowują naturalne proporcje i są niezależnie układane w wyrównanych kolumnach bez przycinania;
 - kafelki w tym widoku pobierają wygenerowany preview (maksymalnie 2560 px), a nie miniaturę 480 px; oryginały są nadal używane wyłącznie w lightboxie i przy pobieraniu;
-- automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania;
+- automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania ani nie zmienia pozycji użytkownika w trakcie przeglądania;
 - kontrolki pozwalają wejść w tryb zaznaczania zdjęć i pobrać wszystkie zdjęcia albumu;
 - filmy pozostają widoczne i dostępne w lightboxie, ale nie są zaznaczane ani pobierane w ZIP-ach;
 - nowy film jest przetwarzany asynchronicznie: worker kolejki generuje trwały poster JPEG przez FFmpeg, który grid przekazuje do elementu wideo; komunikaty kolejki są przesyłane jako zwykły JSON (zgodnie z `host.json`), a panel albumów pozwala ponowić generowanie także dla filmów, których wcześniejsze przetwarzanie zakończyło się błędem;
