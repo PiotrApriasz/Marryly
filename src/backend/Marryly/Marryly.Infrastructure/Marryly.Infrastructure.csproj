@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="Azure.Storage.Blobs" Version="12.25.1" />
+      <PackageReference Include="Azure.Storage.Queues" Version="12.27.1" />
       <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.57.0-preview.1" />
       <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="2.51.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.1" />

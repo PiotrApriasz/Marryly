@@ -80,6 +80,7 @@ export default function AdminMediaTile({
                     {isVideo ? (
                         <video
                             src={previewUrl}
+                            poster={mediaItem.thumbnailBlobUrl ?? undefined}
                             preload="metadata"
                             muted
                             playsInline

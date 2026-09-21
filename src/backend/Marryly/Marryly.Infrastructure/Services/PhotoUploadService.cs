@@ -14,7 +14,8 @@ namespace Marryly.Infrastructure.Services;
 public class PhotoUploadService(
     IConfiguration configuration,
     IMediaService mediaService,
-    IPhotoDerivativeService photoDerivativeService) : IPhotoUploadService
+    IPhotoDerivativeService photoDerivativeService,
+    IVideoThumbnailQueue videoThumbnailQueue) : IPhotoUploadService
 {
     private const string PhotoKind = "photo";
     private const string VideoKind = "video";
@@ -217,7 +218,7 @@ public class PhotoUploadService(
             Id = mediaId,
             EventId = eventId,
             Kind = kind,
-            Status = kind == VideoKind ? "ready" : "processing",
+            Status = "processing",
             AlbumId = albumId,
             SourceType = sourceType,
             OriginalBlobName = normalizedBlobName,
@@ -227,7 +228,7 @@ public class PhotoUploadService(
             UploadedAt = DateTime.UtcNow,
             CapturedAt = request.CapturedAt?.UtcDateTime ?? request.LastModifiedAt?.UtcDateTime,
             Approved = true,
-            ProcessedAt = kind == VideoKind ? DateTime.UtcNow : null
+            ProcessedAt = null
         };
 
         var savedItem = await mediaService.UpsertMediaAsync(eventId, mediaItem, ct);
@@ -235,7 +236,30 @@ public class PhotoUploadService(
         if (kind == VideoKind)
         {
             savedItem.CapturedAt ??= savedItem.UploadedAt;
-            return savedItem;
+            await mediaService.UpsertMediaAsync(eventId, savedItem, ct);
+
+            try
+            {
+                await videoThumbnailQueue.EnqueueAsync(new VideoThumbnailJob
+                {
+                    EventId = eventId,
+                    MediaId = savedItem.Id
+                }, ct);
+                return savedItem;
+            }
+            catch (Exception ex)
+            {
+                savedItem.Status = "failed";
+                savedItem.ProcessingError = TruncateErrorMessage(ex.Message);
+                savedItem.ProcessedAt = DateTime.UtcNow;
+                await mediaService.UpsertMediaAsync(eventId, savedItem, ct);
+
+                throw new ApiErrorException(
+                    HttpStatusCode.InternalServerError,
+                    "VIDEO_PROCESSING_ENQUEUE_FAILED",
+                    "Video processing failed",
+                    "The video was uploaded, but thumbnail generation could not be queued.");
+            }
         }
 
         try

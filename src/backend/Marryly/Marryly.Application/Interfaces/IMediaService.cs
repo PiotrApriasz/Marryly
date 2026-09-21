@@ -22,6 +22,7 @@ public interface IMediaService
     Task<IReadOnlyList<AdminSlideshowPhotoResponse>> GetSlideshowPhotosAsync(string eventId, IReadOnlyList<string> albumIds, DateTime? afterUploadedAt, CancellationToken ct = default);
     Task<Dictionary<string, AlbumMediaInsight>> GetAlbumInsightsAsync(string eventId, bool publicOnly, CancellationToken ct = default);
     Task<bool> HasAnyMediaInAlbumAsync(string eventId, string albumId, CancellationToken ct = default);
+    Task<IReadOnlyList<MediaItem>> GetVideosMissingThumbnailsAsync(string eventId, CancellationToken ct = default);
     Task<int> GetPhotosCountAsync(string eventId, CancellationToken ct = default);
     Task<bool> DeletePhotoAsync(string eventId, string photoId, CancellationToken ct = default);
 }

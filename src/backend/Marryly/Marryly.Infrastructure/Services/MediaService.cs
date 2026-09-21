@@ -471,6 +471,28 @@ public class MediaService(
         return false;
     }
 
+    public async Task<IReadOnlyList<MediaItem>> GetVideosMissingThumbnailsAsync(string eventId, CancellationToken ct = default)
+    {
+        var query = new QueryDefinition(
+                "SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND (NOT IS_DEFINED(c.status) OR c.status = @readyStatus OR c.status = @failedStatus) AND (NOT IS_DEFINED(c.thumbnailBlobUrl) OR IS_NULL(c.thumbnailBlobUrl) OR c.thumbnailBlobUrl = '')")
+            .WithParameter("@eventId", eventId)
+            .WithParameter("@kind", "video")
+            .WithParameter("@readyStatus", "ready")
+            .WithParameter("@failedStatus", "failed");
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+        var videos = new List<MediaItem>();
+
+        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
+                       {
+                           PartitionKey = partitionKey
+                       }, ct))
+        {
+            videos.Add(item);
+        }
+
+        return videos;
+    }
+
     public async Task<int> GetPhotosCountAsync(string eventId, CancellationToken ct = default)
     {
         var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
@@ -556,9 +578,9 @@ public class MediaService(
             Url = item.PreviewBlobUrl ?? originalUrl,
             OriginalUrl = originalUrl,
             DownloadUrl = mediaStorageService.GetOriginalDownloadUrl(item.OriginalBlobName),
-            ThumbnailUrl = string.Equals(item.Kind, "photo", StringComparison.Ordinal)
-                ? item.ThumbnailBlobUrl ?? item.PreviewBlobUrl ?? item.OriginalBlobUrl
-                : null,
+            ThumbnailUrl = item.ThumbnailBlobUrl ?? (string.Equals(item.Kind, "photo", StringComparison.Ordinal)
+                ? item.PreviewBlobUrl ?? item.OriginalBlobUrl
+                : null),
             ContentType = item.ContentType,
             UploadedAt = item.UploadedAt,
             CapturedAt = item.CapturedAt,

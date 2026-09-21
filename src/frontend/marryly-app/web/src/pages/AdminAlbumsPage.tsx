@@ -121,6 +121,8 @@ export default function AdminAlbumsPage() {
     const [editingAlbumId, setEditingAlbumId] = useState<string | null>(null);
     const [savingAlbumId, setSavingAlbumId] = useState<string | null>(null);
     const [actionAlbumId, setActionAlbumId] = useState<string | null>(null);
+    const [isBackfillingVideoThumbnails, setIsBackfillingVideoThumbnails] = useState(false);
+    const [videoThumbnailMessage, setVideoThumbnailMessage] = useState<string | null>(null);
     const isCreateTitleValid = createTitle.trim().length > 0;
 
     const orderedIds = useMemo(() => albums.map((album) => album.id), [albums]);
@@ -216,6 +218,22 @@ export default function AdminAlbumsPage() {
         }
     };
 
+    const handleBackfillVideoThumbnails = async () => {
+        setPageError(null);
+        setVideoThumbnailMessage(null);
+        setIsBackfillingVideoThumbnails(true);
+
+        try {
+            const { queuedCount } = await adminClient.backfillVideoThumbnails();
+            setVideoThumbnailMessage(appText.admin.albums.videoThumbnailsQueued.replace('{count}', String(queuedCount)));
+        } catch (err: unknown) {
+            setPageError(getErrorMessageForDisplay(err, appText.admin.albums.errors.videoThumbnails));
+            logErrorDetails(err, 'Failed to queue video thumbnail backfill');
+        } finally {
+            setIsBackfillingVideoThumbnails(false);
+        }
+    };
+
     return (
         <Layout>
             <div className="page-offset">
@@ -226,13 +244,26 @@ export default function AdminAlbumsPage() {
                         helpText={appText.admin.albums.helpText}
                     />
 
-                    <div className="mt-6 flex justify-end">
+                    <div className="mt-6 flex flex-wrap justify-end gap-3">
                         <Link to="/admin/gallery-share-links">
                             <Button type="button" variant="secondary" size="sm">
                                 {appText.admin.albums.manageShareLinks}
                             </Button>
                         </Link>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            loading={isBackfillingVideoThumbnails}
+                            onClick={() => void handleBackfillVideoThumbnails()}
+                        >
+                            {appText.admin.albums.generateVideoThumbnails}
+                        </Button>
                     </div>
+
+                    {videoThumbnailMessage ? (
+                        <p className="mt-4 text-right font-sans text-sm text-muted">{videoThumbnailMessage}</p>
+                    ) : null}
 
                     {pageError ? (
                         <div className="mt-8">

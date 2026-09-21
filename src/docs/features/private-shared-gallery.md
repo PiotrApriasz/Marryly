@@ -53,6 +53,7 @@ Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 - automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania;
 - kontrolki pozwalają wejść w tryb zaznaczania zdjęć i pobrać wszystkie zdjęcia albumu;
 - filmy pozostają widoczne i dostępne w lightboxie, ale nie są zaznaczane ani pobierane w ZIP-ach;
+- nowy film jest przetwarzany asynchronicznie: worker kolejki generuje trwały poster JPEG przez FFmpeg, który grid przekazuje do elementu wideo; komunikaty kolejki są przesyłane jako zwykły JSON (zgodnie z `host.json`), a panel albumów pozwala ponowić generowanie także dla filmów, których wcześniejsze przetwarzanie zakończyło się błędem;
 - zaznaczenia są zachowywane podczas paginacji, a floating button pobiera zaznaczone zdjęcia i po sukcesie zamyka tryb zaznaczania;
 - pod galerią znajduje się minimalistyczna stopka „Made by Piotr Apriasz, approved by Alicja Biel”.
 

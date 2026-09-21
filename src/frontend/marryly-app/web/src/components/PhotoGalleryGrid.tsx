@@ -61,6 +61,7 @@ export default function PhotoGalleryGrid({
                                 <div className="relative h-full w-full">
                                     <video
                                         src={photo.url}
+                                        poster={photo.thumbnailUrl ?? undefined}
                                         preload="metadata"
                                         muted
                                         playsInline
