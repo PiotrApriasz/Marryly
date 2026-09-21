@@ -4,5 +4,5 @@ namespace Marryly.Application.Interfaces;
 
 public interface IVideoThumbnailService
 {
-    Task<VideoThumbnailResult> GenerateAsync(MediaItem mediaItem, CancellationToken ct = default);
+    Task<VideoThumbnailResult> StoreAsync(MediaItem mediaItem, Stream thumbnail, CancellationToken ct = default);
 }

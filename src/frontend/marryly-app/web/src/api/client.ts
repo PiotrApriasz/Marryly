@@ -137,6 +137,14 @@ export class ApiClient {
         });
     }
 
+    async uploadVideoThumbnail(mediaId: string, thumbnail: Blob): Promise<void> {
+        await this.fetchJson<Record<string, unknown>>(`/app/media/${mediaId}/thumbnail`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'image/jpeg' },
+            body: thumbnail,
+        });
+    }
+
     async completeGuestBookVideoUpload(payload: CompletePhotoUploadRequest): Promise<void> {
         const mediaId = payload.mediaId ?? payload.photoId;
         await this.fetchJson<Record<string, unknown>>(`/app/guestbook/videos/uploads/${mediaId}/complete`, {

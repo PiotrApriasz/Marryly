@@ -14,8 +14,7 @@ namespace Marryly.Infrastructure.Services;
 public class PhotoUploadService(
     IConfiguration configuration,
     IMediaService mediaService,
-    IPhotoDerivativeService photoDerivativeService,
-    IVideoThumbnailQueue videoThumbnailQueue) : IPhotoUploadService
+    IPhotoDerivativeService photoDerivativeService) : IPhotoUploadService
 {
     private const string PhotoKind = "photo";
     private const string VideoKind = "video";
@@ -218,7 +217,7 @@ public class PhotoUploadService(
             Id = mediaId,
             EventId = eventId,
             Kind = kind,
-            Status = "processing",
+            Status = kind == VideoKind ? "ready" : "processing",
             AlbumId = albumId,
             SourceType = sourceType,
             OriginalBlobName = normalizedBlobName,
@@ -231,36 +230,14 @@ public class PhotoUploadService(
             ProcessedAt = null
         };
 
-        var savedItem = await mediaService.UpsertMediaAsync(eventId, mediaItem, ct);
-
         if (kind == VideoKind)
         {
-            savedItem.CapturedAt ??= savedItem.UploadedAt;
-            await mediaService.UpsertMediaAsync(eventId, savedItem, ct);
-
-            try
-            {
-                await videoThumbnailQueue.EnqueueAsync(new VideoThumbnailJob
-                {
-                    EventId = eventId,
-                    MediaId = savedItem.Id
-                }, ct);
-                return savedItem;
-            }
-            catch (Exception ex)
-            {
-                savedItem.Status = "failed";
-                savedItem.ProcessingError = TruncateErrorMessage(ex.Message);
-                savedItem.ProcessedAt = DateTime.UtcNow;
-                await mediaService.UpsertMediaAsync(eventId, savedItem, ct);
-
-                throw new ApiErrorException(
-                    HttpStatusCode.InternalServerError,
-                    "VIDEO_PROCESSING_ENQUEUE_FAILED",
-                    "Video processing failed",
-                    "The video was uploaded, but thumbnail generation could not be queued.");
-            }
+            mediaItem.CapturedAt ??= mediaItem.UploadedAt;
+            mediaItem.ProcessedAt = DateTime.UtcNow;
+            return await mediaService.UpsertMediaAsync(eventId, mediaItem, ct);
         }
+
+        var savedItem = await mediaService.UpsertMediaAsync(eventId, mediaItem, ct);
 
         try
         {

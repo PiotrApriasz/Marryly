@@ -425,7 +425,8 @@ export const appText = {
             linkAccessibleStatus: 'Dostęp przez link',
             manageShareLinks: 'Linki do albumów',
             generateVideoThumbnails: 'Wygeneruj miniatury filmów',
-            videoThumbnailsQueued: 'Zlecono miniatury dla {count} filmów.',
+            videoThumbnailsGenerated: 'Wygenerowano miniatury dla {count} filmów.',
+            videoThumbnailsFailed: 'Nie udało się utworzyć miniatur dla {count} filmów.',
             create: 'Utwórz album',
             empty: 'Brak albumów do wyświetlenia.',
             system: 'Systemowy',
@@ -444,7 +445,7 @@ export const appText = {
                 save: 'Nie udało się zapisać albumu.',
                 delete: 'Nie udało się usunąć albumu.',
                 reorder: 'Nie udało się zmienić kolejności albumów.',
-                videoThumbnails: 'Nie udało się zlecić generowania miniaturek filmów.',
+                videoThumbnails: 'Nie udało się wygenerować miniaturek filmów.',
             },
         },
         album: {

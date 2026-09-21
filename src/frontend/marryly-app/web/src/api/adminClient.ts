@@ -128,8 +128,8 @@ export class AdminClient {
         await adminApiClient.delete<void>(`/panel/media/${mediaId}`);
     }
 
-    async backfillVideoThumbnails(): Promise<{ queuedCount: number }> {
-        return adminApiClient.post<{ queuedCount: number }>('/panel/media/video-thumbnails/backfill');
+    async uploadVideoThumbnail(mediaId: string, thumbnail: Blob): Promise<void> {
+        await adminApiClient.post<Record<string, unknown>>(`/panel/media/${mediaId}/thumbnail`, thumbnail);
     }
 
     async getSlideshowSettings(): Promise<AdminSlideshowSettings> {

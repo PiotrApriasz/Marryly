@@ -7,6 +7,7 @@ import { uploadFileToSignedUrl } from '../api/photoUploadTransport';
 import { appText } from '../content/appText';
 import { ApiError, getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { extractPhotoCapturedAt } from '../media/extractPhotoMetadata';
+import { extractVideoThumbnail } from '../media/extractVideoThumbnail';
 import { preparePhotoFileForUpload } from '../media/preparePhotoFileForUpload';
 import { invalidateAdminCache, invalidateAdminCacheByPrefix } from './admin/useAdminApiResource';
 import { invalidateCachedApiResourcesByPrefix } from './useCachedApiResource';
@@ -459,6 +460,12 @@ export function MediaUploadQueueProvider({ children }: { children: ReactNode }) 
         return apiClient.completeMediaUpload(payload);
     }, []);
 
+    const uploadVideoThumbnail = useCallback((item: QueueItemRecord, mediaId: string, thumbnail: File): Promise<void> => {
+        return item.scope === 'admin'
+            ? adminClient.uploadVideoThumbnail(mediaId, thumbnail)
+            : apiClient.uploadVideoThumbnail(mediaId, thumbnail);
+    }, []);
+
     const processItem = useCallback(async (itemId: string): Promise<QueueProcessResult> => {
         const item = itemsRef.current.find((candidate) => candidate.id === itemId);
         if (!item || item.scope !== activeScopeRef.current || !isAuthenticatedRef.current) {
@@ -479,6 +486,9 @@ export function MediaUploadQueueProvider({ children }: { children: ReactNode }) 
             const preparedFile = item.preparedFile ?? (item.kind === 'photo'
                 ? await preparePhotoFileForUpload(item.file)
                 : item.file);
+            const videoThumbnail = item.kind === 'video'
+                ? await extractVideoThumbnail(preparedFile, preparedFile.name)
+                : null;
             const maxFileSizeBytes = getMaxFileSizeBytes(item.kind);
 
             if (maxFileSizeBytes !== null && preparedFile.size > maxFileSizeBytes) {
@@ -539,6 +549,10 @@ export function MediaUploadQueueProvider({ children }: { children: ReactNode }) 
                 lastModifiedAt,
             });
 
+            if (videoThumbnail) {
+                await uploadVideoThumbnail(item, target.mediaId ?? target.photoId, videoThumbnail);
+            }
+
             if (item.scope !== activeScopeRef.current || !isAuthenticatedRef.current) {
                 return { status: 'paused', albumId: item.albumId ?? undefined };
             }
@@ -597,7 +611,7 @@ export function MediaUploadQueueProvider({ children }: { children: ReactNode }) 
 
             return { status: 'error', albumId: item.albumId ?? undefined };
         }
-    }, [completeUpload, createUploadTarget, persistItem, removeItem, replaceItem]);
+    }, [completeUpload, createUploadTarget, persistItem, removeItem, replaceItem, uploadVideoThumbnail]);
 
     const processQueue = useCallback(async () => {
         if (processingRef.current || !activeScopeRef.current || !isAuthenticatedRef.current || !isOnlineRef.current) {

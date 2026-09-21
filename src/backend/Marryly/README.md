@@ -30,11 +30,9 @@ Admin panel requests use JWT sent in `X-Marryly-Admin-Token`.
 
 ### Miniatury filmów
 
-Nowe filmy trafiają do kolejki `video-thumbnail-jobs` w storage wskazanym przez `AzureWebJobsStorage`. Worker Azure Functions pobiera pojedynczą klatkę przez FFmpeg, zapisuje poster JPEG w kontenerze pochodnych i dopiero wtedy oznacza film jako gotowy do pokazania w galerii.
+Po wysłaniu filmu przeglądarka wybiera klatkę wideo, zmniejsza ją maksymalnie do 1280 px i przekazuje JPEG do endpointu HTTP. API zapisuje poster w kontenerze pochodnych; nie wymaga kolejki Storage, Azurite ani FFmpeg, dzięki czemu działa z managed API Azure Static Web Apps.
 
-Host Functions musi mieć zainstalowany FFmpeg dostępny pod `ffmpeg` albo pod ścieżką ustawioną w `FFMPEG_PATH`. Dla wdrożenia kontenerowego zainstaluj FFmpeg w obrazie; standardowe wdrożenie zip bez binarium FFmpeg nie będzie mogło przetwarzać filmów. Opcjonalne ustawienia: `VIDEO_THUMBNAIL_MAX_PIXELS` (domyślnie `1280`) i `VIDEO_THUMBNAIL_SEEK_SECONDS` (domyślnie `1`).
-
-Po wdrożeniu administrator może wybrać w panelu Galeria „Wygeneruj miniatury filmów”, aby zlecić postery dla wcześniej wgranych filmów.
+Administrator może wybrać w panelu Galeria „Wygeneruj miniatury filmów”, aby utworzyć postery dla wcześniej wgranych filmów. Przeglądarka przetwarza je pojedynczo, więc karta panelu powinna pozostać otwarta do końca działania.
 
 ### Generator hasha hasła admina
 

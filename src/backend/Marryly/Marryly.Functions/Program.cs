@@ -68,7 +68,6 @@ builder.Services.AddScoped<IMediaStorageService, MediaStorageService>();
 builder.Services.AddScoped<IMediaService, MediaService>();
 builder.Services.AddScoped<IPhotoUploadService, PhotoUploadService>();
 builder.Services.AddScoped<IPhotoDerivativeService, PhotoDerivativeService>();
-builder.Services.AddScoped<IVideoThumbnailQueue, VideoThumbnailQueue>();
 builder.Services.AddScoped<IVideoThumbnailService, VideoThumbnailService>();
 builder.Services.AddScoped<IOverviewService, OverviewService>();
 builder.Services.AddScoped<ISlideshowService, SlideshowService>();

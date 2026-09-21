@@ -471,28 +471,6 @@ public class MediaService(
         return false;
     }
 
-    public async Task<IReadOnlyList<MediaItem>> GetVideosMissingThumbnailsAsync(string eventId, CancellationToken ct = default)
-    {
-        var query = new QueryDefinition(
-                "SELECT * FROM c WHERE c.eventId = @eventId AND c.kind = @kind AND (NOT IS_DEFINED(c.status) OR c.status = @readyStatus OR c.status = @failedStatus) AND (NOT IS_DEFINED(c.thumbnailBlobUrl) OR IS_NULL(c.thumbnailBlobUrl) OR c.thumbnailBlobUrl = '')")
-            .WithParameter("@eventId", eventId)
-            .WithParameter("@kind", "video")
-            .WithParameter("@readyStatus", "ready")
-            .WithParameter("@failedStatus", "failed");
-        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
-        var videos = new List<MediaItem>();
-
-        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
-                       {
-                           PartitionKey = partitionKey
-                       }, ct))
-        {
-            videos.Add(item);
-        }
-
-        return videos;
-    }
-
     public async Task<int> GetPhotosCountAsync(string eventId, CancellationToken ct = default)
     {
         var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);

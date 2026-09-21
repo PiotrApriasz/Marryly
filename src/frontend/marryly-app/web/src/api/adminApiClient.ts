@@ -43,16 +43,17 @@ export class AdminApiClient {
     private async request<T>(path: string, options: AdminRequestOptions): Promise<T> {
         const { method = 'GET', body, headers, suppressAuthFailureEvent = false } = options;
         const hasBody = body !== undefined;
+        const isBinaryBody = body instanceof Blob;
         const accessToken = readAccessToken();
         const response = await fetch(`${this.baseUrl}${path}`, {
             method,
             headers: {
                 Accept: ACCEPT_HEADER,
-                ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+                ...(hasBody ? { 'Content-Type': isBinaryBody ? body.type : 'application/json' } : {}),
                 ...(accessToken ? { [ACCESS_TOKEN_HEADER]: accessToken } : {}),
                 ...headers,
             },
-            ...(hasBody ? { body: JSON.stringify(body) } : {}),
+            ...(hasBody ? { body: isBinaryBody ? body : JSON.stringify(body) } : {}),
         });
 
         if (!response.ok) {

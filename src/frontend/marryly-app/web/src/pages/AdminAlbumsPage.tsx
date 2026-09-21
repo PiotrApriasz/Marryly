@@ -18,6 +18,7 @@ import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { invalidateAdminCache, invalidateAdminCacheByPrefix } from '../hooks/admin/useAdminApiResource';
 import { useAdminAlbums } from '../hooks/admin/useAdminAlbums';
 import { invalidateCachedApiResourcesByPrefix } from '../hooks/useCachedApiResource';
+import { extractVideoThumbnail } from '../media/extractVideoThumbnail';
 import type { AdminAlbum } from '../types/admin.types';
 
 function AlbumsSkeleton() {
@@ -224,11 +225,51 @@ export default function AdminAlbumsPage() {
         setIsBackfillingVideoThumbnails(true);
 
         try {
-            const { queuedCount } = await adminClient.backfillVideoThumbnails();
-            setVideoThumbnailMessage(appText.admin.albums.videoThumbnailsQueued.replace('{count}', String(queuedCount)));
+            let generatedCount = 0;
+            let failedCount = 0;
+
+            for (const album of albums) {
+                let page = 1;
+                let totalPages = 1;
+
+                while (page <= totalPages) {
+                    const mediaPage = await adminClient.getAlbumMedia(album.id, page, 100);
+                    totalPages = mediaPage.totalPages;
+
+                    for (const mediaItem of mediaPage.items) {
+                        if (mediaItem.kind !== 'video' || mediaItem.thumbnailBlobUrl || !mediaItem.originalUrl) {
+                            continue;
+                        }
+
+                        try {
+                            const videoResponse = await fetch(mediaItem.originalUrl, { cache: 'no-store' });
+                            if (!videoResponse.ok) {
+                                throw new Error(`Nie udało się pobrać filmu (${videoResponse.status}).`);
+                            }
+
+                            const thumbnail = await extractVideoThumbnail(
+                                await videoResponse.blob(),
+                                mediaItem.originalBlobName,
+                            );
+                            await adminClient.uploadVideoThumbnail(mediaItem.id, thumbnail);
+                            generatedCount += 1;
+                        } catch (thumbnailError: unknown) {
+                            failedCount += 1;
+                            logErrorDetails(thumbnailError, `Failed to backfill thumbnail for video ${mediaItem.id}`);
+                        }
+                    }
+
+                    page += 1;
+                }
+            }
+
+            const generatedMessage = appText.admin.albums.videoThumbnailsGenerated.replace('{count}', String(generatedCount));
+            setVideoThumbnailMessage(failedCount > 0
+                ? `${generatedMessage} ${appText.admin.albums.videoThumbnailsFailed.replace('{count}', String(failedCount))}`
+                : generatedMessage);
         } catch (err: unknown) {
             setPageError(getErrorMessageForDisplay(err, appText.admin.albums.errors.videoThumbnails));
-            logErrorDetails(err, 'Failed to queue video thumbnail backfill');
+            logErrorDetails(err, 'Failed to backfill video thumbnails');
         } finally {
             setIsBackfillingVideoThumbnails(false);
         }
