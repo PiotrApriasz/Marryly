@@ -34,8 +34,8 @@ Parser odrzuca niepoprawną długość, niedozwolone znaki, wielkie litery i pow
 
 Selektor otwierany przez `?view=…` ma własny, dwuekranowy widok bez navbaru:
 
-- ekran powitalny z napisem „Alicja & Piotr” oraz `src/assets/gallery-main-photo.jpg`;
-- przycisk prowadzący płynnie do listy albumów; sekcje ekranu korzystają z pionowego scroll snap;
+- ekran powitalny z napisem „Alicja & Piotr” oraz `src/assets/gallery-main-photo.jpg`; zdjęcie zachowuje własne proporcje, a jego rozmiar jest ograniczony zarówno szerokością, jak i wysokością viewportu, bez kadrowania na szerokich ekranach, gdzie może wykorzystać większą część dostępnego miejsca;
+- przycisk prowadzący płynnie do listy albumów, bez wymuszonego zatrzymywania przewijania;
 - to samo zdjęcie na drugim ekranie jest wycentrowanym, przyciemnionym i delikatnie rozmytym tłem pod półprzezroczystymi kartami;
 - osobne warstwy zdjęcia karty i tła ograniczają koszt animacji; widok obsługuje `prefers-reduced-motion`.
 - pod listą albumów znajduje się minimalistyczna stopka „Made by Piotr Apriasz, approved by Alicja Biel”.
@@ -44,13 +44,14 @@ Selektor otwierany przez `?view=…` ma własny, dwuekranowy widok bez navbaru:
 
 Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 
-- pierwszy ekran pokazuje nazwę albumu oraz losowe zdjęcie wybrane spośród wszystkich zatwierdzonych i gotowych zdjęć tego albumu;
+- przed pierwszym renderem albumu widoczny jest pełnoekranowy spinner; widok nie pokazuje tymczasowego tytułu ani placeholdera, tylko od razu właściwą nazwę i wczytane zdjęcie hero;
+- pierwszy ekran pokazuje nazwę albumu oraz losowe zdjęcie wybrane spośród wszystkich zatwierdzonych i gotowych zdjęć tego albumu; hero zachowuje naturalne proporcje obrazu, bez kadrowania zależnego od proporcji ekranu;
 - przy braku zdjęć ekran pokazuje neutralny placeholder, a przyciski pobierania pozostają nieaktywne;
-- przycisk „Zobacz zdjęcia” prowadzi płynnie do sekcji ze zdjęciami, a ekrany albumu korzystają z pionowego scroll snap;
+- przycisk „Zobacz zdjęcia” prowadzi płynnie do sekcji ze zdjęciami, bez wymuszonego zatrzymywania przewijania;
 - drugi ekran ma jednolite tło papierowe, bez zdjęciowego tła, oraz minimalistyczne kontrolki inspirowane lightboxem;
 - zdjęcia w albumie są wyświetlane w pełnoszerokim, responsywnym układzie masonry: zdjęcia zachowują naturalne proporcje i są niezależnie układane w wyrównanych kolumnach bez przycinania;
 - kafelki w tym widoku pobierają wygenerowany preview (maksymalnie 2560 px), a nie miniaturę 480 px; oryginały są nadal używane wyłącznie w lightboxie i przy pobieraniu;
-- automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania ani nie zmienia pozycji użytkownika w trakcie przeglądania;
+- automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania, nie zmienia pozycji użytkownika i nie reorganizuje już wyświetlonych kafelków masonry;
 - kontrolki pozwalają wejść w tryb zaznaczania zdjęć i pobrać wszystkie zdjęcia albumu;
 - filmy pozostają widoczne i dostępne w lightboxie, ale nie są zaznaczane ani pobierane w ZIP-ach;
 - po uploadzie filmu przeglądarka pobiera pojedynczą klatkę, tworzy z niej poster JPEG i przesyła go do endpointu HTTP; poster jest trwale zapisany w Blob Storage i przekazywany przez grid do elementu wideo, bez kolejki i FFmpeg; panel albumów pozwala utworzyć postery dla filmów wgranych wcześniej, przetwarzając je kolejno w otwartej karcie administratora;

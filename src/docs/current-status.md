@@ -4,7 +4,8 @@ Ten dokument jest celowo krótki. Służy jako indeks dla kolejnych prac, a szcz
 
 | Obszar | Status | Dokument |
 | --- | --- | --- |
-| Prywatne albumy i galeria udostępniona linkiem | Gotowe; selektor i widok albumu mają customowy układ dwóch ekranów, pełnoszeroką galerię masonry, postery filmów generowane w przeglądarce, selekcję, pobieranie ZIP oraz stopkę autorską. | [private-shared-gallery.md](features/private-shared-gallery.md) |
+| Prywatne albumy i galeria udostępniona linkiem | Gotowe; selektor i widok albumu mają customowy układ dwóch ekranów, pełnoekranowe ładowanie przed pokazaniem właściwego hero, hero zachowujące proporcje zdjęcia, pełnoszeroką galerię masonry, postery filmów generowane w przeglądarce, selekcję, pobieranie ZIP oraz stopkę autorską. | [private-shared-gallery.md](features/private-shared-gallery.md) |
+| Zwykła galeria gościa | Gotowe; albumy są renderowane jako standardowa siatka i sortowane od najnowszego do najstarszego dodania. | [guest-gallery.md](features/guest-gallery.md) |
 | Masowy upload mediów w panelu admina i upload gościa | Gotowe; admin i gość korzystają ze wspólnej trwałej kolejki do 800 pozycji, z obsługą zdjęć i filmów, postępem, wznowieniem po odświeżeniu i ponawianiem błędów. | [admin-bulk-upload.md](features/admin-bulk-upload.md) |
 
 ## Ostatnia weryfikacja

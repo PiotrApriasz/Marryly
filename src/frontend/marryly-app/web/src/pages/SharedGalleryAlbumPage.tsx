@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import Layout from '../components/Layout';
 import InfiniteLoadMore from '../components/InfiniteLoadMore';
+import LoadingState from '../components/LoadingState';
 import Notice from '../components/Notice';
 import PageState from '../components/PageState';
 import PhotoGalleryGrid from '../components/PhotoGalleryGrid';
@@ -80,10 +81,49 @@ export default function SharedGalleryAlbumPage() {
     const [isDownloadingAll, setIsDownloadingAll] = useState(false);
     const [isDownloadingSelected, setIsDownloadingSelected] = useState(false);
     const [downloadError, setDownloadError] = useState<string | null>(null);
+    const [loadedHeroUrl, setLoadedHeroUrl] = useState<string | null>(null);
     const hasPhotos = (album?.photoCount ?? (photos.some((photo) => photo.kind === 'photo') ? 1 : 0)) > 0;
     const isDownloading = isDownloadingAll || isDownloadingSelected;
+    const isHeroReady = !album?.heroUrl || loadedHeroUrl === album.heroUrl;
+    const isAlbumReadyToRender = !albumLoading && album !== null && isHeroReady;
 
     useEffect(() => {
+        const heroUrl = album?.heroUrl;
+        if (!heroUrl || loadedHeroUrl === heroUrl) {
+            return;
+        }
+
+        let cancelled = false;
+        const heroImage = new Image();
+        const markReady = () => {
+            if (!cancelled) {
+                setLoadedHeroUrl(heroUrl);
+            }
+        };
+        const decodeHero = () => {
+            void heroImage.decode().catch(() => undefined).then(markReady);
+        };
+
+        heroImage.onload = decodeHero;
+        heroImage.onerror = markReady;
+        heroImage.src = heroUrl;
+
+        if (heroImage.complete) {
+            decodeHero();
+        }
+
+        return () => {
+            cancelled = true;
+            heroImage.onload = null;
+            heroImage.onerror = null;
+        };
+    }, [album?.heroUrl, loadedHeroUrl]);
+
+    useEffect(() => {
+        if (!isAlbumReadyToRender) {
+            return;
+        }
+
         const scrollContainer = scrollContainerRef.current;
         if (!scrollContainer) {
             return;
@@ -96,7 +136,7 @@ export default function SharedGalleryAlbumPage() {
         syncActiveView();
         scrollContainer.addEventListener('scroll', syncActiveView, { passive: true });
         return () => scrollContainer.removeEventListener('scroll', syncActiveView);
-    }, []);
+    }, [isAlbumReadyToRender]);
 
     useEffect(() => {
         setSelectedPhotoIds(new Set());
@@ -159,6 +199,29 @@ export default function SharedGalleryAlbumPage() {
             setIsDownloadingSelected(false);
         }
     };
+
+    if (albumError || (!albumLoading && album === null)) {
+        return (
+            <Layout showNavigation={false} showFooter={false}>
+                <PageState
+                    loading={false}
+                    error={albumError}
+                    isEmpty={album === null}
+                    emptyMessage="Ten album nie jest dostępny."
+                >
+                    {null}
+                </PageState>
+            </Layout>
+        );
+    }
+
+    if (!isAlbumReadyToRender) {
+        return (
+            <Layout showNavigation={false} showFooter={false}>
+                <LoadingState fullscreen className="bg-[#f5f1e8]" />
+            </Layout>
+        );
+    }
 
     return (
         <Layout showNavigation={false} showFooter={false}>

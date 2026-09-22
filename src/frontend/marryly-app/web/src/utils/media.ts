@@ -64,3 +64,13 @@ export function sortMediaByDate<T extends MediaDateFields>(items: T[]): T[] {
         })
         .map(({ item }) => item);
 }
+
+export function sortMediaByUploadedAt<T extends MediaDateFields>(items: T[]): T[] {
+    return items
+        .map((item, index) => ({ item, index }))
+        .sort((left, right) => {
+            const uploadedDateDifference = getDateTimestamp(right.item.uploadedAt) - getDateTimestamp(left.item.uploadedAt);
+            return uploadedDateDifference !== 0 ? uploadedDateDifference : left.index - right.index;
+        })
+        .map(({ item }) => item);
+}

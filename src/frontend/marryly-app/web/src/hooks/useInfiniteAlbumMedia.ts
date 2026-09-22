@@ -5,13 +5,14 @@ import { appText } from '../content/appText';
 import type { GalleryMediaItem } from '../types/wedding.types';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { getMockPhotosPage } from '../mocks/photos';
-import { sortMediaByDate } from '../utils/media';
+import { sortMediaByDate, sortMediaByUploadedAt } from '../utils/media';
 
 interface UseInfiniteAlbumMediaOptions {
     albumSlug?: string;
     sharedView?: string;
     shareCode?: string;
     pageSize?: number;
+    sortBy?: 'capturedAt' | 'uploadedAt';
 }
 
 interface UseInfiniteAlbumMediaResult {
@@ -28,6 +29,7 @@ export function useInfiniteAlbumMedia({
     sharedView,
     shareCode,
     pageSize = 50,
+    sortBy = 'capturedAt',
 }: UseInfiniteAlbumMediaOptions = {}): UseInfiniteAlbumMediaResult {
     const [photos, setPhotos] = useState<GalleryMediaItem[]>([]);
     const [continuationToken, setContinuationToken] = useState<string | null>(null);
@@ -65,10 +67,20 @@ export function useInfiniteAlbumMedia({
 
             nextItems.forEach((item) => loadedIdsRef.current.add(item.id));
 
-            const orderedNextItems = sortMediaByDate(nextItems);
-            setPhotos((currentPhotos) => append
-                ? [...currentPhotos, ...orderedNextItems]
-                : orderedNextItems);
+            const sortMedia = sortBy === 'uploadedAt' ? sortMediaByUploadedAt : sortMediaByDate;
+            setPhotos((currentPhotos) => {
+                const orderedNextItems = sortMedia(nextItems);
+
+                if (!append) {
+                    return orderedNextItems;
+                }
+
+                // Do not reorder the shared masonry gallery's rendered prefix.
+                // Re-sorting every loaded page moves existing tiles between columns.
+                return sortBy === 'uploadedAt'
+                    ? sortMedia([...currentPhotos, ...nextItems])
+                    : [...currentPhotos, ...orderedNextItems];
+            });
             setContinuationToken(page.continuationToken);
             setHasMore(page.hasMore);
         } catch (err) {
@@ -79,7 +91,7 @@ export function useInfiniteAlbumMedia({
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [albumSlug, pageSize, shareCode, sharedView]);
+    }, [albumSlug, pageSize, shareCode, sharedView, sortBy]);
 
     useEffect(() => {
         loadedIdsRef.current = new Set();
