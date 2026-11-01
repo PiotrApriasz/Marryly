@@ -2,7 +2,6 @@ import { useCallback } from 'react';
 import { adminClient } from '../../api/adminClient';
 import { appText } from '../../content/appText';
 import type { AdminAlbumMediaItem } from '../../types/admin.types';
-import { sortMediaByDate } from '../../utils/media';
 import { useInfiniteAdminMedia } from './useInfiniteAdminMedia';
 
 function getAdminAlbumMediaId(mediaItem: AdminAlbumMediaItem): string {
@@ -22,7 +21,6 @@ export function useAdminAlbumMedia(albumId: string | undefined, pageSize: number
         enabled: Boolean(safeAlbumId),
         fetchPage,
         getItemId: getAdminAlbumMediaId,
-        sortItems: sortMediaByDate,
         fallbackErrorMessage: appText.errors.fallback.albumMedia,
         logContext: 'Failed to load admin album media',
     });

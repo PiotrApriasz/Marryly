@@ -34,11 +34,12 @@ function decodeContinuationToken(token?: string | null): number {
     return Number.isFinite(parsedValue) && parsedValue >= 0 ? parsedValue : 0;
 }
 
-export async function getMockPhotosPage(limit: number, continuationToken?: string | null): Promise<PhotosPage> {
+export async function getMockPhotosPage(limit: number, continuationToken?: string | null, oldestFirst = false): Promise<PhotosPage> {
     const safeLimit = Math.min(Math.max(limit, 1), 100);
     const startIndex = decodeContinuationToken(continuationToken);
     const endIndex = Math.min(startIndex + safeLimit, mockPhotos.length);
-    const items = mockPhotos.slice(startIndex, endIndex);
+    const orderedPhotos = oldestFirst ? [...mockPhotos].reverse() : mockPhotos;
+    const items = orderedPhotos.slice(startIndex, endIndex);
     const nextToken = endIndex < mockPhotos.length ? String(endIndex) : null;
 
     await new Promise((resolve) => window.setTimeout(resolve, MOCK_BATCH_DELAY_MS));

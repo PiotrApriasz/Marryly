@@ -28,7 +28,6 @@ export default function GalleryAlbumPage() {
     const { photos, loading, error, hasMore, loadingMore, loadMore } = useInfiniteAlbumMedia({
         albumSlug: slug,
         pageSize: 50,
-        sortBy: 'uploadedAt',
     });
 
     return (

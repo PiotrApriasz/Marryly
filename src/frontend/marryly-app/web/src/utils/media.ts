@@ -31,10 +31,6 @@ export function getMediaHeightRatio(media: MediaDimensions): number {
     return media.kind === 'video' ? 9 / 16 : 1;
 }
 
-export function getAdminMediaHeightRatio(media: MediaDimensions): number {
-    return getMediaHeightRatio(media) + 1.75;
-}
-
 function getDateTimestamp(value: string | null | undefined): number {
     if (!value) {
         return Number.NEGATIVE_INFINITY;

@@ -19,6 +19,7 @@ Parser odrzuca niepoprawną długość, niedozwolone znaki, wielkie litery i pow
 
 - Formularz albumu ma osobny przełącznik „Dostępny przez link”, niezależny od „Widoczny publicznie”.
 - Lista albumów sygnalizuje dostęp linkowy.
+- Widok mediów administratora reużywa wariant masonry z tego albumu: ten sam `PhotoGalleryGrid`, pełnoszeroką sekcję, preview w większej rozdzielczości, podgląd pełnoekranowy i doczytywanie po 50 elementów. Dane nadal pobiera przez chronione endpointy panelu; opis narzędzi admina jest w [album-media-deletion.md](album-media-deletion.md).
 - Strona `/admin/gallery-share-links` pozwala wybrać albumy z aktywnym dostępem, dodać opis, wygenerować URL, skopiować go i zachować w katalogu.
 - Katalog zapisuje dokumenty `galleryShareLink` w kontenerze Cosmos `EventData` wraz z `albumIds`, `url`, opisem oraz datą utworzenia.
 - Usunięcie wpisu z katalogu usuwa tylko zapis administracyjny; wcześniej skopiowany link nadal działa.
@@ -51,6 +52,7 @@ Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 - drugi ekran ma jednolite tło papierowe, bez zdjęciowego tła, oraz minimalistyczne kontrolki inspirowane lightboxem;
 - zdjęcia w albumie są wyświetlane w pełnoszerokim, responsywnym układzie masonry: zdjęcia zachowują naturalne proporcje i są niezależnie układane w wyrównanych kolumnach bez przycinania;
 - kafelki w tym widoku pobierają wygenerowany preview (maksymalnie 2560 px), a nie miniaturę 480 px; oryginały są nadal używane wyłącznie w lightboxie i przy pobieraniu;
+- backend sortuje cały album od najstarszej do najnowszej daty wykonania, używając daty dodania przy braku daty wykonania; dopiero potem wydziela partie po 50 mediów. Frontend zachowuje tę kolejność, a podgląd przechodzi przez media chronologicznie. Zasady paginacji opisuje [guest-gallery.md](guest-gallery.md);
 - automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania, nie zmienia pozycji użytkownika i nie reorganizuje już wyświetlonych kafelków masonry;
 - kontrolki pozwalają wejść w tryb zaznaczania zdjęć i pobrać wszystkie zdjęcia albumu;
 - filmy pozostają widoczne i dostępne w lightboxie, ale nie są zaznaczane ani pobierane w ZIP-ach;

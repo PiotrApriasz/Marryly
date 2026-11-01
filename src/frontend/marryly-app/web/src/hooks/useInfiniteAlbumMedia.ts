@@ -5,14 +5,12 @@ import { appText } from '../content/appText';
 import type { GalleryMediaItem } from '../types/wedding.types';
 import { getErrorMessageForDisplay, logErrorDetails } from '../errors/apiError';
 import { getMockPhotosPage } from '../mocks/photos';
-import { sortMediaByDate, sortMediaByUploadedAt } from '../utils/media';
 
 interface UseInfiniteAlbumMediaOptions {
     albumSlug?: string;
     sharedView?: string;
     shareCode?: string;
     pageSize?: number;
-    sortBy?: 'capturedAt' | 'uploadedAt';
 }
 
 interface UseInfiniteAlbumMediaResult {
@@ -29,7 +27,6 @@ export function useInfiniteAlbumMedia({
     sharedView,
     shareCode,
     pageSize = 50,
-    sortBy = 'capturedAt',
 }: UseInfiniteAlbumMediaOptions = {}): UseInfiniteAlbumMediaResult {
     const [photos, setPhotos] = useState<GalleryMediaItem[]>([]);
     const [continuationToken, setContinuationToken] = useState<string | null>(null);
@@ -57,7 +54,7 @@ export function useInfiniteAlbumMedia({
 
         try {
             const page = config.useMockPhotos
-                ? await getMockPhotosPage(pageSize, nextToken)
+                ? await getMockPhotosPage(pageSize, nextToken, true)
                 : sharedView && shareCode
                     ? await apiClient.getSharedGalleryAlbumMedia(shareCode, sharedView, pageSize, nextToken)
                     : await apiClient.getGalleryAlbumMedia(albumSlug!, pageSize, nextToken);
@@ -67,20 +64,9 @@ export function useInfiniteAlbumMedia({
 
             nextItems.forEach((item) => loadedIdsRef.current.add(item.id));
 
-            const sortMedia = sortBy === 'uploadedAt' ? sortMediaByUploadedAt : sortMediaByDate;
-            setPhotos((currentPhotos) => {
-                const orderedNextItems = sortMedia(nextItems);
-
-                if (!append) {
-                    return orderedNextItems;
-                }
-
-                // Do not reorder the shared masonry gallery's rendered prefix.
-                // Re-sorting every loaded page moves existing tiles between columns.
-                return sortBy === 'uploadedAt'
-                    ? sortMedia([...currentPhotos, ...nextItems])
-                    : [...currentPhotos, ...orderedNextItems];
-            });
+            // The API sorts the entire album before paging. Preserve that order and
+            // the rendered prefix so newly loaded media do not move masonry tiles.
+            setPhotos((currentPhotos) => append ? [...currentPhotos, ...nextItems] : nextItems);
             setContinuationToken(page.continuationToken);
             setHasMore(page.hasMore);
         } catch (err) {
@@ -91,7 +77,7 @@ export function useInfiniteAlbumMedia({
             setLoading(false);
             setLoadingMore(false);
         }
-    }, [albumSlug, pageSize, shareCode, sharedView, sortBy]);
+    }, [albumSlug, pageSize, shareCode, sharedView]);
 
     useEffect(() => {
         loadedIdsRef.current = new Set();

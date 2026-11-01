@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import { appText } from '../content/appText';
 
 export interface LightboxMediaItem {
@@ -119,6 +120,7 @@ export default function MediaLightbox({
         ? -1
         : media.findIndex((item) => item.id === selectedMediaId);
     const selectedMedia = selectedMediaIndex < 0 ? null : media[selectedMediaIndex] ?? null;
+    const isOpen = selectedMedia !== null;
     const closeButtonRef = useRef<HTMLButtonElement | null>(null);
     const stageRef = useRef<HTMLDivElement | null>(null);
     const preloadCacheRef = useRef<Map<string, PreloadCacheEntry>>(new Map());
@@ -131,8 +133,27 @@ export default function MediaLightbox({
     const [mediaWaitingForMoreId, setMediaWaitingForMoreId] = useState<string | null>(null);
 
     useEffect(() => {
-        const isOpen = selectedMediaId !== null && selectedMedia !== null;
+        if (!isOpen) {
+            return;
+        }
 
+        const previousOverflow = document.body.style.overflow;
+        const appRoot = document.getElementById('root');
+        const previousInert = appRoot?.inert ?? false;
+        document.body.style.overflow = 'hidden';
+        if (appRoot) {
+            appRoot.inert = true;
+        }
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            if (appRoot) {
+                appRoot.inert = previousInert;
+            }
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
         if (isOpen && !wasOpenRef.current) {
             lastFocusedElementRef.current = document.activeElement instanceof HTMLElement
                 ? document.activeElement
@@ -146,7 +167,7 @@ export default function MediaLightbox({
         }
 
         wasOpenRef.current = isOpen;
-    }, [selectedMedia, selectedMediaId]);
+    }, [isOpen]);
 
     useEffect(() => {
         if (selectedMediaId !== null && selectedMedia === null) {
@@ -337,7 +358,8 @@ export default function MediaLightbox({
     const shouldShowLoadingIndicator = loadingIndicatorMediaId === selectedMedia.id
         && (isMediaLoading || isLoadingMoreForNavigation);
 
-    return (
+    // Escape the gallery's stacking context so navigation cannot cover the dialog.
+    return createPortal(
         <div
             className="lightbox-overlay"
             role="dialog"
@@ -429,6 +451,7 @@ export default function MediaLightbox({
                 buttonRef={closeButtonRef}
                 onClick={onClose}
             />
-        </div>
+        </div>,
+        document.body
     );
 }

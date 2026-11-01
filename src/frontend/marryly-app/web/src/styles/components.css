@@ -509,6 +509,11 @@
   @apply fixed top-0 z-50 w-full transition-all duration-300;
 }
 
+body:has(> .lightbox-overlay) .nav-shell {
+  visibility: hidden;
+  transition: none;
+}
+
 .nav-shell-scrolled {
   @apply bg-white/95 shadow-md backdrop-blur-sm;
 }

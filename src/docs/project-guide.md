@@ -12,6 +12,7 @@ Najważniejszą zasadą produktu jest rozdzielenie dostępu gości, administrato
 - **Backend:** .NET 9 Azure Functions. Logika jest podzielona na `Marryly.Application`, `Marryly.Infrastructure` i `Marryly.Functions`.
 - **Dane:** Cosmos DB. Dane związane z wydarzeniem trafiają do kontenerów opisanych w [README backendu](../backend/Marryly/README.md).
 - **Media:** galeria korzysta z istniejącego przepływu uploadu i wersji pochodnych; szczegóły MVP uploadu są w [photo-upload-mvp.md](../frontend/marryly-app/web/docs/photo-upload-mvp.md).
+- **Kolejność mediów w albumach:** API sortuje metadane całego albumu chronologicznie przed paginacją; frontend zachowuje tę kolejność. Zasady tokenów kontynuacji, obsługa starszych rekordów i koszt odczytu są opisane w [guest-gallery.md](features/guest-gallery.md).
 
 Dokument [target-architecture.md](architecture/target-architecture.md) jest wizją dalszej migracji do modularnego monolitu ASP.NET Core. Traktuj go jako kierunek, nie jako opis bieżącego runtime'u.
 
@@ -54,6 +55,7 @@ Backend:
 cd backend/Marryly
 dotnet restore
 dotnet build
+dotnet test Marryly.Tests/Marryly.Tests.csproj
 cd Marryly.Functions
 func start
 ```
