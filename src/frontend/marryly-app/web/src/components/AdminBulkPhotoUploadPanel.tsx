@@ -6,6 +6,7 @@ import Notice from './Notice';
 
 interface AdminBulkPhotoUploadPanelProps {
     albumId: string;
+    disabled?: boolean;
 }
 
 function formatQueueMessage(count: number): string {
@@ -27,7 +28,7 @@ function formatErrorList(errors: string[]): string {
     return `${visibleErrors.join('\n')}\n${appText.admin.bulkUpload.hiddenErrorsPrefix} ${hiddenCount}.`;
 }
 
-export default function AdminBulkPhotoUploadPanel({ albumId }: AdminBulkPhotoUploadPanelProps) {
+export default function AdminBulkPhotoUploadPanel({ albumId, disabled = false }: AdminBulkPhotoUploadPanelProps) {
     const inputRef = useRef<HTMLInputElement | null>(null);
     const [selectionError, setSelectionError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function AdminBulkPhotoUploadPanel({ albumId }: AdminBulkPhotoUpl
         const selectedFiles = event.target.files ? Array.from(event.target.files) : [];
         event.target.value = '';
 
-        if (selectedFiles.length === 0) {
+        if (disabled || selectedFiles.length === 0) {
             return;
         }
 
@@ -69,6 +70,7 @@ export default function AdminBulkPhotoUploadPanel({ albumId }: AdminBulkPhotoUpl
                 accept="image/*,video/*,.heic,.heif"
                 multiple
                 className="hidden"
+                disabled={disabled || isHydrating}
                 onChange={(event) => void handleFileSelection(event)}
             />
 
@@ -76,7 +78,7 @@ export default function AdminBulkPhotoUploadPanel({ albumId }: AdminBulkPhotoUpl
                 type="button"
                 className="upload-dropzone"
                 onClick={() => inputRef.current?.click()}
-                disabled={isHydrating}
+                disabled={disabled || isHydrating}
             >
                 <div className="flex flex-col items-center gap-4">
                     <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gold/10 text-gold">
@@ -125,6 +127,7 @@ export default function AdminBulkPhotoUploadPanel({ albumId }: AdminBulkPhotoUpl
                                 type="button"
                                 className="rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-50 focus:outline-none focus:ring-2 focus:ring-gold/60"
                                 onClick={() => void retryFailed(albumId)}
+                                disabled={disabled}
                             >
                                 {appText.admin.bulkUpload.retryFailed}
                             </button>

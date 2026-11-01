@@ -205,6 +205,11 @@ export interface AdminAlbumMediaPage {
     totalPages: number;
 }
 
+export interface DeleteAlbumMediaResponse {
+    deletedCount: number;
+    hasMore: boolean;
+}
+
 export interface AdminSlideshowSettings {
     albumIds: string[];
     slideDurationSeconds: number;

@@ -47,6 +47,7 @@ export const appText = {
         byCode: {
             MENU_NOT_FOUND: 'Menu weselne nie zostało jeszcze opublikowane.',
             EVENTS_NOT_FOUND: 'Wydarzenia nie zostały jeszcze opublikowane.',
+            ALBUM_MEDIA_CONTINUATION_INVALID: 'Kolejność zdjęć została zaktualizowana. Odśwież album, aby wczytać go od początku.',
             SCHEDULE_NOT_FOUND: 'Harmonogram dnia nie został jeszcze opublikowany.',
             UNHANDLED_ERROR: 'Wystąpił problem po stronie serwera. Spróbuj ponownie później.',
         },
@@ -459,6 +460,12 @@ export const appText = {
             },
             empty: 'Ten album nie ma jeszcze żadnych mediów.',
             totalSuffix: 'mediów w albumie',
+            deleteAll: 'Usuń wszystkie zdjęcia i filmy',
+            deleteAllConfirm: 'Czy na pewno chcesz trwale usunąć wszystkie zdjęcia i filmy z albumu „{album}”? Pliki, podglądy i miniatury zostaną usunięte. Tej operacji nie można cofnąć. Sam album pozostanie.',
+            deleteAllProgress: 'Trwa usuwanie zdjęć i filmów. Usunięto: {count}. Pozostaw tę stronę otwartą do zakończenia.',
+            deleteAllSuccess: 'Usunięto wszystkie zdjęcia i filmy z albumu.',
+            deleteAllFailed: 'Nie udało się usunąć wszystkich zdjęć i filmów. Część plików mogła zostać usunięta. Sprawdź odświeżoną listę i ponów akcję dla pozostałych mediów.',
+            deleteAllUploadPending: 'Usunięcie całej zawartości będzie dostępne po zakończeniu kolejki wysyłania do tego albumu.',
         },
         bulkUpload: {
             statusTitle: 'Masowy upload mediów',

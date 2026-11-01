@@ -11,6 +11,7 @@ interface AdminRequestOptions {
     body?: unknown;
     headers?: Record<string, string>;
     suppressAuthFailureEvent?: boolean;
+    signal?: AbortSignal;
 }
 
 export class AdminApiClient {
@@ -41,12 +42,13 @@ export class AdminApiClient {
     }
 
     private async request<T>(path: string, options: AdminRequestOptions): Promise<T> {
-        const { method = 'GET', body, headers, suppressAuthFailureEvent = false } = options;
+        const { method = 'GET', body, headers, suppressAuthFailureEvent = false, signal } = options;
         const hasBody = body !== undefined;
         const isBinaryBody = body instanceof Blob;
         const accessToken = readAccessToken();
         const response = await fetch(`${this.baseUrl}${path}`, {
             method,
+            signal,
             headers: {
                 Accept: ACCEPT_HEADER,
                 ...(hasBody ? { 'Content-Type': isBinaryBody ? body.type : 'application/json' } : {}),

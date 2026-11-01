@@ -20,6 +20,7 @@ import type {
     AdminSlideshowPhotosResponse,
     AdminSlideshowSettings,
     AdminSlideshowSettingsPayload,
+    DeleteAlbumMediaResponse,
 } from '../types/admin.types';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
 
@@ -106,6 +107,10 @@ export class AdminClient {
 
     async getAlbumMedia(albumId: string, page: number, pageSize: number): Promise<AdminAlbumMediaPage> {
         return adminApiClient.get<AdminAlbumMediaPage>(`/panel/albums/${albumId}/media?page=${page}&pageSize=${pageSize}`);
+    }
+
+    async deleteAlbumMediaBatch(albumId: string, signal?: AbortSignal): Promise<DeleteAlbumMediaResponse> {
+        return adminApiClient.delete<DeleteAlbumMediaResponse>(`/panel/albums/${albumId}/media`, { signal });
     }
 
     async createAlbumPhotoUpload(albumId: string, payload: CreatePhotoUploadRequest): Promise<PhotoUploadTarget> {

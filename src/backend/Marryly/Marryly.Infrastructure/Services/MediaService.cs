@@ -167,39 +167,18 @@ public class MediaService(
         CancellationToken ct = default)
     {
         var normalizedLimit = Math.Clamp(limit, 1, 100);
-        var query = new QueryDefinition(
-                $"SELECT * FROM c WHERE c.eventId = @eventId AND c.approved = true AND c.status = @status AND {BuildAlbumFilterClause(albumId)} ORDER BY c.uploadedAt DESC")
-            .WithParameter("@eventId", eventId)
-            .WithParameter("@status", "ready")
-            .WithParameter("@albumId", albumId);
-
-        var container = cosmosContainerProvider.GetContainer("MediaItems");
-        using var iterator = container.GetItemQueryIterator<MediaItem>(
-            query,
-            continuationToken,
-            new QueryRequestOptions
-            {
-                PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId),
-                MaxItemCount = normalizedLimit
-            });
-
-        if (!iterator.HasMoreResults)
-        {
-            return new AlbumMediaPageResponse
-            {
-                Items = [],
-                ContinuationToken = null,
-                HasMore = false
-            };
-        }
-
-        var page = await iterator.ReadNextAsync(ct);
+        var cursor = AlbumMediaPagination.Decode(continuationToken, eventId, albumId);
+        var items = await GetChronologicalAlbumMediaAsync(eventId, albumId, publicOnly: true, ct);
+        var remaining = cursor is null ? items : items.Where(item => AlbumMediaPagination.IsAfter(item, cursor));
+        var page = remaining.Take(normalizedLimit + 1).ToList();
+        var hasMore = page.Count > normalizedLimit;
+        var pageItems = page.Take(normalizedLimit).ToList();
 
         return new AlbumMediaPageResponse
         {
-            Items = page.Resource.Select(MapGalleryMedia).ToList(),
-            ContinuationToken = page.ContinuationToken,
-            HasMore = !string.IsNullOrWhiteSpace(page.ContinuationToken)
+            Items = pageItems.Select(MapGalleryMedia).ToList(),
+            ContinuationToken = hasMore ? AlbumMediaPagination.Encode(eventId, albumId, pageItems[^1]) : null,
+            HasMore = hasMore
         };
     }
 
@@ -284,59 +263,49 @@ public class MediaService(
         int pageSize,
         CancellationToken ct = default)
     {
-        var normalizedPage = Math.Max(1, page);
         var normalizedPageSize = Math.Clamp(pageSize, 1, 100);
-        var offset = (normalizedPage - 1) * normalizedPageSize;
-        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
-        var container = cosmosContainerProvider.GetContainer("MediaItems");
-
-        var countQuery = new QueryDefinition(
-                $"SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)}")
-            .WithParameter("@eventId", eventId)
-            .WithParameter("@albumId", albumId);
-
-        using var countIterator = container.GetItemQueryIterator<int>(
-            countQuery,
-            requestOptions: new QueryRequestOptions
-            {
-                PartitionKey = partitionKey
-            });
-
-        var totalCount = 0;
-        while (countIterator.HasMoreResults)
-        {
-            var countPage = await countIterator.ReadNextAsync(ct);
-            totalCount = countPage.Resource.FirstOrDefault();
-        }
-
-        var query = new QueryDefinition(
-                $"SELECT * FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)} ORDER BY c.uploadedAt DESC OFFSET @offset LIMIT @pageSize")
-            .WithParameter("@eventId", eventId)
-            .WithParameter("@albumId", albumId)
-            .WithParameter("@offset", offset)
-            .WithParameter("@pageSize", normalizedPageSize);
-
-        var items = new List<AdminPhotoItemResponse>();
-        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
-                       {
-                           PartitionKey = partitionKey
-                       }, ct))
-        {
-            items.Add(MapAdminPhoto(item));
-        }
-
+        var items = await GetChronologicalAlbumMediaAsync(eventId, albumId, publicOnly: false, ct);
+        var totalCount = items.Count;
         var totalPages = totalCount == 0
             ? 1
             : (int)Math.Ceiling(totalCount / (double)normalizedPageSize);
+        var normalizedPage = Math.Clamp(page, 1, totalPages);
 
         return new PagedAdminPhotosResponse
         {
-            Items = items,
-            Page = Math.Min(normalizedPage, totalPages),
+            Items = items.Skip((normalizedPage - 1) * normalizedPageSize).Take(normalizedPageSize).Select(MapAdminPhoto).ToList(),
+            Page = normalizedPage,
             PageSize = normalizedPageSize,
             TotalCount = totalCount,
             TotalPages = totalPages
         };
+    }
+
+    private async Task<List<MediaItem>> GetChronologicalAlbumMediaAsync(
+        string eventId, string albumId, bool publicOnly, CancellationToken ct)
+    {
+        var visibilityFilter = publicOnly ? " AND c.approved = true AND c.status = @status" : string.Empty;
+        var query = new QueryDefinition(
+                $"SELECT * FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)}{visibilityFilter}")
+            .WithParameter("@eventId", eventId)
+            .WithParameter("@albumId", albumId);
+        if (publicOnly)
+        {
+            query.WithParameter("@status", "ready");
+        }
+
+        // Sort all album metadata before paging, including legacy records without capturedAt.
+        // Blob contents are loaded separately by the browser, only for the returned page.
+        var items = new List<MediaItem>();
+        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
+                       {
+                           PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId)
+                       }, ct))
+        {
+            items.Add(item);
+        }
+
+        return AlbumMediaPagination.Order(items);
     }
 
     public async Task<IReadOnlyList<AdminSlideshowPhotoResponse>> GetSlideshowPhotosAsync(
@@ -505,12 +474,54 @@ public class MediaService(
             return false;
         }
 
+        await DeleteMediaItemAsync(mediaItem, partitionKey, ct);
+
+        return true;
+    }
+
+    public async Task<DeleteAlbumMediaResponse> DeleteAlbumMediaBatchAsync(
+        string eventId,
+        string albumId,
+        CancellationToken ct = default)
+    {
+        const int batchSize = 25;
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+        var query = new QueryDefinition(
+                $"SELECT TOP @limit * FROM c WHERE c.eventId = @eventId AND c.kind IN ('photo', 'video') AND {BuildAlbumFilterClause(albumId)}")
+            .WithParameter("@limit", batchSize + 1)
+            .WithParameter("@eventId", eventId)
+            .WithParameter("@albumId", albumId);
+
+        // Read the batch before deleting; OFFSET pagination would skip items as the album shrinks.
+        var items = new List<MediaItem>();
+        await foreach (var item in cosmosDbService.QueryAsync(query, new QueryRequestOptions
+                       {
+                           PartitionKey = partitionKey
+                       }, ct))
+        {
+            items.Add(item);
+        }
+
+        var deletedCount = 0;
+        foreach (var item in items.Take(batchSize))
+        {
+            await DeleteMediaItemAsync(item, partitionKey, ct);
+            deletedCount += 1;
+        }
+
+        return new DeleteAlbumMediaResponse
+        {
+            DeletedCount = deletedCount,
+            HasMore = items.Count > batchSize
+        };
+    }
+
+    private async Task DeleteMediaItemAsync(MediaItem mediaItem, PartitionKey partitionKey, CancellationToken ct)
+    {
         await mediaStorageService.DeleteOriginalIfExistsAsync(mediaItem.OriginalBlobName, ct);
         await mediaStorageService.DeleteDerivedIfExistsAsync(mediaItem.PreviewBlobName, ct);
         await mediaStorageService.DeleteDerivedIfExistsAsync(mediaItem.ThumbnailBlobName, ct);
-        await cosmosDbService.DeleteAsync(photoId, partitionKey, ct);
-
-        return true;
+        await cosmosDbService.DeleteAsync(mediaItem.Id, partitionKey, ct);
     }
 
     private AdminPhotoItemResponse MapAdminPhoto(MediaItem item)

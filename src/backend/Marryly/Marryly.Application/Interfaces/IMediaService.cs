@@ -24,4 +24,5 @@ public interface IMediaService
     Task<bool> HasAnyMediaInAlbumAsync(string eventId, string albumId, CancellationToken ct = default);
     Task<int> GetPhotosCountAsync(string eventId, CancellationToken ct = default);
     Task<bool> DeletePhotoAsync(string eventId, string photoId, CancellationToken ct = default);
+    Task<DeleteAlbumMediaResponse> DeleteAlbumMediaBatchAsync(string eventId, string albumId, CancellationToken ct = default);
 }

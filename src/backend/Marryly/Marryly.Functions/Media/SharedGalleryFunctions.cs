@@ -1,6 +1,7 @@
 using System.IO.Compression;
 using System.Net;
 using System.Text.Json;
+using Marryly.Application.Exceptions;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Media;
 using Marryly.Functions.Result;
@@ -215,6 +216,10 @@ public class SharedGalleryFunctions(
             var continuationToken = query.TryGetValue("continuationToken", out var token) ? token.ToString() : null;
             var response = await mediaService.GetAlbumMediaPageAsync(access.EventId!, album.Id, limit, continuationToken, ct);
             return await ApiResponse.ProduceSuccessResponse(req, response);
+        }
+        catch (ApiErrorException ex)
+        {
+            return await ApiResponse.ProduceErrorResponse(req, ex.StatusCode, ex.Code, ex.Title, ex.Detail);
         }
         catch (CosmosException ex)
         {
