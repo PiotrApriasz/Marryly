@@ -1,4 +1,6 @@
+using System.Net;
 using Marryly.Application.Constants;
+using Marryly.Application.Exceptions;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Media;
 using Marryly.Application.Models.Slideshow;
@@ -23,7 +25,32 @@ public class MediaService(
     public async Task<MediaItem> UpsertMediaAsync(string eventId, MediaItem mediaItem, CancellationToken ct = default)
     {
         mediaItem.EventId = eventId;
-        return await cosmosDbService.UpsertAsync(mediaItem, ct);
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+        MediaItem PreserveMembership(MediaItem current)
+        {
+            // Derivative processing and upload retries must not restore stale album assignments.
+            mediaItem.AlbumId = current.AlbumId;
+            mediaItem.AlbumIds = current.AlbumIds;
+            return mediaItem;
+        }
+
+        var updated = await cosmosDbService.UpdateAsync(mediaItem.Id, partitionKey, PreserveMembership, ct);
+        if (updated is not null)
+        {
+            return updated;
+        }
+
+        mediaItem.AlbumIds ??= MediaAlbumMembership.GetAlbumIds(mediaItem).ToList();
+        try
+        {
+            return await cosmosDbService.AddAsync(mediaItem, ct);
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            var retry = await cosmosDbService.UpdateAsync(mediaItem.Id, partitionKey, PreserveMembership, ct);
+            if (retry is null) throw;
+            return retry;
+        }
     }
 
     public async Task<MediaItem?> GetMediaByIdAsync(string eventId, string mediaId, CancellationToken ct = default)
@@ -256,6 +283,25 @@ public class MediaService(
         return photos;
     }
 
+    public async Task<IReadOnlyList<MediaItem>> GetDownloadableAdminAlbumMediaAsync(
+        string eventId, string albumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default)
+    {
+        if (mediaIds.Count == 0 || mediaIds.Any(string.IsNullOrWhiteSpace))
+        {
+            throw new ApiErrorException(HttpStatusCode.BadRequest, "DOWNLOAD_MEDIA_REQUIRED",
+                "No media selected", "Select at least one valid media id to download.");
+        }
+        var requestedIds = mediaIds.ToHashSet(StringComparer.Ordinal);
+        var albumMedia = await GetChronologicalAlbumMediaAsync(eventId, albumId, publicOnly: false, ct);
+        var selected = albumMedia.Where(item => requestedIds.Contains(item.Id) && IsSupportedMediaKind(item.Kind)).ToList();
+        if (selected.Count != requestedIds.Count)
+        {
+            throw new ApiErrorException(HttpStatusCode.BadRequest, "DOWNLOAD_MEDIA_INVALID",
+                "Invalid media selection", "Some selected media are no longer available in this album. Refresh the selection and retry.");
+        }
+        return selected;
+    }
+
     public async Task<PagedAdminPhotosResponse> GetAdminAlbumMediaPageAsync(
         string eventId,
         string albumId,
@@ -401,7 +447,8 @@ public class MediaService(
         }
 
         return items
-            .GroupBy(GetEffectiveAlbumId)
+            .SelectMany(item => MediaAlbumMembership.GetAlbumIds(item).Select(albumId => (AlbumId: albumId, Item: item)))
+            .GroupBy(entry => entry.AlbumId, entry => entry.Item)
             .ToDictionary(
                 group => group.Key,
                 group => new AlbumMediaInsight
@@ -416,25 +463,14 @@ public class MediaService(
     public async Task<bool> HasAnyMediaInAlbumAsync(string eventId, string albumId, CancellationToken ct = default)
     {
         var query = new QueryDefinition(
-                $"SELECT VALUE COUNT(1) FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)}")
+                $"SELECT TOP 1 * FROM c WHERE c.eventId = @eventId AND {BuildAlbumFilterClause(albumId)}")
             .WithParameter("@eventId", eventId)
             .WithParameter("@albumId", albumId);
 
-        var container = cosmosContainerProvider.GetContainer("MediaItems");
-        using var iterator = container.GetItemQueryIterator<int>(
-            query,
-            requestOptions: new QueryRequestOptions
-            {
-                PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId)
-            });
-
-        while (iterator.HasMoreResults)
+        await foreach (var _ in cosmosDbService.QueryAsync(query, new QueryRequestOptions
+                       { PartitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId) }, ct))
         {
-            var page = await iterator.ReadNextAsync(ct);
-            if (page.Resource.FirstOrDefault() > 0)
-            {
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -516,6 +552,115 @@ public class MediaService(
         };
     }
 
+    public async Task<IReadOnlyList<string>> GetAlbumMediaIdsAsync(string eventId, string albumId, CancellationToken ct = default)
+    {
+        var items = await GetChronologicalAlbumMediaAsync(eventId, albumId, publicOnly: false, ct);
+        return items.Where(item => IsSupportedMediaKind(item.Kind)).Select(item => item.Id).ToList();
+    }
+
+    public async Task<int> DeleteSelectedAlbumMediaAsync(
+        string eventId, string albumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default)
+    {
+        var items = await GetSelectedAlbumMediaAsync(eventId, albumId, mediaIds, ct);
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+        foreach (var item in items)
+        {
+            await DeleteMediaItemAsync(item, partitionKey, ct);
+        }
+        return items.Count;
+    }
+
+    public async Task<int> AddSelectedMediaToAlbumAsync(
+        string eventId, string sourceAlbumId, string targetAlbumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default)
+    {
+        var items = await GetSelectedAlbumMediaAsync(eventId, sourceAlbumId, mediaIds, ct);
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+        var processed = 0;
+        foreach (var item in items)
+        {
+            var updated = await cosmosDbService.UpdateAsync(item.Id, partitionKey, current =>
+            {
+                ValidateSelectedMedia(current, eventId, sourceAlbumId);
+                current.AlbumIds = MediaAlbumMembership.GetAlbumIds(current).Append(targetAlbumId)
+                    .Distinct(StringComparer.Ordinal).ToList();
+                return current;
+            }, ct);
+            if (updated is not null) processed++;
+        }
+        return processed;
+    }
+
+    public async Task<int> RemoveSelectedMediaFromAlbumAsync(
+        string eventId, string albumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default)
+    {
+        // Retrying a partially completed removal also accepts already detached records.
+        var items = await GetSelectedAlbumMediaAsync(eventId, albumId, mediaIds, ct, allowDetached: true);
+        foreach (var item in items.Where(item => MediaAlbumMembership.Contains(item, albumId)))
+        {
+            EnsureAnotherAlbum(item);
+        }
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+        var processed = 0;
+        foreach (var item in items)
+        {
+            var updated = await cosmosDbService.UpdateAsync(item.Id, partitionKey, current =>
+            {
+                if (MediaAlbumMembership.Contains(current, albumId))
+                {
+                    EnsureAnotherAlbum(current);
+                    current.AlbumIds = MediaAlbumMembership.GetAlbumIds(current).Where(id => id != albumId).ToList();
+                }
+                return current;
+            }, ct);
+            if (updated is not null) processed++;
+        }
+        return processed;
+    }
+
+    private static void EnsureAnotherAlbum(MediaItem item)
+    {
+        if (MediaAlbumMembership.GetAlbumIds(item).Count <= 1)
+        {
+            throw new ApiErrorException(HttpStatusCode.Conflict, "MEDIA_LAST_ALBUM",
+                "Media needs an album", "Some selected media belong only to this album. Add them to another album or delete them permanently.");
+        }
+    }
+
+    private static void ValidateSelectedMedia(MediaItem item, string eventId, string albumId, bool allowDetached = false)
+    {
+        if (item.EventId != eventId || (!allowDetached && !MediaAlbumMembership.Contains(item, albumId)) || !IsSupportedMediaKind(item.Kind))
+        {
+            throw new ApiErrorException(HttpStatusCode.BadRequest, "MEDIA_SELECTION_INVALID",
+                "Invalid media selection", "All selected media must belong to the requested album.");
+        }
+    }
+
+    private async Task<List<MediaItem>> GetSelectedAlbumMediaAsync(
+        string eventId, string albumId, IReadOnlyList<string> mediaIds, CancellationToken ct, bool allowDetached = false)
+    {
+        if (mediaIds.Count is < 1 or > 25 || mediaIds.Any(string.IsNullOrWhiteSpace))
+        {
+            throw new ApiErrorException(HttpStatusCode.BadRequest, "MEDIA_SELECTION_INVALID",
+                "Invalid media selection", "Select between 1 and 25 media ids per request.");
+        }
+
+        var partitionKey = PartitionKeyResolver.ForEventIdBasedData(eventId);
+        var items = new List<MediaItem>();
+        // Validate the entire batch before changing anything. Missing ids are safe to retry.
+        foreach (var mediaId in mediaIds.Distinct(StringComparer.Ordinal))
+        {
+            var item = await cosmosDbService.GetAsync(mediaId, partitionKey, ct);
+            if (item is null)
+            {
+                continue;
+            }
+
+            ValidateSelectedMedia(item, eventId, albumId, allowDetached);
+            items.Add(item);
+        }
+        return items;
+    }
+
     private async Task DeleteMediaItemAsync(MediaItem mediaItem, PartitionKey partitionKey, CancellationToken ct)
     {
         await mediaStorageService.DeleteOriginalIfExistsAsync(mediaItem.OriginalBlobName, ct);
@@ -536,6 +681,7 @@ public class MediaService(
             Status = item.Status,
             Approved = item.Approved,
             AlbumId = item.AlbumId,
+            AlbumIds = MediaAlbumMembership.GetAlbumIds(item),
             SourceType = item.SourceType,
             UploadedAt = item.UploadedAt,
             CapturedAt = item.CapturedAt,
@@ -581,9 +727,7 @@ public class MediaService(
 
     private static string BuildAlbumFilterClause(string albumId)
     {
-        return string.Equals(albumId, AlbumConstants.GuestAlbumId, StringComparison.Ordinal)
-            ? "((IS_DEFINED(c.albumId) AND c.albumId = @albumId) OR NOT IS_DEFINED(c.albumId) OR IS_NULL(c.albumId) OR c.albumId = '')"
-            : "(IS_DEFINED(c.albumId) AND c.albumId = @albumId)";
+        return BuildAlbumFilterClauseForParameter(albumId, "@albumId");
     }
 
     private static string BuildSlideshowAlbumFilterClause(IReadOnlyList<string> albumIds)
@@ -595,16 +739,10 @@ public class MediaService(
 
     private static string BuildAlbumFilterClauseForParameter(string albumId, string parameterName)
     {
-        return string.Equals(albumId, AlbumConstants.GuestAlbumId, StringComparison.Ordinal)
+        var legacy = string.Equals(albumId, AlbumConstants.GuestAlbumId, StringComparison.Ordinal)
             ? $"((IS_DEFINED(c.albumId) AND c.albumId = {parameterName}) OR NOT IS_DEFINED(c.albumId) OR IS_NULL(c.albumId) OR c.albumId = '')"
             : $"(IS_DEFINED(c.albumId) AND c.albumId = {parameterName})";
-    }
-
-    private static string GetEffectiveAlbumId(MediaItem item)
-    {
-        return string.IsNullOrWhiteSpace(item.AlbumId)
-            ? AlbumConstants.GuestAlbumId
-            : item.AlbumId;
+        return $"((IS_ARRAY(c.albumIds) AND ARRAY_CONTAINS(c.albumIds, {parameterName})) OR (NOT IS_ARRAY(c.albumIds) AND {legacy}))";
     }
 
     private static string? GetBestCoverUrl(MediaItem item)

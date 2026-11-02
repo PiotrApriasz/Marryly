@@ -19,6 +19,9 @@ public class AdminPhotoItemResponse
     [JsonProperty("albumId")]
     public string? AlbumId { get; set; }
 
+    [JsonProperty("albumIds")]
+    public IReadOnlyList<string> AlbumIds { get; set; } = [];
+
     [JsonProperty("sourceType")]
     public string? SourceType { get; set; }
 

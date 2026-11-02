@@ -1,3 +1,4 @@
+import { triggerBlobDownload } from '../utils/download';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../api/client';
@@ -45,17 +46,6 @@ function AlbumActionIcon({ icon }: { icon: AlbumActionIconName }) {
             <path d="M12 3v12m0 0-5-5m5 5 5-5M5 21h14" />
         </svg>
     );
-}
-
-function triggerBlobDownload(blob: Blob, fileName: string) {
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = fileName;
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function buildDownloadFileName(slug: string | undefined, selectedOnly: boolean): string {

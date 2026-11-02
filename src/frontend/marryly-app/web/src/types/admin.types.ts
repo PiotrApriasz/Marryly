@@ -139,6 +139,7 @@ export interface AdminMediaItem {
     uploadedAt: string;
     capturedAt?: string | null;
     albumId?: string | null;
+    albumIds?: string[];
     sourceType?: string | null;
     contentType: string;
     sizeBytes: number;
@@ -205,9 +206,16 @@ export interface AdminAlbumMediaPage {
     totalPages: number;
 }
 
-export interface DeleteAlbumMediaResponse {
+export interface AlbumMediaIdsResponse {
+    mediaIds: string[];
+}
+
+export interface AlbumMediaMembershipResponse {
+    processedCount: number;
+}
+
+export interface DeleteSelectedAlbumMediaResponse {
     deletedCount: number;
-    hasMore: boolean;
 }
 
 export interface AdminSlideshowSettings {

@@ -29,6 +29,11 @@ export class AdminApiClient {
         return this.request<T>(path, { ...options, method: 'POST', body });
     }
 
+    async postBlob(path: string, body: unknown, options?: Omit<AdminRequestOptions, 'method' | 'body'>): Promise<Blob> {
+        const response = await this.fetchResponse(path, { ...options, method: 'POST', body }, 'application/zip, application/json, application/problem+json');
+        return response.blob();
+    }
+
     async put<T>(path: string, body?: unknown, options?: Omit<AdminRequestOptions, 'method' | 'body'>): Promise<T> {
         return this.request<T>(path, { ...options, method: 'PUT', body });
     }
@@ -42,6 +47,12 @@ export class AdminApiClient {
     }
 
     private async request<T>(path: string, options: AdminRequestOptions): Promise<T> {
+        const response = await this.fetchResponse(path, options);
+        if (response.status === 204) return undefined as T;
+        return responseProcessor.parseResponse<T>(response);
+    }
+
+    private async fetchResponse(path: string, options: AdminRequestOptions, accept = ACCEPT_HEADER): Promise<Response> {
         const { method = 'GET', body, headers, suppressAuthFailureEvent = false, signal } = options;
         const hasBody = body !== undefined;
         const isBinaryBody = body instanceof Blob;
@@ -50,7 +61,7 @@ export class AdminApiClient {
             method,
             signal,
             headers: {
-                Accept: ACCEPT_HEADER,
+                Accept: accept,
                 ...(hasBody ? { 'Content-Type': isBinaryBody ? body.type : 'application/json' } : {}),
                 ...(accessToken ? { [ACCESS_TOKEN_HEADER]: accessToken } : {}),
                 ...headers,
@@ -84,11 +95,7 @@ export class AdminApiClient {
             throw apiError;
         }
 
-        if (response.status === 204) {
-            return undefined as T;
-        }
-
-        return responseProcessor.parseResponse<T>(response);
+        return response;
     }
 }
 

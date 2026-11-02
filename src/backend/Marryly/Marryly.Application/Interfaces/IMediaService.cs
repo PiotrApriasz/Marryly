@@ -18,6 +18,7 @@ public interface IMediaService
         string albumId,
         IReadOnlyCollection<string>? mediaIds = null,
         CancellationToken ct = default);
+    Task<IReadOnlyList<MediaItem>> GetDownloadableAdminAlbumMediaAsync(string eventId, string albumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default);
     Task<PagedAdminPhotosResponse> GetAdminAlbumMediaPageAsync(string eventId, string albumId, int page, int pageSize, CancellationToken ct = default);
     Task<IReadOnlyList<AdminSlideshowPhotoResponse>> GetSlideshowPhotosAsync(string eventId, IReadOnlyList<string> albumIds, DateTime? afterUploadedAt, CancellationToken ct = default);
     Task<Dictionary<string, AlbumMediaInsight>> GetAlbumInsightsAsync(string eventId, bool publicOnly, CancellationToken ct = default);
@@ -25,4 +26,8 @@ public interface IMediaService
     Task<int> GetPhotosCountAsync(string eventId, CancellationToken ct = default);
     Task<bool> DeletePhotoAsync(string eventId, string photoId, CancellationToken ct = default);
     Task<DeleteAlbumMediaResponse> DeleteAlbumMediaBatchAsync(string eventId, string albumId, CancellationToken ct = default);
+    Task<IReadOnlyList<string>> GetAlbumMediaIdsAsync(string eventId, string albumId, CancellationToken ct = default);
+    Task<int> DeleteSelectedAlbumMediaAsync(string eventId, string albumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default);
+    Task<int> AddSelectedMediaToAlbumAsync(string eventId, string sourceAlbumId, string targetAlbumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default);
+    Task<int> RemoveSelectedMediaFromAlbumAsync(string eventId, string albumId, IReadOnlyList<string> mediaIds, CancellationToken ct = default);
 }

@@ -20,7 +20,9 @@ import type {
     AdminSlideshowPhotosResponse,
     AdminSlideshowSettings,
     AdminSlideshowSettingsPayload,
-    DeleteAlbumMediaResponse,
+    AlbumMediaIdsResponse,
+    AlbumMediaMembershipResponse,
+    DeleteSelectedAlbumMediaResponse,
 } from '../types/admin.types';
 import type { CompletePhotoUploadRequest, CreatePhotoUploadRequest, PhotoUploadTarget } from '../types/upload.types';
 
@@ -109,8 +111,24 @@ export class AdminClient {
         return adminApiClient.get<AdminAlbumMediaPage>(`/panel/albums/${albumId}/media?page=${page}&pageSize=${pageSize}`);
     }
 
-    async deleteAlbumMediaBatch(albumId: string, signal?: AbortSignal): Promise<DeleteAlbumMediaResponse> {
-        return adminApiClient.delete<DeleteAlbumMediaResponse>(`/panel/albums/${albumId}/media`, { signal });
+    async getAlbumMediaIds(albumId: string, signal?: AbortSignal): Promise<AlbumMediaIdsResponse> {
+        return adminApiClient.get<AlbumMediaIdsResponse>(`/panel/albums/${albumId}/media/ids`, { signal });
+    }
+
+    async deleteSelectedAlbumMedia(albumId: string, mediaIds: string[], signal?: AbortSignal): Promise<DeleteSelectedAlbumMediaResponse> {
+        return adminApiClient.post<DeleteSelectedAlbumMediaResponse>(`/panel/albums/${albumId}/media/delete`, { mediaIds }, { signal });
+    }
+
+    async addSelectedMediaToAlbum(albumId: string, targetAlbumId: string, mediaIds: string[], signal?: AbortSignal): Promise<AlbumMediaMembershipResponse> {
+        return adminApiClient.post<AlbumMediaMembershipResponse>(`/panel/albums/${albumId}/media/add-to-album`, { targetAlbumId, mediaIds }, { signal });
+    }
+
+    async removeSelectedMediaFromAlbum(albumId: string, mediaIds: string[], signal?: AbortSignal): Promise<AlbumMediaMembershipResponse> {
+        return adminApiClient.post<AlbumMediaMembershipResponse>(`/panel/albums/${albumId}/media/remove`, { mediaIds }, { signal });
+    }
+
+    async downloadSelectedAlbumMedia(albumId: string, mediaIds: string[], signal?: AbortSignal): Promise<Blob> {
+        return adminApiClient.postBlob(`/panel/albums/${albumId}/media/download`, { mediaIds }, { signal });
     }
 
     async createAlbumPhotoUpload(albumId: string, payload: CreatePhotoUploadRequest): Promise<PhotoUploadTarget> {

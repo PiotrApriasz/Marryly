@@ -72,6 +72,30 @@ public class CosmosDbService<T> : ICosmosDbService<T>
         await container.DeleteItemAsync<T>(id, pk, cancellationToken: ct);
     }
 
+    public async Task<T?> UpdateAsync(string id, PartitionKey pk, Func<T, T> update, CancellationToken ct = default)
+    {
+        var container = _provider.GetContainer(_containerName);
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                var current = await container.ReadItemAsync<T>(id, pk, cancellationToken: ct);
+                var replacement = update(current.Resource);
+                var saved = await container.ReplaceItemAsync(replacement, id, pk,
+                    new ItemRequestOptions { IfMatchEtag = current.ETag }, ct);
+                return saved.Resource;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                return default;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.PreconditionFailed && attempt < 4)
+            {
+                // Re-read before retrying so simultaneous album changes are merged.
+            }
+        }
+    }
+
     public async IAsyncEnumerable<T> QueryAsync(string? query = null, QueryRequestOptions? opts = null,
         [EnumeratorCancellation] CancellationToken ct = default)
     {

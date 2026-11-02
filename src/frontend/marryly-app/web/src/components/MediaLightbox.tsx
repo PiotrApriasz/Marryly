@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { appText } from '../content/appText';
 
@@ -19,6 +19,7 @@ interface MediaLightboxProps {
     hasMoreMedia?: boolean;
     loadingMore?: boolean;
     onRequestMore?: () => Promise<void> | void;
+    renderMediaActions?: (media: LightboxMediaItem) => ReactNode;
 }
 
 type LightboxIconName = 'previous' | 'next' | 'close' | 'download';
@@ -115,6 +116,7 @@ export default function MediaLightbox({
     hasMoreMedia = false,
     loadingMore = false,
     onRequestMore,
+    renderMediaActions,
 }: MediaLightboxProps) {
     const selectedMediaIndex = selectedMediaId === null
         ? -1
@@ -420,6 +422,12 @@ export default function MediaLightbox({
                     aria-label={appText.components.galleryGrid.loadingAriaLabel}
                 >
                     <span className="lightbox-spinner" aria-hidden="true" />
+                </div>
+            ) : null}
+
+            {renderMediaActions ? (
+                <div className="lightbox-media-actions" onClick={(event) => event.stopPropagation()}>
+                    {renderMediaActions(selectedMedia)}
                 </div>
             ) : null}
 

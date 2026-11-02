@@ -1,10 +1,10 @@
-using System.IO.Compression;
 using System.Net;
 using System.Text.Json;
 using Marryly.Application.Exceptions;
 using Marryly.Application.Interfaces;
 using Marryly.Application.Models.Media;
 using Marryly.Functions.Result;
+using Marryly.Infrastructure.Services;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
@@ -169,17 +169,7 @@ public class SharedGalleryFunctions(
                 "Content-Disposition",
                 $"attachment; filename=\"{BuildZipFileName(album, requestedMediaIds is not null)}\"");
 
-            using (var archive = new ZipArchive(response.Body, ZipArchiveMode.Create, leaveOpen: true))
-            {
-                for (var index = 0; index < photos.Count; index += 1)
-                {
-                    var photo = photos[index];
-                    var entry = archive.CreateEntry(BuildZipEntryName(photo, index));
-                    await using var source = await mediaStorageService.OpenOriginalReadAsync(photo.OriginalBlobName, ct);
-                    await using var destination = entry.Open();
-                    await source.CopyToAsync(destination, ct);
-                }
-            }
+            await MediaZipArchive.WriteAsync(response.Body, photos, mediaStorageService, ct);
 
             return response;
         }
@@ -281,26 +271,6 @@ public class SharedGalleryFunctions(
 
     private static bool IsAsciiLetterOrDigit(char character) =>
         character is >= 'a' and <= 'z' or >= 'A' and <= 'Z' or >= '0' and <= '9';
-
-    private static string BuildZipEntryName(MediaItem photo, int index)
-    {
-        var originalName = (photo.OriginalBlobName ?? string.Empty).Replace('\\', '/');
-        var fileName = Path.GetFileName(originalName);
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            fileName = $"{photo.Id}.jpg";
-        }
-
-        var safeFileName = string.Concat(fileName.Select(character =>
-            char.IsLetterOrDigit(character) || character is '.' or '-' or '_' ? character : '-'))
-            .Trim('.');
-        if (string.IsNullOrWhiteSpace(safeFileName))
-        {
-            safeFileName = $"{photo.Id}.jpg";
-        }
-
-        return $"{index + 1:D4}-{safeFileName}";
-    }
 
     private static GalleryAlbumResponse MapSharedGalleryAlbum(Album album, IReadOnlyDictionary<string, AlbumMediaInsight> insights)
     {

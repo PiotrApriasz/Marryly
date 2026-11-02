@@ -13,6 +13,10 @@ public class MediaItem : BaseModel
     [JsonProperty("albumId")]
     public string? AlbumId { get; set; }
 
+    // AlbumId records the upload origin. When present, AlbumIds owns membership.
+    [JsonProperty("albumIds", NullValueHandling = NullValueHandling.Ignore)]
+    public List<string>? AlbumIds { get; set; }
+
     [JsonProperty("sourceType")]
     public string? SourceType { get; set; }
 

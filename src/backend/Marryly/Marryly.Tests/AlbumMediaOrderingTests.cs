@@ -182,6 +182,28 @@ public class AlbumMediaOrderingTests
         OriginalBlobUrl = "https://example.invalid/original", ContentType = "image/jpeg"
     };
 
+    [Fact]
+    public async Task SelectAllIdsIncludesWholeAlbumAndVideoWithoutPublicVisibilityFiltering()
+    {
+        var store = new MediaStore(Enumerable.Range(0, 151).Select(index => Media($"photo-{index:D3}",
+            Start.AddMinutes(index), Start)).ToList());
+        var video = Media("video", Start.AddYears(1), Start);
+        video.Kind = "video";
+        video.Approved = false;
+        video.Status = "failed";
+        var other = Media("other", Start, Start);
+        other.AlbumId = "other";
+        store.Items.AddRange([video, other]);
+        var service = new MediaService(store, null!, new BlobUrls());
+
+        var ids = await service.GetAlbumMediaIdsAsync("event", "album");
+
+        Assert.Equal(152, ids.Count);
+        Assert.Equal("photo-000", ids[0]);
+        Assert.Equal("video", ids[^1]);
+        Assert.DoesNotContain("other", ids);
+    }
+
     private sealed class MediaStore(List<MediaItem> items) : ICosmosDbService<MediaItem>
     {
         public List<MediaItem> Items { get; } = items;
@@ -209,7 +231,7 @@ public class AlbumMediaOrderingTests
             }
 
             var matching = Items.Where(item => item.EventId == eventId
-                && (item.AlbumId == albumId || (albumId == "guest" && string.IsNullOrEmpty(item.AlbumId)))
+                && MediaAlbumMembership.Contains(item, albumId)
                 && (!publicOnly || (item.Approved && item.Status == "ready"))).ToList();
             if (++_queries % 2 == 0)
             {
@@ -225,6 +247,7 @@ public class AlbumMediaOrderingTests
         public Task<MediaItem?> GetAsync(string id, PartitionKey pk, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<MediaItem> AddAsync(MediaItem entity, CancellationToken ct = default) => throw new NotSupportedException();
         public Task<MediaItem> UpsertAsync(MediaItem entity, CancellationToken ct = default) => throw new NotSupportedException();
+        public Task<MediaItem?> UpdateAsync(string id, PartitionKey pk, Func<MediaItem, MediaItem> update, CancellationToken ct = default) => throw new NotSupportedException();
         public Task DeleteAsync(string id, PartitionKey pk, CancellationToken ct = default) => throw new NotSupportedException();
         public IAsyncEnumerable<MediaItem> QueryAsync(string? query = null, QueryRequestOptions? opts = null,
             CancellationToken ct = default) => throw new NotSupportedException();

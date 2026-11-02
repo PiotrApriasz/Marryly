@@ -27,6 +27,6 @@ Sortowanie w backendzie obejmuje jedynie dokumenty metadanych, bez pobierania pl
 
 ## Weryfikacja
 
-`AlbumMediaOrderingTests` sprawdza 151 mediów z odwrotną kolejnością dat wykonania i uploadu, kolejne strony admina i gościa, brak daty wykonania, identyczne daty, usunięcie wcześniejszych elementów podczas paginacji, granice wydarzeń/albumów, ukryte i błędne media, starsze rekordy gości oraz błędne i obce tokeny. Łącznie z testami usuwania przechodzi 20 testów backendu.
+`AlbumMediaOrderingTests` sprawdza 151 mediów z odwrotną kolejnością dat wykonania i uploadu, kolejne strony admina i gościa, brak daty wykonania, identyczne daty, usunięcie wcześniejszych elementów podczas paginacji, granice wydarzeń/albumów, ukryte i błędne media, starsze rekordy gości oraz błędne i obce tokeny. Filtry uwzględniają też przynależność do wielu albumów opisaną w [album-media-membership.md](album-media-membership.md). Łącznie z testami usuwania i przypisań przechodzą 43 testy backendu.
 
 Uruchom `dotnet test backend/Marryly/Marryly.Tests/Marryly.Tests.csproj`, build backendu oraz lint i build frontendu. Przy weryfikacji ręcznej wgraj najstarsze zdjęcie na końcu i sprawdź, że po odświeżeniu jest pierwsze, również gdy album przekracza 50 elementów.
