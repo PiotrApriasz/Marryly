@@ -1,6 +1,15 @@
-import { useCallback, useEffect, useRef, useState, type ButtonHTMLAttributes, type MouseEvent, type ReactNode, type RefObject } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import Lightbox, { type Slide } from 'yet-another-react-lightbox';
+import Video from 'yet-another-react-lightbox/plugins/video';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import 'yet-another-react-lightbox/styles.css';
 import { appText } from '../content/appText';
+
+declare module 'yet-another-react-lightbox' {
+    interface SlideTypes {
+        'load-more': { type: 'load-more' };
+    }
+}
 
 export interface LightboxMediaItem {
     id: string;
@@ -8,7 +17,10 @@ export interface LightboxMediaItem {
     url: string;
     originalUrl?: string | null;
     downloadUrl?: string | null;
+    thumbnailUrl?: string | null;
     contentType?: string | null;
+    width?: number;
+    height?: number;
 }
 
 interface MediaLightboxProps {
@@ -20,92 +32,6 @@ interface MediaLightboxProps {
     loadingMore?: boolean;
     onRequestMore?: () => Promise<void> | void;
     renderMediaActions?: (media: LightboxMediaItem) => ReactNode;
-}
-
-type LightboxIconName = 'previous' | 'next' | 'close' | 'download';
-
-interface LightboxControlProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onClick'> {
-    icon: LightboxIconName;
-    label: string;
-    buttonRef?: RefObject<HTMLButtonElement | null>;
-    href?: string;
-    onClick?: () => void;
-}
-
-const PRELOAD_AHEAD_COUNT = 4;
-const RETAIN_BEHIND_COUNT = 4;
-
-interface PreloadCacheEntry {
-    url: string;
-    element: HTMLImageElement | HTMLVideoElement;
-}
-
-function LightboxIcon({ icon }: { icon: LightboxIconName }) {
-    if (icon === 'close') {
-        return (
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-        );
-    }
-
-    if (icon === 'download') {
-        return (
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" />
-            </svg>
-        );
-    }
-
-    return (
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d={icon === 'previous' ? 'M15 18l-6-6 6-6' : 'M9 18l6-6-6-6'} />
-        </svg>
-    );
-}
-
-function LightboxControl({
-    icon,
-    label,
-    buttonRef,
-    href,
-    onClick,
-    ...props
-}: LightboxControlProps) {
-    const handleClick = (event: MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
-        event.stopPropagation();
-        onClick?.();
-    };
-    const className = `lightbox-control ${props.className ?? ''}`.trim();
-
-    if (href) {
-        return (
-            <a
-                href={href}
-                download
-                className={className}
-                aria-label={label}
-                title={label}
-                onClick={handleClick}
-            >
-                <LightboxIcon icon={icon} />
-            </a>
-        );
-    }
-
-    return (
-        <button
-            {...props}
-            ref={buttonRef}
-            type="button"
-            className={className}
-            aria-label={label}
-            title={label}
-            onClick={handleClick}
-        >
-            <LightboxIcon icon={icon} />
-        </button>
-    );
 }
 
 export default function MediaLightbox({
@@ -121,345 +47,138 @@ export default function MediaLightbox({
     const selectedMediaIndex = selectedMediaId === null
         ? -1
         : media.findIndex((item) => item.id === selectedMediaId);
-    const selectedMedia = selectedMediaIndex < 0 ? null : media[selectedMediaIndex] ?? null;
-    const isOpen = selectedMedia !== null;
-    const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-    const stageRef = useRef<HTMLDivElement | null>(null);
-    const preloadCacheRef = useRef<Map<string, PreloadCacheEntry>>(new Map());
-    const lastFocusedElementRef = useRef<HTMLElement | null>(null);
-    const wasOpenRef = useRef(false);
-    const pendingNextNavigationRef = useRef(false);
+    const selectedMedia = media[selectedMediaIndex];
+    const [waitingAfterId, setWaitingAfterId] = useState<string | null>(null);
+    const [requestingMore, setRequestingMore] = useState(false);
     const moreRequestInFlightRef = useRef(false);
-    const [loadedMediaId, setLoadedMediaId] = useState<string | null>(null);
-    const [loadingIndicatorMediaId, setLoadingIndicatorMediaId] = useState<string | null>(null);
-    const [mediaWaitingForMoreId, setMediaWaitingForMoreId] = useState<string | null>(null);
+    const canRequestMore = hasMoreMedia && Boolean(onRequestMore);
+    const text = appText.components.galleryGrid;
 
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
+    const slides = useMemo<Slide[]>(() => {
+        const items: Slide[] = media.map((item) => {
+            const src = item.originalUrl ?? item.url;
+            const dimensions = item.width && item.width > 0 && item.height && item.height > 0
+                ? { width: item.width, height: item.height }
+                : {};
 
-        const previousOverflow = document.body.style.overflow;
-        const appRoot = document.getElementById('root');
-        const previousInert = appRoot?.inert ?? false;
-        document.body.style.overflow = 'hidden';
-        if (appRoot) {
-            appRoot.inert = true;
-        }
-
-        return () => {
-            document.body.style.overflow = previousOverflow;
-            if (appRoot) {
-                appRoot.inert = previousInert;
-            }
-        };
-    }, [isOpen]);
-
-    useEffect(() => {
-        if (isOpen && !wasOpenRef.current) {
-            lastFocusedElementRef.current = document.activeElement instanceof HTMLElement
-                ? document.activeElement
-                : null;
-            closeButtonRef.current?.focus();
-        }
-
-        if (!isOpen && wasOpenRef.current) {
-            lastFocusedElementRef.current?.focus();
-            lastFocusedElementRef.current = null;
-        }
-
-        wasOpenRef.current = isOpen;
-    }, [isOpen]);
-
-    useEffect(() => {
-        if (selectedMediaId !== null && selectedMedia === null) {
-            onClose();
-        }
-    }, [onClose, selectedMedia, selectedMediaId]);
-
-    useEffect(() => {
-        if (selectedMediaIndex < 0) {
-            return;
-        }
-
-        const retainedMedia = media.slice(
-            Math.max(0, selectedMediaIndex - RETAIN_BEHIND_COUNT),
-            selectedMediaIndex + PRELOAD_AHEAD_COUNT + 1
-        );
-        const retainedIds = new Set(retainedMedia.map((mediaItem) => mediaItem.id));
-
-        for (const [mediaId] of preloadCacheRef.current) {
-            if (!retainedIds.has(mediaId)) {
-                preloadCacheRef.current.delete(mediaId);
-            }
-        }
-
-        const upcomingMedia = media.slice(
-            selectedMediaIndex + 1,
-            selectedMediaIndex + 1 + PRELOAD_AHEAD_COUNT
-        );
-
-        upcomingMedia.forEach((mediaItem) => {
-            const mediaUrl = mediaItem.originalUrl ?? mediaItem.url;
-            const cachedMedia = preloadCacheRef.current.get(mediaItem.id);
-
-            if (cachedMedia?.url === mediaUrl) {
-                return;
-            }
-
-            if (mediaItem.kind === 'video') {
-                const video = document.createElement('video');
-                video.preload = 'metadata';
-                video.src = mediaUrl;
-                video.load();
-                preloadCacheRef.current.set(mediaItem.id, { url: mediaUrl, element: video });
-                return;
-            }
-
-            const image = new Image();
-            image.decoding = 'async';
-            image.src = mediaUrl;
-            void image.decode().catch(() => undefined);
-            preloadCacheRef.current.set(mediaItem.id, { url: mediaUrl, element: image });
+            return item.kind === 'video'
+                ? {
+                    type: 'video',
+                    sources: [{ src, type: item.contentType ?? '' }],
+                    poster: item.thumbnailUrl ?? undefined,
+                    ...dimensions,
+                }
+                : { src, alt: appText.common.media.photoPreviewAlt, ...dimensions };
         });
-    }, [media, selectedMediaIndex]);
 
-    useEffect(() => {
-        if (selectedMediaId === null) {
-            pendingNextNavigationRef.current = false;
-            return;
-        }
+        // A real final slide lets swipe and keyboard navigation cross page boundaries.
+        if (canRequestMore) items.push({ type: 'load-more' });
+        return items;
+    }, [canRequestMore, media]);
 
-        const timeoutId = window.setTimeout(() => {
-            setLoadingIndicatorMediaId(selectedMediaId);
-        }, 150);
-
-        return () => window.clearTimeout(timeoutId);
-    }, [selectedMediaId]);
-
-    const focusStage = useCallback(() => {
-        stageRef.current?.focus({ preventScroll: true });
-    }, []);
-
-    const selectMedia = useCallback((mediaItem: LightboxMediaItem | undefined) => {
-        if (!mediaItem) {
-            return;
-        }
-
-        pendingNextNavigationRef.current = false;
-        setMediaWaitingForMoreId(null);
-        focusStage();
-        onSelectMedia(mediaItem.id);
-    }, [focusStage, onSelectMedia]);
-
-    const requestMoreMedia = useCallback(() => {
-        if (!hasMoreMedia || !onRequestMore) {
-            return;
-        }
-
-        pendingNextNavigationRef.current = true;
-        setLoadingIndicatorMediaId(selectedMediaId);
-        setMediaWaitingForMoreId(selectedMediaId);
-
-        if (loadingMore || moreRequestInFlightRef.current) {
-            return;
-        }
+    const requestMore = useCallback(() => {
+        if (!canRequestMore || !onRequestMore || loadingMore || moreRequestInFlightRef.current) return;
 
         moreRequestInFlightRef.current = true;
+        setRequestingMore(true);
         void Promise.resolve()
-            .then(() => onRequestMore())
+            .then(onRequestMore)
             .catch(() => undefined)
             .finally(() => {
                 moreRequestInFlightRef.current = false;
+                setRequestingMore(false);
             });
-    }, [hasMoreMedia, loadingMore, onRequestMore, selectedMediaId]);
-
-    const selectNextMedia = useCallback(() => {
-        const nextMedia = media[selectedMediaIndex + 1];
-
-        if (nextMedia) {
-            selectMedia(nextMedia);
-            return;
-        }
-
-        requestMoreMedia();
-    }, [media, requestMoreMedia, selectMedia, selectedMediaIndex]);
+    }, [canRequestMore, loadingMore, onRequestMore]);
 
     useEffect(() => {
-        if (!pendingNextNavigationRef.current || selectedMediaIndex < 0) {
-            return;
-        }
+        if (selectedMediaId !== null && !selectedMedia) onClose();
+    }, [onClose, selectedMedia, selectedMediaId]);
 
-        const nextMedia = media[selectedMediaIndex + 1];
+    // Keep the next index while a page arrives, so the first new photo replaces
+    // the loading slide without jumping back to the previous photo.
+    const index = Math.min(
+        selectedMediaIndex + (waitingAfterId !== null && waitingAfterId === selectedMediaId ? 1 : 0),
+        slides.length - 1
+    );
+    const activeMedia = media[index];
 
-        if (nextMedia) {
-            const timeoutId = window.setTimeout(() => {
-                if (!pendingNextNavigationRef.current) {
-                    return;
-                }
-
-                const latestNextMedia = media[selectedMediaIndex + 1];
-                if (latestNextMedia) {
-                    pendingNextNavigationRef.current = false;
-                    selectMedia(latestNextMedia);
-                }
-            }, 0);
-
-            return () => window.clearTimeout(timeoutId);
-        }
-
-        if (!hasMoreMedia && !loadingMore) {
-            pendingNextNavigationRef.current = false;
-        }
-    }, [hasMoreMedia, loadingMore, media, selectMedia, selectedMediaIndex]);
-
-    const markMediaAsLoaded = useCallback((mediaId: string) => {
-        setLoadedMediaId(mediaId);
-        setLoadingIndicatorMediaId((currentMediaId) => currentMediaId === mediaId ? null : currentMediaId);
-    }, []);
-
-    useEffect(() => {
-        if (selectedMedia === null) {
-            return;
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                event.preventDefault();
+    return (
+        <Lightbox
+            open={Boolean(selectedMedia)}
+            close={() => {
+                setWaitingAfterId(null);
                 onClose();
-                return;
-            }
-
-            if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
-                return;
-            }
-
-            event.preventDefault();
-            if (event.key === 'ArrowRight') {
-                selectNextMedia();
-                return;
-            }
-
-            selectMedia(media[selectedMediaIndex - 1]);
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [media, onClose, selectMedia, selectNextMedia, selectedMedia, selectedMediaId, selectedMediaIndex]);
-
-    if (selectedMedia === null) {
-        return null;
-    }
-
-    const displayUrl = selectedMedia.originalUrl ?? selectedMedia.url;
-    const downloadUrl = selectedMedia.downloadUrl ?? selectedMedia.originalUrl ?? selectedMedia.url;
-    const hasPreviousMedia = selectedMediaIndex > 0;
-    const hasNextMedia = selectedMediaIndex < media.length - 1;
-    const isMediaLoading = loadedMediaId !== selectedMedia.id;
-    const isLoadingMoreForNavigation = loadingMore && mediaWaitingForMoreId === selectedMedia.id;
-    const shouldShowLoadingIndicator = loadingIndicatorMediaId === selectedMedia.id
-        && (isMediaLoading || isLoadingMoreForNavigation);
-
-    // Escape the gallery's stacking context so navigation cannot cover the dialog.
-    return createPortal(
-        <div
+            }}
+            index={Math.max(0, index)}
+            slides={slides}
+            plugins={[Zoom, Video]}
             className="lightbox-overlay"
-            role="dialog"
-            aria-modal="true"
-            aria-label={appText.components.galleryGrid.dialogAriaLabel}
-            onClick={onClose}
-        >
-            <div
-                className="lightbox-stage"
-                ref={stageRef}
-                tabIndex={-1}
-                onClick={(event) => event.stopPropagation()}
-            >
-                {selectedMedia.kind === 'video' ? (
-                    <video
-                        src={displayUrl}
-                        controls
-                        autoPlay
-                        playsInline
-                        className="lightbox-media"
-                        onLoadedData={() => {
-                            markMediaAsLoaded(selectedMedia.id);
-                        }}
-                        onError={() => {
-                            markMediaAsLoaded(selectedMedia.id);
-                        }}
-                    >
-                        <a href={displayUrl} target="_blank" rel="noreferrer" className="text-white underline">
-                            {appText.common.media.openOrDownloadVideo}
+            carousel={{ finite: true, padding: 0, spacing: '8%', preload: 2 }}
+            controller={{ closeOnPullDown: true, closeOnBackdropClick: true }}
+            video={{ autoPlay: true, playsInline: true, controls: true, preload: 'metadata' }}
+            zoom={{ doubleClickMaxStops: 1 }}
+            labels={{
+                Lightbox: text.dialogAriaLabel,
+                Next: text.nextAriaLabel,
+                Previous: text.previousAriaLabel,
+                Close: text.closeAriaLabel,
+                'Zoom in': text.zoomInAriaLabel,
+                'Zoom out': text.zoomOutAriaLabel,
+                'Photo gallery': text.dialogAriaLabel,
+                Carousel: text.carouselAriaLabel,
+                Slide: text.slideAriaLabel,
+                '{index} of {total}': text.slideCounter,
+            }}
+            on={{
+                view: ({ index: nextIndex }) => {
+                    const nextMedia = media[nextIndex];
+                    if (nextMedia) {
+                        setWaitingAfterId(null);
+                        if (nextMedia.id !== selectedMediaId) onSelectMedia(nextMedia.id);
+                    } else if (selectedMedia && canRequestMore) {
+                        setWaitingAfterId(selectedMedia.id);
+                        requestMore();
+                    }
+                },
+            }}
+            toolbar={{
+                buttons: [
+                    'zoom',
+                    activeMedia ? (
+                        <a
+                            key="download"
+                            href={activeMedia.downloadUrl ?? activeMedia.originalUrl ?? activeMedia.url}
+                            download
+                            className="yarl__button"
+                            aria-label={text.downloadAriaLabel}
+                            title={text.downloadAriaLabel}
+                        >
+                            <svg className="yarl__icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <path d="M12 3v12m0 0l-5-5m5 5l5-5M5 21h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
                         </a>
-                    </video>
-                ) : (
-                    <img
-                        key={selectedMedia.id}
-                        src={displayUrl}
-                        alt={appText.common.media.photoPreviewAlt}
-                        className="lightbox-media"
-                        fetchPriority="high"
-                        loading="eager"
-                        onLoad={(event) => {
-                            markMediaAsLoaded(selectedMedia.id);
-                            preloadCacheRef.current.set(selectedMedia.id, {
-                                url: displayUrl,
-                                element: event.currentTarget,
-                            });
-                        }}
-                        onError={() => {
-                            markMediaAsLoaded(selectedMedia.id);
-                        }}
-                    />
-                )}
-            </div>
-
-            {shouldShowLoadingIndicator ? (
-                <div
-                    className="lightbox-loading-indicator"
-                    role="status"
-                    aria-label={appText.components.galleryGrid.loadingAriaLabel}
-                >
-                    <span className="lightbox-spinner" aria-hidden="true" />
-                </div>
-            ) : null}
-
-            {renderMediaActions ? (
-                <div className="lightbox-media-actions" onClick={(event) => event.stopPropagation()}>
-                    {renderMediaActions(selectedMedia)}
-                </div>
-            ) : null}
-
-            <LightboxControl
-                icon="previous"
-                label={appText.components.galleryGrid.previousAriaLabel}
-                className="lightbox-control-previous"
-                onClick={() => selectMedia(media[selectedMediaIndex - 1])}
-                disabled={!hasPreviousMedia}
-            />
-            <LightboxControl
-                icon="next"
-                label={appText.components.galleryGrid.nextAriaLabel}
-                className="lightbox-control-next"
-                onClick={selectNextMedia}
-                disabled={!hasNextMedia && (!hasMoreMedia || !onRequestMore || loadingMore)}
-                aria-busy={loadingMore && !hasNextMedia}
-            />
-            <LightboxControl
-                icon="download"
-                label={appText.components.galleryGrid.downloadAriaLabel}
-                className="lightbox-control-download"
-                href={downloadUrl}
-            />
-            <LightboxControl
-                icon="close"
-                label={appText.components.galleryGrid.closeAriaLabel}
-                className="lightbox-control-close"
-                buttonRef={closeButtonRef}
-                onClick={onClose}
-            />
-        </div>,
-        document.body
+                    ) : null,
+                    'close',
+                ],
+            }}
+            render={{
+                iconLoading: () => <span className="lightbox-spinner" role="status" aria-label={text.loadingAriaLabel} />,
+                iconError: () => <span role="alert">{text.imageLoadFailed}</span>,
+                slide: ({ slide }) => slide.type === 'load-more' ? (
+                    <div className="lightbox-pagination" role="status">
+                        {loadingMore || requestingMore ? (
+                            <><span className="lightbox-spinner" aria-hidden="true" /><span>{text.loadingAriaLabel}</span></>
+                        ) : (
+                            <><span>{text.loadMoreFailed}</span><button type="button" className="yarl__button" onClick={requestMore}>{text.retryLoading}</button></>
+                        )}
+                    </div>
+                ) : undefined,
+                controls: () => activeMedia && renderMediaActions ? (
+                    <div className="lightbox-media-actions">
+                        {renderMediaActions(activeMedia)}
+                    </div>
+                ) : null,
+            }}
+        />
     );
 }

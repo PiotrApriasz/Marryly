@@ -52,6 +52,7 @@ Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 - drugi ekran ma jednolite tło papierowe, bez zdjęciowego tła, oraz minimalistyczne kontrolki inspirowane lightboxem;
 - zdjęcia w albumie są wyświetlane w pełnoszerokim, responsywnym układzie masonry: zdjęcia zachowują naturalne proporcje i są niezależnie układane w wyrównanych kolumnach bez przycinania;
 - kafelki w tym widoku pobierają wygenerowany preview (maksymalnie 2560 px), a nie miniaturę 480 px; oryginały są nadal używane wyłącznie w lightboxie i przy pobieraniu;
+- wspólny podgląd wykorzystuje cały ekran przeglądarki bez bocznych marginesów, obsługuje zmianę zdjęć palcem, zoom dwoma palcami i podwójnym stuknięciem oraz zamknięcie przesunięciem w dół; szczegóły i zakres weryfikacji opisuje [guest-gallery.md](guest-gallery.md#podgląd-na-telefonie);
 - backend sortuje cały album od najstarszej do najnowszej daty wykonania, używając daty dodania przy braku daty wykonania; dopiero potem wydziela partie po 50 mediów. Frontend zachowuje tę kolejność, a podgląd przechodzi przez media chronologicznie. Zasady paginacji opisuje [guest-gallery.md](guest-gallery.md);
 - automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania, nie zmienia pozycji użytkownika i nie reorganizuje już wyświetlonych kafelków masonry;
 - kontrolki pozwalają wejść w tryb zaznaczania zdjęć i pobrać wszystkie zdjęcia albumu;

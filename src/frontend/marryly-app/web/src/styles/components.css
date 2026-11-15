@@ -127,8 +127,26 @@
   stroke-width: 2;
 }
 
-.lightbox-overlay {
-  @apply fixed inset-0 z-[100] flex overflow-hidden bg-ink/95;
+.lightbox-overlay.yarl__root {
+  --yarl__color_backdrop: #000;
+  --yarl__toolbar_padding: 0;
+  --yarl__button_padding: 12px;
+  z-index: 100;
+}
+
+.lightbox-overlay .yarl__toolbar {
+  top: max(0.5rem, env(safe-area-inset-top));
+  right: max(0.5rem, env(safe-area-inset-right));
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.lightbox-overlay .yarl__navigation_prev {
+  left: max(0.5rem, env(safe-area-inset-left));
+}
+
+.lightbox-overlay .yarl__navigation_next {
+  right: max(0.5rem, env(safe-area-inset-right));
 }
 
 .media-selection-toggle {
@@ -193,67 +211,28 @@
 
 @media (max-width: 639px) {
   .lightbox-media-actions {
-    flex-direction: column;
-    align-items: flex-start;
+    top: auto;
+    bottom: max(4.5rem, calc(env(safe-area-inset-bottom) + 3.5rem));
+    right: max(0.75rem, env(safe-area-inset-right));
+    flex-wrap: wrap;
+  }
+
+  .lightbox-overlay .yarl__navigation_prev,
+  .lightbox-overlay .yarl__navigation_next {
+    top: auto;
+    bottom: max(0.5rem, env(safe-area-inset-bottom));
+    transform: none;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.35);
   }
 }
 
-.lightbox-stage {
-  @apply flex h-full w-full items-center justify-center px-16 py-6 outline-none sm:px-20 sm:py-8;
-}
-
-.lightbox-media {
-  display: block;
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.lightbox-loading-indicator {
-  @apply pointer-events-none fixed inset-0 z-[102] flex items-center justify-center;
+.lightbox-pagination {
+  @apply flex flex-col items-center gap-4 px-6 text-center text-white;
 }
 
 .lightbox-spinner {
   @apply h-10 w-10 animate-spin rounded-full border-2 border-white/25 border-t-white;
-}
-
-.lightbox-control {
-  @apply fixed z-[101] inline-flex h-12 w-12 items-center justify-center rounded-full border border-transparent bg-transparent text-white/85 transition-colors duration-200 hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:opacity-30;
-}
-
-.lightbox-control svg {
-  @apply h-7 w-7;
-}
-
-.lightbox-control svg path {
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-}
-
-.lightbox-control-previous {
-  left: max(0.75rem, env(safe-area-inset-left));
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.lightbox-control-next {
-  right: max(0.75rem, env(safe-area-inset-right));
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.lightbox-control-close {
-  right: max(0.75rem, env(safe-area-inset-right));
-  top: max(0.75rem, env(safe-area-inset-top));
-}
-
-.lightbox-control-download {
-  right: calc(max(0.75rem, env(safe-area-inset-right)) + 3rem);
-  top: max(0.75rem, env(safe-area-inset-top));
 }
 
 @media (min-width: 1024px) {
