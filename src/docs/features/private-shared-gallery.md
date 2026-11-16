@@ -38,8 +38,11 @@ Selektor otwierany przez `?view=…` ma własny, dwuekranowy widok bez navbaru:
 - ekran powitalny z napisem „Alicja & Piotr” oraz `src/assets/gallery-main-photo.jpg`; zdjęcie zachowuje własne proporcje, a jego rozmiar jest ograniczony zarówno szerokością, jak i wysokością viewportu, bez kadrowania na szerokich ekranach, gdzie może wykorzystać większą część dostępnego miejsca;
 - przycisk prowadzący płynnie do listy albumów, bez wymuszonego zatrzymywania przewijania;
 - to samo zdjęcie na drugim ekranie jest wycentrowanym, przyciemnionym i delikatnie rozmytym tłem pod półprzezroczystymi kartami;
+- okładka każdej karty jest losowana ze wszystkich zdjęć danego albumu, a nie wybierana według daty uploadu. Publiczne widoki uwzględniają wyłącznie zdjęcia zatwierdzone ze statusem `ready`; filmy nie są okładkami. Wybór zachowuje preferencję miniatury, następnie preview i oryginału. Przy braku zdjęć pozostaje placeholder;
 - osobne warstwy zdjęcia karty i tła ograniczają koszt animacji; widok obsługuje `prefers-reduced-motion`.
 - pod listą albumów znajduje się minimalistyczna stopka „Made by Piotr Apriasz, approved by Alicja Biel”.
+
+Losowanie wykonuje wspólne `GetAlbumInsightsAsync` podczas pobierania metadanych listy, niezależnie dla każdego albumu; korzystają z niego także zwykła galeria i panel admina, z dotychczasowymi filtrami ich dostępu. Zdjęcie przypisane do kilku albumów może zostać okładką każdego z nich. Nie ma dodatkowych zapytań ani zmiany liczników. Lista albumów galerii linkowej zachowuje dotychczasowy pięciominutowy cache w karcie przeglądarki, więc samo ponowne wyrenderowanie kart nie zmienia okładek; kolejne pobranie z API losuje ponownie i może wybrać to samo zdjęcie.
 
 ## Wygląd pojedynczego albumu
 
@@ -66,6 +69,8 @@ Pobieranie korzysta z capability-linku i jest realizowane przez endpointy `/app/
 Obie metody korzystają ze wspólnego `MediaZipArchive`. Archiwum jest kończone w automatycznie usuwanym pliku tymczasowym i dopiero potem kopiowane asynchronicznie do odpowiedzi HTTP. Usuwa to błąd `Synchronous operations are disallowed` przy zamykaniu ZIP-a. Opis mechanizmu, wymaganego miejsca tymczasowego i obsługi błędów znajduje się w [admin-media-download.md](admin-media-download.md#zapis-zip-zgodny-z-http). Kontrola capability-linku i filtrowanie zdjęć pozostają w endpointach galerii.
 
 ## Weryfikacja po zmianach
+
+Po zmianie losowania okładek przechodzi 52 istniejących testów backendu oraz `dotnet build backend/Marryly/Marryly.sln --no-restore`. Frontend i kontrakty API nie były zmieniane.
 
 Ręcznie sprawdź link z jednym albumem, link z wieloma albumami, błędny `view`, długą listę albumów oraz zwykłe przewijanie w desktopowym i mobilnym viewportcie. Dla pojedynczego albumu sprawdź także losowanie hero z pełnego zbioru, pusty album, pobranie wszystkich zdjęć, pobranie zaznaczeń z wielu stron, odrzucenie filmu lub zdjęcia spoza albumu w żądaniu ZIP oraz działanie dla długiej nazwy albumu i `prefers-reduced-motion`.
 

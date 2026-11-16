@@ -455,7 +455,7 @@ public class MediaService(
                 {
                     ItemCount = group.Count(),
                     PhotoCount = group.Count(item => string.Equals(item.Kind, "photo", StringComparison.Ordinal)),
-                    CoverUrl = group.Select(GetBestCoverUrl).FirstOrDefault(url => !string.IsNullOrWhiteSpace(url))
+                    CoverUrl = GetRandomCoverUrl(group)
                 },
                 StringComparer.Ordinal);
     }
@@ -743,6 +743,12 @@ public class MediaService(
             ? $"((IS_DEFINED(c.albumId) AND c.albumId = {parameterName}) OR NOT IS_DEFINED(c.albumId) OR IS_NULL(c.albumId) OR c.albumId = '')"
             : $"(IS_DEFINED(c.albumId) AND c.albumId = {parameterName})";
         return $"((IS_ARRAY(c.albumIds) AND ARRAY_CONTAINS(c.albumIds, {parameterName})) OR (NOT IS_ARRAY(c.albumIds) AND {legacy}))";
+    }
+
+    private static string? GetRandomCoverUrl(IEnumerable<MediaItem> media)
+    {
+        var covers = media.Select(GetBestCoverUrl).Where(url => !string.IsNullOrWhiteSpace(url)).ToArray();
+        return covers.Length == 0 ? null : covers[RandomNumberGenerator.GetInt32(covers.Length)];
     }
 
     private static string? GetBestCoverUrl(MediaItem item)
