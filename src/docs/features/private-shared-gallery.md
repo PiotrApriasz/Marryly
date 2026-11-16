@@ -54,7 +54,7 @@ Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 - kafelki w tym widoku pobierają wygenerowany preview (maksymalnie 2560 px), a nie miniaturę 480 px; oryginały są nadal używane wyłącznie w lightboxie i przy pobieraniu;
 - wspólny podgląd wykorzystuje cały ekran przeglądarki bez bocznych marginesów, obsługuje zmianę zdjęć palcem, zoom dwoma palcami i podwójnym stuknięciem oraz zamknięcie przesunięciem w dół; szczegóły i zakres weryfikacji opisuje [guest-gallery.md](guest-gallery.md#podgląd-na-telefonie);
 - backend sortuje cały album od najstarszej do najnowszej daty wykonania, używając daty dodania przy braku daty wykonania; dopiero potem wydziela partie po 50 mediów. Frontend zachowuje tę kolejność, a podgląd przechodzi przez media chronologicznie. Zasady paginacji opisuje [guest-gallery.md](guest-gallery.md);
-- automatyczne doczytywanie kolejnej strony wymaga ponownego dojścia użytkownika do końca galerii po poprzednim pobraniu; dopisanie zdjęć nie wywołuje programowego przewijania, nie zmienia pozycji użytkownika i nie reorganizuje już wyświetlonych kafelków masonry;
+- kolejne partie pobierają się z wyprzedzeniem około dwóch ekranów we własnym kontenerze przewijania; oczekujące preview mają rozmyte miniatury, a kafelki rezerwują stałe miejsce. Dopisanie zdjęć nie wywołuje programowego przewijania ani przesuwania wcześniejszych kafelków. Mechanizm i obsługa ponowień są opisane w [guest-gallery.md](guest-gallery.md#płynne-doczytywanie-i-podglądy);
 - kontrolki pozwalają wejść w tryb zaznaczania zdjęć i pobrać wszystkie zdjęcia albumu;
 - filmy pozostają widoczne i dostępne w lightboxie, ale nie są zaznaczane ani pobierane w ZIP-ach;
 - po uploadzie filmu przeglądarka pobiera pojedynczą klatkę, tworzy z niej poster JPEG i przesyła go do endpointu HTTP; poster jest trwale zapisany w Blob Storage i przekazywany przez grid do elementu wideo, bez kolejki i FFmpeg; panel albumów pozwala utworzyć postery dla filmów wgranych wcześniej, przetwarzając je kolejno w otwartej karcie administratora;
@@ -62,6 +62,8 @@ Pojedynczy album linkowy ma ten sam dwuekranowy charakter co selektor albumów:
 - pod galerią znajduje się minimalistyczna stopka „Made by Piotr Apriasz, approved by Alicja Biel”.
 
 Pobieranie korzysta z capability-linku i jest realizowane przez endpointy `/app/gallery/shared/{shareCode}/download`: żądanie GET tworzy ZIP ze wszystkimi zdjęciami, a żądanie POST przyjmuje `mediaIds` i tworzy ZIP tylko dla wskazanych zdjęć. Backend ponownie sprawdza parametr `view`, kod albumu, przynależność mediów oraz `approved=true`, `status=ready` i typ `photo`.
+
+Obie metody korzystają ze wspólnego `MediaZipArchive`. Archiwum jest kończone w automatycznie usuwanym pliku tymczasowym i dopiero potem kopiowane asynchronicznie do odpowiedzi HTTP. Usuwa to błąd `Synchronous operations are disallowed` przy zamykaniu ZIP-a. Opis mechanizmu, wymaganego miejsca tymczasowego i obsługi błędów znajduje się w [admin-media-download.md](admin-media-download.md#zapis-zip-zgodny-z-http). Kontrola capability-linku i filtrowanie zdjęć pozostają w endpointach galerii.
 
 ## Weryfikacja po zmianach
 

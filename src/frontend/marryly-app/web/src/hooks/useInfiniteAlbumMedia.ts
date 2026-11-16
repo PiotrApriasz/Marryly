@@ -44,12 +44,12 @@ export function useInfiniteAlbumMedia({
         }
 
         requestInFlightRef.current = true;
+        setError(null);
 
         if (append) {
             setLoadingMore(true);
         } else {
             setLoading(true);
-            setError(null);
         }
 
         try {

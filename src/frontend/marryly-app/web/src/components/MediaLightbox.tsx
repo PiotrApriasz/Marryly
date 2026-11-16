@@ -4,6 +4,7 @@ import Video from 'yet-another-react-lightbox/plugins/video';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
 import { appText } from '../content/appText';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 declare module 'yet-another-react-lightbox' {
     interface SlideTypes {
@@ -44,6 +45,7 @@ export default function MediaLightbox({
     onRequestMore,
     renderMediaActions,
 }: MediaLightboxProps) {
+    const hasMousePointer = useMediaQuery('(hover: hover) and (pointer: fine)');
     const selectedMediaIndex = selectedMediaId === null
         ? -1
         : media.findIndex((item) => item.id === selectedMediaId);
@@ -113,6 +115,7 @@ export default function MediaLightbox({
             slides={slides}
             plugins={[Zoom, Video]}
             className="lightbox-overlay"
+            animation={hasMousePointer ? { swipe: 0, navigation: 0 } : undefined}
             carousel={{ finite: true, padding: 0, spacing: '8%', preload: 2 }}
             controller={{ closeOnPullDown: true, closeOnBackdropClick: true }}
             video={{ autoPlay: true, playsInline: true, controls: true, preload: 'metadata' }}

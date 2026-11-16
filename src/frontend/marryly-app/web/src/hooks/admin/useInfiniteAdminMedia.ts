@@ -60,11 +60,11 @@ export function useInfiniteAdminMedia<T>({
         }
 
         requestInFlightRef.current = true;
+        setError(null);
         if (append) {
             setLoadingMore(true);
         } else {
             setLoading(true);
-            setError(null);
         }
 
         try {

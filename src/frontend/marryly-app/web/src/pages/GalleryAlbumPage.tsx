@@ -42,7 +42,7 @@ export default function GalleryAlbumPage() {
                     <div className="mt-12">
                         <PageState
                             loading={albumLoading || loading}
-                            error={albumError ?? error}
+                            error={albumError ?? (photos.length === 0 ? error : null)}
                             isEmpty={photos.length === 0}
                             emptyMessage={appText.public.gallery.albumEmpty}
                             loadingFallback={<AlbumLoadingFallback />}
@@ -55,6 +55,8 @@ export default function GalleryAlbumPage() {
                                     onRequestMore={loadMore}
                                 />
                                 <InfiniteLoadMore
+                                    itemCount={photos.length}
+                                    error={error}
                                     hasMore={hasMore}
                                     loading={loadingMore}
                                     onLoadMore={loadMore}

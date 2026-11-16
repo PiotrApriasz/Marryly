@@ -18,10 +18,19 @@ public class ProblemDetailsMiddleware(ILogger<ProblemDetailsMiddleware> logger) 
         {
             logger.LogError(ex, "Unhandled exception");
 
+            var httpContext = context.GetHttpContext();
+            if (httpContext?.Response.HasStarted == true)
+            {
+                // A started download cannot be replaced with JSON. End the partial
+                // transfer so the client sees a failure instead of a corrupted ZIP.
+                httpContext.Abort();
+                throw;
+            }
+
             var req = await context.GetHttpRequestDataAsync();
             if (req is null) throw; 
 
-            var res = req.CreateResponse(HttpStatusCode.InternalServerError);
+            var res = ApiResponse.CreateErrorResponse(req, HttpStatusCode.InternalServerError);
 
             var traceId = context.InvocationId;
             var problem = new

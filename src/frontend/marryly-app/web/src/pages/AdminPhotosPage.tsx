@@ -32,7 +32,7 @@ export default function AdminPhotosPage() {
                     <div className="shared-gallery-album-photos-content">
                         <PageState
                             loading={loading}
-                            error={error}
+                            error={items.length === 0 ? error : null}
                             isEmpty={items.length === 0}
                             emptyMessage={appText.admin.media.empty}
                         >
@@ -44,6 +44,8 @@ export default function AdminPhotosPage() {
                                     onRequestMore={loadMore}
                                 />
                                 <InfiniteLoadMore
+                                    itemCount={items.length}
+                                    error={error}
                                     hasMore={hasMore}
                                     loading={loadingMore}
                                     onLoadMore={loadMore}

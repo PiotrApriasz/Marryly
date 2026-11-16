@@ -311,7 +311,7 @@ function AdminAlbumContent({ albumId }: { albumId: string | undefined }) {
                     <div className="shared-gallery-album-photos-content">
                         <PageState
                             loading={(!album && albumsLoading) || (album !== null && loading)}
-                            error={album ? error : null}
+                            error={album && items.length === 0 ? error : null}
                             isEmpty={!album || items.length === 0}
                             emptyMessage={appText.admin.album.empty}
                         >
@@ -328,6 +328,8 @@ function AdminAlbumContent({ albumId }: { albumId: string | undefined }) {
                                 />
 
                                 <InfiniteLoadMore
+                                    itemCount={items.length}
+                                    error={error}
                                     hasMore={hasMore}
                                     loading={loadingMore}
                                     onLoadMore={loadMore}

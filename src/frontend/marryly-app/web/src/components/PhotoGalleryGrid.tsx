@@ -5,6 +5,7 @@ import { getMediaAspectRatio, getMediaHeightRatio } from '../utils/media';
 import MasonryGrid from './MasonryGrid';
 import MediaLightbox from './MediaLightbox';
 import MediaSelectionToggle from './MediaSelectionToggle';
+import GalleryImage from './GalleryImage';
 
 interface PhotoGalleryGridProps {
     photos: GalleryMediaItem[];
@@ -61,7 +62,7 @@ export default function PhotoGalleryGrid({
                     style={{ aspectRatio: variant === 'masonry' ? getMediaAspectRatio(photo) : '1 / 1' }}
                 >
                     {photo.kind === 'video' ? (
-                        <div className="relative h-full w-full">
+                        <div className="absolute inset-0">
                             <video
                                 src={photo.url}
                                 poster={photo.thumbnailUrl ?? undefined}
@@ -77,11 +78,11 @@ export default function PhotoGalleryGrid({
                             </div>
                         </div>
                     ) : (
-                        <img
+                        <GalleryImage
+                            key={variant === 'masonry' ? photo.url : photo.thumbnailUrl ?? photo.url}
                             src={variant === 'masonry' ? photo.url : photo.thumbnailUrl ?? photo.url}
+                            thumbnailSrc={photo.thumbnailUrl}
                             alt={appText.common.media.weddingPhotoAlt}
-                            loading="lazy"
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                     )}
                     {selectionMode && photo.kind === 'photo' ? (

@@ -292,7 +292,7 @@ export default function SharedGalleryAlbumPage() {
 
                         <PageState
                             loading={albumLoading || loading}
-                            error={albumError ?? error}
+                            error={albumError ?? (photos.length === 0 ? error : null)}
                             isEmpty={photos.length === 0}
                             emptyMessage={appText.public.gallery.sharedAlbum.noPhotos}
                         >
@@ -308,6 +308,9 @@ export default function SharedGalleryAlbumPage() {
                                     onTogglePhotoSelection={togglePhotoSelection}
                                 />
                                 <InfiniteLoadMore
+                                    itemCount={photos.length}
+                                    error={error}
+                                    scrollRootRef={scrollContainerRef}
                                     hasMore={hasMore}
                                     loading={loadingMore}
                                     onLoadMore={loadMore}

@@ -1,11 +1,15 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import Button from './Button';
+import Notice from './Notice';
 
 interface InfiniteLoadMoreProps {
     hasMore: boolean;
     loading: boolean;
     onLoadMore: () => void | Promise<void>;
     label: string;
+    itemCount: number;
+    error?: string | null;
+    scrollRootRef?: RefObject<HTMLElement | null>;
 }
 
 export default function InfiniteLoadMore({
@@ -13,17 +17,22 @@ export default function InfiniteLoadMore({
     loading,
     onLoadMore,
     label,
+    itemCount,
+    error,
+    scrollRootRef,
 }: InfiniteLoadMoreProps) {
     const sentinelRef = useRef<HTMLDivElement | null>(null);
-    const awaitingSentinelExitRef = useRef(false);
+    const requestedItemCountRef = useRef<number | null>(null);
 
     useEffect(() => {
         const node = sentinelRef.current;
 
-        if (!node || !hasMore || loading) {
+        if (!node || !hasMore || loading || error) {
             return;
         }
 
+        const root = scrollRootRef?.current ?? null;
+        const prefetchDistance = Math.max(1200, (root?.clientHeight ?? window.innerHeight) * 2);
         const observer = new IntersectionObserver((entries) => {
             const [entry] = entries;
 
@@ -32,22 +41,25 @@ export default function InfiniteLoadMore({
             }
 
             if (!entry.isIntersecting) {
-                awaitingSentinelExitRef.current = false;
+                requestedItemCountRef.current = null;
                 return;
             }
 
-            if (!awaitingSentinelExitRef.current) {
-                awaitingSentinelExitRef.current = true;
+            // Recheck after a page extends the grid, including when a short page
+            // still leaves the end nearby. No progress must not cause a retry loop.
+            if (requestedItemCountRef.current !== itemCount) {
+                requestedItemCountRef.current = itemCount;
                 void onLoadMore();
             }
         }, {
-            rootMargin: '300px 0px',
+            root,
+            rootMargin: `0px 0px ${prefetchDistance}px 0px`,
         });
 
         observer.observe(node);
 
         return () => observer.disconnect();
-    }, [hasMore, loading, onLoadMore]);
+    }, [error, hasMore, itemCount, loading, onLoadMore, scrollRootRef]);
 
     if (!hasMore) {
         return null;
@@ -56,11 +68,15 @@ export default function InfiniteLoadMore({
     return (
         <div className="mt-8 flex flex-col items-center gap-4">
             <div ref={sentinelRef} className="h-1 w-full" />
+            {error ? <Notice tone="error" role="alert"><p>{error}</p></Notice> : null}
             <Button
                 type="button"
                 variant="secondary"
                 size="md"
-                onClick={() => void onLoadMore()}
+                onClick={() => {
+                    requestedItemCountRef.current = itemCount;
+                    void onLoadMore();
+                }}
                 loading={loading}
             >
                 {label}

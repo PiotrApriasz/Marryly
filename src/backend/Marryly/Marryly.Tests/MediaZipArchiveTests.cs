@@ -43,6 +43,52 @@ public class MediaZipArchiveTests
         await using var output = new MemoryStream();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => MediaZipArchive.WriteAsync(output, [Item("photo", "photo.jpg", "photo")], storage, cancellation.Token));
         Assert.Null(storage.LastStream);
+        Assert.Equal(0, output.Length);
+    }
+
+    [Theory]
+    [InlineData(CompressionLevel.Optimal, false)]
+    [InlineData(CompressionLevel.NoCompression, false)]
+    [InlineData(CompressionLevel.Optimal, true)]
+    public async Task ZipCanBeWrittenToHttpStreamThatRejectsSynchronousIO(CompressionLevel compression, bool empty)
+    {
+        var item = Item("photo", "photo.jpg", "photo");
+        var bytes = new byte[200_000];
+        new Random(42).NextBytes(bytes);
+        var storage = new Storage(new Dictionary<string, byte[]> { [item.OriginalBlobName] = bytes });
+        await using var output = new AsyncOnlyOutputStream();
+
+        await MediaZipArchive.WriteAsync(output, empty ? [] : [item], storage, compression: compression);
+
+        Assert.True(output.CanWrite);
+        await using var contents = new MemoryStream(output.ToArray());
+        using var archive = new ZipArchive(contents, ZipArchiveMode.Read);
+        if (empty)
+        {
+            Assert.Empty(archive.Entries);
+        }
+        else
+        {
+            var entry = Assert.Single(archive.Entries);
+            await using var original = entry.Open();
+            await using var restored = new MemoryStream();
+            await original.CopyToAsync(restored);
+            Assert.Equal(bytes, restored.ToArray());
+        }
+    }
+
+    [Fact]
+    public async Task MissingOriginalDoesNotWritePartialArchiveToHttpResponse()
+    {
+        var photo = Item("photo", "photo.jpg", "photo");
+        var missing = Item("missing", "missing.jpg", "photo");
+        var storage = new Storage(new Dictionary<string, byte[]> { [photo.OriginalBlobName] = [1, 2, 3] });
+        await using var output = new AsyncOnlyOutputStream();
+
+        await Assert.ThrowsAsync<FileNotFoundException>(() => MediaZipArchive.WriteAsync(output, [photo, missing], storage));
+
+        Assert.Empty(output.ToArray());
+        Assert.True(storage.LastStream!.WasDisposed);
     }
 
     private static MediaItem Item(string id, string path, string kind) => new()
@@ -57,6 +103,28 @@ public class MediaZipArchiveTests
         protected override void Dispose(bool disposing) { WasDisposed = true; base.Dispose(disposing); }
     }
 
+    // Kestrel's response body is non-seekable and disallows synchronous writes and flushes.
+    private sealed class AsyncOnlyOutputStream : Stream
+    {
+        private readonly MemoryStream contents = new();
+        public byte[] ToArray() => contents.ToArray();
+        public override bool CanRead => false;
+        public override bool CanSeek => false;
+        public override bool CanWrite => contents.CanWrite;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Flush() => throw new InvalidOperationException("Synchronous operations are disallowed.");
+        public override void Write(byte[] buffer, int offset, int count) => throw new InvalidOperationException("Synchronous operations are disallowed.");
+        public override void Write(ReadOnlySpan<byte> buffer) => throw new InvalidOperationException("Synchronous operations are disallowed.");
+        public override Task FlushAsync(CancellationToken ct) => contents.FlushAsync(ct);
+        public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken ct) => contents.WriteAsync(buffer, offset, count, ct);
+        public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken ct = default) => contents.WriteAsync(buffer, ct);
+        protected override void Dispose(bool disposing) { if (disposing) contents.Dispose(); base.Dispose(disposing); }
+    }
+
     private sealed class Storage(Dictionary<string, byte[]> bytes) : IMediaStorageService
     {
         public Dictionary<string, byte[]> Bytes { get; } = bytes;
@@ -64,7 +132,8 @@ public class MediaZipArchiveTests
         public Task<Stream> OpenOriginalReadAsync(string name, CancellationToken ct = default)
         {
             Assert.True(LastStream is null || LastStream.WasDisposed);
-            LastStream = new TrackedStream(Bytes[name]);
+            if (!Bytes.TryGetValue(name, out var contents)) throw new FileNotFoundException("Original is missing.", name);
+            LastStream = new TrackedStream(contents);
             return Task.FromResult<Stream>(LastStream);
         }
         public string GetOriginalReadUrl(string name) => throw new NotSupportedException();
